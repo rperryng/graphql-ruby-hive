@@ -179,7 +179,7 @@ MUTATION
       }
       
       @report[:map][operation_map_key] = {
-        fields: fields,
+        fields: fields.to_a,
         operationName: operation_name,
         operation: operation
       }
