@@ -5,7 +5,7 @@ require 'logger'
 
 
 require "graphql-hive/version"
-require "graphql-hive/visitor"
+require "graphql-hive/analyzer"
 require "graphql-hive/printer"
 
 
@@ -79,7 +79,6 @@ module GraphQL
       if platform_key == 'execute_multiplex'
         if data[:multiplex]
           queries = data[:multiplex].queries
-          # TODO: find a better `timestamp` value
           timestamp = Time.now.utc
           starting = Process.clock_gettime(Process::CLOCK_MONOTONIC)
           results = yield
@@ -128,12 +127,18 @@ module GraphQL
 
       operation_name = queries.map(&:operations).map(&:keys).flatten.compact.join(', ')
       operation = ''
+      fields = Set.new
 
       queries.each do |query|
-        # TODO: replace with a `GraphQL::Analysis::AST::Analyzer`
-        visitor = GraphQL::Hive::Visitor.new(query.document)
+        analyzer = GraphQL::Hive::Analyzer.new(query)
+        visitor = GraphQL::Analysis::AST::Visitor.new(
+          query: query,
+          analyzers: [analyzer]
+        )
+
         visitor.visit
-        # puts visitor.used_fields
+
+        fields.merge(analyzer.result)
 
         operation += "\n" unless operation.empty?
         operation += GraphQL::Hive::Printer.new.print(visitor.result)
@@ -149,12 +154,13 @@ module GraphQL
         execution: {
           ok: errors[:errorsTotal] == 0,
           duration: duration,
-          errorsTotal: errors[:errorsTotal]
+          errorsTotal: errors[:errorsTotal],
+          errors: errors[:errors],
         }
       }
       
       @report[:map][operation_map_key] = {
-        fields: [],
+        fields: fields,
         operationName: operation_name,
         operation: operation
       }
