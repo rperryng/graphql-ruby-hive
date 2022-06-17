@@ -95,7 +95,7 @@ MUTATION
       if platform_key == 'execute_multiplex'
         if data[:multiplex]
           queries = data[:multiplex].queries
-          timestamp = Time.now.utc
+          timestamp = (Time.now.utc.to_f * 1000).to_i
           starting = Process.clock_gettime(Process::CLOCK_MONOTONIC)
           results = yield
           ending = Process.clock_gettime(Process::CLOCK_MONOTONIC)
@@ -205,10 +205,7 @@ MUTATION
     end
 
     def send_report_schema(schema)
-      log_report_schema(schema.inspect, :debug)
       sdl = GraphQL::Schema::Printer.new(schema).print_schema
-      
-      log_report_schema("sdl: #{sdl}", :debug)
 
       body = {
         query: REPORT_SCHEMA_MUTATION,
@@ -235,7 +232,7 @@ MUTATION
         uri =
           URI::HTTP.build(
             scheme: "https",
-            host: 'app.staging.graphql-hive.com',
+            host: 'app.graphql-hive.com',
             port: "443",
             path: path
           )
