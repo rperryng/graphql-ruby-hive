@@ -4,6 +4,16 @@ require 'rack/contrib'
 
 require_relative 'schema'
 
+# Test query:
+#
+# query GetPost($input: [PostInput!]!) {
+#   post(input: $input, test: TEST1) {
+#     title
+#     myId: id
+#   }
+# }
+
+
 class DemoApp < Sinatra::Base
   use Rack::JSONBodyParser
 

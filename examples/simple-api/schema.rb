@@ -40,7 +40,7 @@ class QueryType < GraphQL::Schema::Object
 end
 
 class Schema < GraphQL::Schema
-  use(GraphQL::Hive, { token: 'xxx-xxx-xxx', debug: true })
-
   query QueryType
+
+  use(GraphQL::Hive, { token: 'test', debug: true, reporting: { author: 'Charly Poly', commit: '109bb1e748bae21bdfe663c0ffc7e830' } })
 end
