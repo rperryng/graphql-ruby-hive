@@ -71,6 +71,8 @@ MUTATION
       validate_options!(opts)
       super(opts)
 
+      log(:client, opts.inspect, :debug)
+
       # buffer
       @report = {
         size: 0,
@@ -128,7 +130,6 @@ MUTATION
     private
 
     def validate_options!(options)
-      puts options
       if !options.include?(:token) && (!options.include?(:enabled) || options.enabled)
         log(:client, "`token` options is missing", :warn)
         options[:enabled] = false
@@ -187,20 +188,27 @@ MUTATION
 
       log_usage(JSON.generate(@report).inspect, :debug)
 
-      send_usage_report # if @report.size > @options.buffer_size
+      send_usage_report
     end
 
     def send_usage_report
-      return unless @report.size > 0
+      return unless @report[:size] >= @options[:buffer_size]
 
       send('/usage', @report, :usage)
+
+      # reset buffer
+      @report = {
+        size: 0,
+        map: {},
+        operations: [],
+      }
     end
 
     def send_report_schema(schema)
-      log_report_schema(schema.inspect)
+      log_report_schema(schema.inspect, :debug)
       sdl = GraphQL::Schema::Printer.new(schema).print_schema
       
-      log_report_schema("sdl: #{sdl}")
+      log_report_schema("sdl: #{sdl}", :debug)
 
       body = {
         query: REPORT_SCHEMA_MUTATION,
