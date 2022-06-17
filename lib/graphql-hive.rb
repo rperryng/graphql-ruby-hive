@@ -1,6 +1,8 @@
 require 'digest'
 require "net/http"
 require "uri"
+require 'logger'
+
 
 require "graphql-hive/version"
 require "graphql-hive/visitor"
@@ -12,12 +14,13 @@ require "graphql-hive/printer"
 #   use(
 #     GraphQL::Hive,
 #     {
+#       token: 'YOUR-TOKEN',
 #       collect_usage: true,
 #       read_operations: true,
 #       report_schema: true,
 #       enabled: true, // Enable/Disable Hive Client
 #       debug: true, // Debugging mode
-#       token: 'YOUR-TOKEN',
+#       logger: MyLogger.new,
 #       reporting: {
 #         author: 'Author of the latest change',
 #         commit: 'git sha or any identifier',
@@ -38,6 +41,7 @@ module GraphQL
       read_operations: true,
       report_schema: true,
       buffer_size: 50,
+      logger: Logger.new(STDOUT),
     }
 
     self.platform_keys = {
@@ -112,7 +116,7 @@ module GraphQL
 
     def validate_options!(options)
       if !options.include?(:token) && (!options.include?(:enabled) || options.enabled)
-        puts "[hive][usage]: `token` options is missing"
+        log("[hive][usage]: `token` options is missing", :warn)
         options[:enabled] = false
         false
       end
@@ -121,7 +125,6 @@ module GraphQL
 
     def add_operation_to_report(timestamp, queries, results, duration)
       errors = errors_from_results(results)
-      puts [queries, duration, errors].inspect
 
       operation_name = queries.map(&:operations).map(&:keys).flatten.compact.join(', ')
       operation = ''
@@ -158,7 +161,7 @@ module GraphQL
       @report[:operations] << operation_record
       @report[:size] += 1
 
-      puts @report.inspect
+      log(JSON.generate(@report).inspect, :debug)
 
       send_report # if @report.size > @options.buffer_size
     end
@@ -174,7 +177,7 @@ module GraphQL
         uri =
           URI::HTTP.build(
             scheme: "https",
-            host: 'app.graphql-hive.com',
+            host: 'app.staging.graphql-hive.com',
             port: "443",
             path: path
           )
@@ -190,11 +193,16 @@ module GraphQL
         request['graphql-client-version'] = Graphql::Hive::VERSION
         request.body = JSON.generate(body)
         response =  http.request(request)
-        puts response.inspect
-        puts response.body.inspect
+
+        log(response.inspect, :debug)
+        log(response.body.inspect, :debug)
       rescue StandardError => e
-        puts "[hive][usage] Failed to send data: #{e}"
+        log("Failed to send data: #{e}", :fatal)
       end
+    end
+
+    def log(msg, level = :info)
+      @options[:logger].send(level, "[hive][usage] #{msg}") unless level == :debug && !@options[:debug]
     end
 
     ###################
