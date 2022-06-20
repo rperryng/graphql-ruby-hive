@@ -202,5 +202,5 @@ module GraphQL
 end
 
 at_exit do
-  GraphQL::Hive.instance.on_exit if GraphQL::Hive.instance
+  GraphQL::Hive.instance&.on_exit
 end
