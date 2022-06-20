@@ -58,7 +58,7 @@ end
 
 The `reporting` configuration is required to push your GraphQL Schema to the Hive registry.
 Doing so will help better detect breaking changes and more upcoming features.
-If you only want to use the operations monitoring, replace the `monitoring` option with the following `report_schema: false`.
+If you only want to use the operations monitoring, replace the `reporting` option with the following `report_schema: false`.
 
 <br/>
 
