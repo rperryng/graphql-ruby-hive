@@ -43,13 +43,12 @@ module GraphQL
 
         @operations_buffer << operation
 
-        if @operations_buffer.size >= @buffer_size
-          @logger.debug("buffer is full, sending!")
-          @queue.push @operations_buffer
-          @operations_buffer = []
-        end
-      end
+        return unless @operations_buffer.size >= @buffer_size
 
+        @logger.debug('buffer is full, sending!')
+        @queue.push @operations_buffer
+        @operations_buffer = []
+      end
 
       def on_exit
         @queue.push @operations_buffer unless @operations_buffer.empty?
@@ -70,6 +69,8 @@ module GraphQL
           add_operation_to_report(report, operation)
         end
 
+        @logger.debug("sending report: #{report}")
+
         @client.send('/usage', report, :usage)
       end
 
@@ -77,30 +78,30 @@ module GraphQL
         timestamp, queries, results, duration = operation
 
         errors = errors_from_results(results)
-  
+
         operation_name = queries.map(&:operations).map(&:keys).flatten.compact.join(', ')
         operation = ''
         fields = Set.new
-  
+
         queries.each do |query|
           analyzer = GraphQL::Hive::Analyzer.new(query)
           visitor = GraphQL::Analysis::AST::Visitor.new(
             query: query,
             analyzers: [analyzer]
           )
-  
+
           visitor.visit
-  
+
           fields.merge(analyzer.result)
-  
+
           operation += "\n" unless operation.empty?
           operation += GraphQL::Hive::Printer.new.print(visitor.result)
         end
-  
+
         md5 = Digest::MD5.new
         md5.update operation
         operation_map_key = md5.hexdigest
-  
+
         operation_record = {
           operationMapKey: operation_map_key,
           timestamp: timestamp.to_i,
@@ -111,12 +112,11 @@ module GraphQL
             errors: errors[:errors]
           }
         }
-  
-        context = results[0].query.context
-  
+
+        # context = results[0].query.context
         # TBD
         # operation_record[:metadata] = { client: @options[:client_info].call(context) } if @options[:client_info]
-  
+
         report[:map][operation_map_key] = {
           fields: fields.to_a,
           operationName: operation_name,
@@ -137,8 +137,6 @@ module GraphQL
         end
         acc
       end
-
     end
-
   end
 end

@@ -41,7 +41,7 @@ end
 class Schema < GraphQL::Schema
   query QueryType
 
-  use(GraphQL::Hive, { buffer_size: 2, token: 'xxx', debug: true, reporting: { author: 'Charly Poly', commit: '109bb1e748bae21bdfe663c0ffc7e830' }, client_info: proc { |context|
+  use(GraphQL::Hive, { buffer_size: 2, token: 'YOUR_TOKEN', debug: true, reporting: { author: 'Charly Poly', commit: '109bb1e748bae21bdfe663c0ffc7e830' }, client_info: proc { |context|
                                                                                                                                                                                                 { name: context[:client_name], version: context[:client_version] }
                                                                                                                                                                                               } })
 end

@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
 require 'bundler/setup'
-require 'graphql/hive'
+require 'graphql'
+require 'graphql-hive'
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure

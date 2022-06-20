@@ -11,15 +11,15 @@ module GraphQL
         @options = options
       end
 
-      def send(path, body, log_type)
+      def send(path, body, _log_type)
         uri =
           URI::HTTP.build(
             scheme: @options[:port].to_s == '443' ? 'https' : 'http',
             host: @options[:endpoint] || 'app.graphql-hive.com',
-            port: @options[:port] ||'443',
+            port: @options[:port] || '443',
             path: path
           )
-  
+
         http = ::Net::HTTP.new(uri.host, uri.port)
         http.use_ssl = true
         http.read_timeout = 2
@@ -31,7 +31,7 @@ module GraphQL
         request['graphql-client-version'] = Graphql::Hive::VERSION
         request.body = JSON.generate(body)
         response = http.request(request)
-  
+
         @options[:logger].debug(response.inspect)
         @options[:logger].debug(response.body.inspect)
       rescue StandardError => e

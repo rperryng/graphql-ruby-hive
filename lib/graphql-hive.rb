@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-
 require 'logger'
 
 require 'graphql-hive/version'
@@ -41,7 +40,7 @@ module GraphQL
 
     @usage_reporter = nil
     @client = nil
-    
+
     REPORT_SCHEMA_MUTATION = <<~MUTATION
       mutation schemaPublish($input: SchemaPublishInput!) {
         schemaPublish(input: $input) {
@@ -146,7 +145,7 @@ module GraphQL
     private
 
     def validate_options!(options)
-      if (options[:logger].nil?)
+      if options[:logger].nil?
         options[:logger] = Logger.new($stdout)
         original_formatter = Logger::Formatter.new
         options[:logger].formatter = proc { |severity, datetime, progname, msg|

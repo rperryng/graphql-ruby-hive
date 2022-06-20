@@ -4,6 +4,14 @@ AllCops:
   Exclude:
     - 'examples/**/*'
 
+Metrics/BlockLength:
+  Exclude:
+    - 'spec/**/*'
+
+Layout/LineLength:
+  Exclude:
+    - 'spec/**/*'
+
 Naming/FileName:
   Enabled: false
 
