@@ -1,0 +1,27 @@
+name: CI
+on:
+  - pull_request
+
+jobs:
+  rubocop:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: ruby/setup-ruby@359bebbc29cbe6c87da6bc9ea3bc930432750108
+      with:
+        ruby-version: 2.6
+        bundler-cache: true
+    - run: bundle exec rake rubocop
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        ruby-version: ['3.1', '3.0', '2.7', '2.6']
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: ruby/setup-ruby@359bebbc29cbe6c87da6bc9ea3bc930432750108
+      with:
+        ruby-version: ${{ matrix.ruby-version }}
+        bundler-cache: true
+    - run: bundle exec rake spec
