@@ -13,7 +13,6 @@ require_relative 'schema'
 #   }
 # }
 
-
 class DemoApp < Sinatra::Base
   use Rack::JSONBodyParser
 

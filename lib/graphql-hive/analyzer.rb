@@ -1,11 +1,14 @@
+# frozen_string_literal: true
+
 module GraphQL
   class Hive < GraphQL::Tracing::PlatformTracing
+    # Fetch all users fields, input objects and enums
     class Analyzer < GraphQL::Analysis::AST::Analyzer
       def initialize(query_or_multiplex)
         super
         @used_fields = Set.new
       end
-    
+
       def on_leave_field(node, _parent, visitor)
         @used_fields.add(visitor.parent_type_definition.graphql_name)
         @used_fields.add([visitor.parent_type_definition.graphql_name, node.name].join('.'))
@@ -25,7 +28,7 @@ module GraphQL
           @used_fields.add([arg_type.graphql_name, node.value.name].join('.'))
         end
       end
-    
+
       def result
         @used_fields
       end

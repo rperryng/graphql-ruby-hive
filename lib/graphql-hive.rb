@@ -1,14 +1,13 @@
+# frozen_string_literal: true
+
 require 'digest'
-require "net/http"
-require "uri"
+require 'net/http'
+require 'uri'
 require 'logger'
 
-
-require "graphql-hive/version"
-require "graphql-hive/analyzer"
-require "graphql-hive/printer"
-
-
+require 'graphql-hive/version'
+require 'graphql-hive/analyzer'
+require 'graphql-hive/printer'
 
 # class MySchema < GraphQL::Schema
 #   use(
@@ -35,18 +34,18 @@ require "graphql-hive/printer"
 # end
 
 module GraphQL
+  # GraphQL Hive usage collector and schema reporter
   class Hive < GraphQL::Tracing::PlatformTracing
-
     @@schema = nil
     @@instance = nil
 
-    REPORT_SCHEMA_MUTATION = <<-MUTATION
-mutation schemaPublish($input: SchemaPublishInput!) {
-  schemaPublish(input: $input) {
-    __typename
-  }
-}
-MUTATION
+    REPORT_SCHEMA_MUTATION = <<~MUTATION
+      mutation schemaPublish($input: SchemaPublishInput!) {
+        schemaPublish(input: $input) {
+          __typename
+        }
+      }
+    MUTATION
 
     DEFAULT_OPTIONS = {
       enabled: true,
@@ -54,8 +53,8 @@ MUTATION
       read_operations: true,
       report_schema: true,
       buffer_size: 50,
-      logger: Logger.new(STDOUT),
-    }
+      logger: Logger.new($stdout)
+    }.freeze
 
     self.platform_keys = {
       'lex' => 'lex',
@@ -81,12 +80,11 @@ MUTATION
       @report = {
         size: 0,
         map: {},
-        operations: [],
+        operations: []
       }
 
       send_report_schema(@@schema) if @@schema && opts[:report_schema] && @options[:enabled]
     end
-
 
     def self.instance
       @@instance
@@ -109,10 +107,10 @@ MUTATION
           results = yield
           ending = Process.clock_gettime(Process::CLOCK_MONOTONIC)
           elapsed = ending - starting
-          duration = (elapsed.to_f * (10 ** 9)).to_i
+          duration = (elapsed.to_f * (10**9)).to_i
 
           add_operation_to_report(timestamp, queries, results, duration) unless queries.empty?
-          
+
           results
         else
           yield
@@ -122,15 +120,16 @@ MUTATION
       end
     end
 
-
     # compat
     def platform_authorized_key(type)
       "#{type.graphql_name}.authorized.graphql"
     end
+
     # compat
     def platform_resolve_type_key(type)
       "#{type.graphql_name}.resolve_type.graphql"
     end
+
     # compat
     def platform_field_key(type, field)
       "graphql.#{type.name}.#{field.name}"
@@ -144,10 +143,19 @@ MUTATION
 
     def validate_options!(options)
       if !options.include?(:token) && (!options.include?(:enabled) || options.enabled)
-        log(:client, "`token` options is missing", :warn)
+        log(:client, '`token` options is missing', :warn)
         options[:enabled] = false
         false
-      elsif options[:report_schema] && (!options.include?(:reporting) || (options.include?(:reporting) && (!options[:reporting].include?(:author) || !options[:reporting].include?(:commit))))
+      elsif options[:report_schema] &&
+            (
+              !options.include?(:reporting) ||
+              (
+                options.include?(:reporting) && (
+                  !options[:reporting].include?(:author) || !options[:reporting].include?(:commit)
+                )
+              )
+            )
+
         log_report_schema('`reporting.author` and `reporting.commit` options are required', :warn)
         false
       end
@@ -184,17 +192,17 @@ MUTATION
         operationMapKey: operation_map_key,
         timestamp: timestamp.to_i,
         execution: {
-          ok: errors[:errorsTotal] == 0,
+          ok: errors[:errorsTotal].zero?,
           duration: duration,
           errorsTotal: errors[:errorsTotal],
-          errors: errors[:errors],
+          errors: errors[:errors]
         }
       }
 
       context = results[0].query.context
 
       operation_record[:client] = @options[:client_info].call(context) if @options[:client_info]
-      
+
       @report[:map][operation_map_key] = {
         fields: fields.to_a,
         operationName: operation_name,
@@ -209,7 +217,7 @@ MUTATION
     end
 
     def send_usage_report
-      return unless @report[:size] > 0
+      return unless @report[:size].positive?
 
       send('/usage', @report, :usage)
 
@@ -217,7 +225,7 @@ MUTATION
       @report = {
         size: 0,
         map: {},
-        operations: [],
+        operations: []
       }
     end
 
@@ -234,8 +242,8 @@ MUTATION
             commit: @options[:reporting][:commit],
             service: @options[:reporting][:service_name],
             url: @options[:reporting][:service_url],
-            force: true,
-          },
+            force: true
+          }
         }
       }
 
@@ -245,32 +253,30 @@ MUTATION
     end
 
     def send(path, body, log_type)
-      begin
-        uri =
-          URI::HTTP.build(
-            scheme: "https",
-            host: 'app.graphql-hive.com',
-            port: "443",
-            path: path
-          )
+      uri =
+        URI::HTTP.build(
+          scheme: 'https',
+          host: 'app.graphql-hive.com',
+          port: '443',
+          path: path
+        )
 
-        http = ::Net::HTTP.new(uri.host, uri.port)
-        http.use_ssl = true
-        http.read_timeout = 2
-        request = Net::HTTP::Post.new(uri.request_uri)
-        request['content-type'] = 'application/json'
-        request['x-api-token'] = @options[:token]
-        request['User-Agent'] = "Hive@#{Graphql::Hive::VERSION}"
-        request['graphql-client-name'] = 'Hive Client'
-        request['graphql-client-version'] = Graphql::Hive::VERSION
-        request.body = JSON.generate(body)
-        response =  http.request(request)
+      http = ::Net::HTTP.new(uri.host, uri.port)
+      http.use_ssl = true
+      http.read_timeout = 2
+      request = Net::HTTP::Post.new(uri.request_uri)
+      request['content-type'] = 'application/json'
+      request['x-api-token'] = @options[:token]
+      request['User-Agent'] = "Hive@#{Graphql::Hive::VERSION}"
+      request['graphql-client-name'] = 'Hive Client'
+      request['graphql-client-version'] = Graphql::Hive::VERSION
+      request.body = JSON.generate(body)
+      response = http.request(request)
 
-        log(log_type, response.inspect, :debug)
-        log(log_type, response.body.inspect, :debug)
-      rescue StandardError => e
-        log(log_type, "Failed to send data: #{e}", :fatal)
-      end
+      log(log_type, response.inspect, :debug)
+      log(log_type, response.body.inspect, :debug)
+    rescue StandardError => e
+      log(log_type, "Failed to send data: #{e}", :fatal)
     end
 
     def log_usage(msg, level = :info)
@@ -292,7 +298,7 @@ MUTATION
     def errors_from_results(results)
       acc = { errorsTotal: 0, errors: [] }
       results.each do |result|
-        errors = result.to_h.fetch("errors", [])
+        errors = result.to_h.fetch('errors', [])
         errors.each do |error|
           acc[:errorsTotal] += 1
           acc[:errors] << { message: error['message'], path: error['path'].join('.') }
@@ -300,10 +306,9 @@ MUTATION
       end
       acc
     end
-
   end
 end
 
-at_exit {
+at_exit do
   GraphQL::Hive.instance.on_exit
-}
+end
