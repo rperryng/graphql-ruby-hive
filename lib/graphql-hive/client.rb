@@ -16,7 +16,7 @@ module GraphQL
           URI::HTTP.build(
             scheme: @options[:port].to_s == '443' ? 'https' : 'http',
             host: @options[:endpoint] || 'app.graphql-hive.com',
-            port: @options[:endpoint] ||'443',
+            port: @options[:port] ||'443',
             path: path
           )
   
