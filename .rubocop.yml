@@ -3,6 +3,9 @@ AllCops:
   NewCops: enable
   Exclude:
     - 'examples/**/*'
+    - 'gemfiles/**/*'
+    - 'tmp/**/*'
+    - 'vendor/**/*'
 
 Metrics/BlockLength:
   Exclude:
