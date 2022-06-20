@@ -26,6 +26,7 @@ require "graphql-hive/printer"
 #         service_name: '',
 #         service_url: '',
 #       },
+#       client_info: Proc.new { |context| { name: context.client_name, version: context.client_version } }
 #     }
 #   )
 #
@@ -177,6 +178,10 @@ MUTATION
           errors: errors[:errors],
         }
       }
+
+      context = results[0].query.context
+
+      operation_record[:client] = @options[:client_info].call(context) if @options[:client_info]
       
       @report[:map][operation_map_key] = {
         fields: fields.to_a,
