@@ -38,6 +38,7 @@ module GraphQL
   class Hive < GraphQL::Tracing::PlatformTracing
 
     @@schema = nil
+    @@instance = nil
 
     REPORT_SCHEMA_MUTATION = <<-MUTATION
 mutation schemaPublish($input: SchemaPublishInput!) {
@@ -72,6 +73,8 @@ MUTATION
       validate_options!(opts)
       super(opts)
 
+      @@instance = self
+
       log(:client, opts.inspect, :debug)
 
       # buffer
@@ -82,6 +85,11 @@ MUTATION
       }
 
       send_report_schema(@@schema) if @@schema && opts[:report_schema] && @options[:enabled]
+    end
+
+
+    def self.instance
+      @@instance
     end
 
     def self.use(schema, **kwargs)
@@ -126,6 +134,10 @@ MUTATION
     # compat
     def platform_field_key(type, field)
       "graphql.#{type.name}.#{field.name}"
+    end
+
+    def on_exit
+      send_usage_report
     end
 
     private
@@ -193,11 +205,11 @@ MUTATION
 
       log_usage(JSON.generate(@report).inspect, :debug)
 
-      send_usage_report
+      send_usage_report if @report[:size] >= @options[:buffer_size]
     end
 
     def send_usage_report
-      return unless @report[:size] >= @options[:buffer_size]
+      return unless @report[:size] > 0
 
       send('/usage', @report, :usage)
 
@@ -291,3 +303,7 @@ MUTATION
 
   end
 end
+
+at_exit {
+  GraphQL::Hive.instance.on_exit
+}
