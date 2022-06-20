@@ -27,7 +27,7 @@ module GraphQL
         request['content-type'] = 'application/json'
         request['x-api-token'] = @options[:token]
         request['User-Agent'] = "Hive@#{Graphql::Hive::VERSION}"
-        request['graphql-client-name'] = 'Hive Client'
+        request['graphql-client-name'] = 'Hive Ruby Client'
         request['graphql-client-version'] = Graphql::Hive::VERSION
         request.body = JSON.generate(body)
         response = http.request(request)
