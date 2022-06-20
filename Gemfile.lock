@@ -1,5 +1,5 @@
 PATH
-  remote: .
+  remote: ../..
   specs:
     graphql-hive (0.1.0)
       graphql (~> 2.0.9)
