@@ -201,7 +201,7 @@ module GraphQL
 
       context = results[0].query.context
 
-      operation_record[:client] = @options[:client_info].call(context) if @options[:client_info]
+      operation_record[:metadata] = { client: @options[:client_info].call(context) } if @options[:client_info]
 
       @report[:map][operation_map_key] = {
         fields: fields.to_a,
