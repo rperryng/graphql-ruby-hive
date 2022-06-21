@@ -23,6 +23,7 @@ module GraphQL
       def initialize(options, client)
         @@instance = self
 
+        @options = options
         @buffer_size = options[:buffer_size]
         @logger = options[:logger]
         @client = client
@@ -113,9 +114,10 @@ module GraphQL
           }
         }
 
-        # context = results[0].query.context
-        # TBD
-        # operation_record[:metadata] = { client: @options[:client_info].call(context) } if @options[:client_info]
+        if results[0]
+          context = results[0].query.context
+          operation_record[:metadata] = { client: @options[:client_info].call(context) } if @options[:client_info]
+        end
 
         report[:map][operation_map_key] = {
           fields: fields.to_a,
