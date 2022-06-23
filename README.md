@@ -1,4 +1,6 @@
-# GraphQL Hive: `graphql-ruby` integration
+# GraphQL Hive: `graphql-ruby` integration 
+[![CI Suite](https://github.com/charlypoly/graphql-ruby-hive/actions/workflows/ci.yml/badge.svg)](https://github.com/charlypoly/graphql-ruby-hive/actions)
+[![Gem Version](https://badge.fury.io/rb/graphql-hive.svg)](https://rubygems.org/gems/graphql-hive)
 
 <p align="center">
   <img src="cover.png" width="500" alt="GraphQL Hive" />
@@ -8,8 +10,8 @@
 
 [GraphQL Hive](https://graphql-hive.com/) provides all the tools to get visibility of your GraphQL architecture at all stages, from standalone APIs to composed schemas (Federation, Stitching):
 - **Schema Registry** with custom breaking changes detection
-- **Monitoring** of RPM, latency, error rate and more
-- **Integrations** with your favorite tools (Slack, Github Actions and more)
+- **Monitoring** of RPM, latency, error rate, and more
+- **Integrations** with your favorite tools (Slack, Github Actions, and more)
 
 
 <br/>
