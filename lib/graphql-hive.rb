@@ -194,8 +194,6 @@ module GraphQL
         }
       }
 
-      puts(JSON.generate(body))
-
       @client.send('/registry', body, :'report-schema')
     end
   end

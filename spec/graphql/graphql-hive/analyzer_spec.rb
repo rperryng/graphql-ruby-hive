@@ -53,8 +53,6 @@ RSpec.describe 'GraphQL::Hive::Analyzer' do
   it 'should return all used fields, input type and enum values' do
     query = GraphQL::Query.new(schema, query_string)
 
-    puts query.document
-
     analyzer = GraphQL::Hive::Analyzer.new(query)
     visitor = GraphQL::Analysis::AST::Visitor.new(
       query: query,

@@ -5,7 +5,6 @@ module GraphQL
     # Fetch all users fields, input objects and enums
     class Analyzer < GraphQL::Analysis::AST::Analyzer
       def initialize(query_or_multiplex)
-        puts query_or_multiplex.inspect
         super
         @used_fields = Set.new
       end
