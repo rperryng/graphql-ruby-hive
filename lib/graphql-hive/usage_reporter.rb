@@ -34,19 +34,19 @@ module GraphQL
         @thread = Thread.new do
           while !@queue.empty? || !@queue.closed?
             operations = @queue.pop(false)
-            process_operations operations
+            process_operations(operations) if operations
           end
         end
       end
 
       def add_operation(operation)
-        @logger.debug("add operation to buffer: #{operation}")
+        @logger.debug("add operation to buffer: #{operation}") if @options[:debug]
 
         @operations_buffer << operation
 
         return unless @operations_buffer.size >= @buffer_size
 
-        @logger.debug('buffer is full, sending!')
+        @logger.debug('buffer is full, sending!') if @options[:debug]
         @queue.push @operations_buffer
         @operations_buffer = []
       end
@@ -70,7 +70,7 @@ module GraphQL
           add_operation_to_report(report, operation)
         end
 
-        @logger.debug("sending report: #{report}")
+        @logger.debug("sending report: #{report}") if @options[:debug]
 
         @client.send('/usage', report, :usage)
       end
