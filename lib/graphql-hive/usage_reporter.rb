@@ -14,7 +14,6 @@ module GraphQL
       @thread = nil
       @operations_buffer = nil
       @client = nil
-      @logger = nil
 
       def self.instance
         @@instance
@@ -24,35 +23,31 @@ module GraphQL
         @@instance = self
 
         @options = options
-        @buffer_size = options[:buffer_size]
-        @logger = options[:logger]
         @client = client
-        @operations_buffer = []
 
+        @options_mutex = Mutex.new
         @queue = Queue.new
-
         @thread = Thread.new do
-          while !@queue.empty? || !@queue.closed?
-            operations = @queue.pop(false)
-            process_operations(operations) if operations
+          buffer = []
+          while (operation = @queue.pop(false))
+            @options[:logger].debug("add operation to buffer: #{operation}")
+            buffer << operation
+            @options_mutex.synchronize do
+              if buffer.size >= @options[:buffer_size]
+                @options[:logger].debug('buffer is full, sending!')
+                process_operations(buffer)
+                buffer = []
+              end
+            end
           end
         end
       end
 
       def add_operation(operation)
-        @logger.debug("add operation to buffer: #{operation}") if @options[:debug]
-
-        @operations_buffer << operation
-
-        return unless @operations_buffer.size >= @buffer_size
-
-        @logger.debug('buffer is full, sending!') if @options[:debug]
-        @queue.push @operations_buffer
-        @operations_buffer = []
+        @queue.push(operation)
       end
 
       def on_exit
-        @queue.push @operations_buffer unless @operations_buffer.empty?
         @queue.close
         @thread.join
       end
@@ -70,7 +65,7 @@ module GraphQL
           add_operation_to_report(report, operation)
         end
 
-        @logger.debug("sending report: #{report}") if @options[:debug]
+        @options[:logger].debug("sending report: #{report}")
 
         @client.send('/usage', report, :usage)
       end
