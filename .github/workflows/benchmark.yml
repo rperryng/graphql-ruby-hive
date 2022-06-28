@@ -12,14 +12,14 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Use Node
-        uses: actions/setup-node@v1.111.0
+        uses: actions/setup-node@master
         with:
           node-version: 14
           cache: 'yarn'
           cache-dependency-path: 'k6/yarn.lock'
 
       - name: Use Ruby
-        uses: ruby/setup-ruby@359bebbc29cbe6c87da6bc9ea3bc930432750108
+        uses: ruby/setup-ruby@v1.111.0
         with:
           working-directory: ./k6/graphql-api
           ruby-version: 2.6
