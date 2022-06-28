@@ -57,14 +57,14 @@ export default function () {
 }
 
 export function handleSummary(data) {
-  var overheadPercentage = null;
+  let overheadPercentage = null;
   if (
     data.metrics["http_req_duration{hive:enabled}"] &&
     data.metrics["http_req_duration{hive:disabled}"]
   ) {
-    var withHive =
+    const withHive =
       data.metrics["http_req_duration{hive:enabled}"].values["avg"];
-    var withoutHive =
+    const withoutHive =
       data.metrics["http_req_duration{hive:disabled}"].values["avg"];
     overheadPercentage = 100 - (withHive * 100.0) / withoutHive;
   }
@@ -75,16 +75,21 @@ export function handleSummary(data) {
       pr: __ENV.GITHUB_PR,
       org: "charlypoly",
       repo: "graphql-ruby-hive",
-      renderTitle() {
+      renderTitle: () => {
         return overheadPercentage < 5
           ? "✅ Benchmark Results"
           : "❌ Benchmark Failed";
       },
-      renderMessage() {
+      renderMessage: () => {
+        const result = [];
         if (overheadPercentage > 5) {
-          return "**Performance regression detected**: it seems like your Pull Request adds some extra latency to GraphQL Hive operations processing";
+          result.push(
+            "**Performance regression detected**: it seems like your Pull Request adds some extra latency to GraphQL Hive operations processing"
+          );
+        } else {
+          result.push("Overhead <= 1%");
         }
-        return "";
+        return result.join("\n");
       },
     });
   }
