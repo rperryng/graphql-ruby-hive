@@ -51,6 +51,7 @@ module GraphQL
 
     DEFAULT_OPTIONS = {
       enabled: true,
+      debug: false,
       collect_usage: true,
       read_operations: true,
       report_schema: true,
@@ -71,7 +72,7 @@ module GraphQL
 
     def initialize(options = {})
       opts = DEFAULT_OPTIONS.merge(options)
-      validate_options!(opts)
+      initialize_options!(opts)
       super(opts)
 
       @@instance = self
@@ -144,13 +145,14 @@ module GraphQL
 
     private
 
-    def validate_options!(options)
+    def initialize_options!(options)
       if options[:logger].nil?
-        options[:logger] = Logger.new($stdout)
+        options[:logger] = Logger.new($stderr)
         original_formatter = Logger::Formatter.new
         options[:logger].formatter = proc { |severity, datetime, progname, msg|
           original_formatter.call(severity, datetime, progname, "[hive] #{msg.dump}")
         }
+        options[:logger].level = options[:debug] ? Logger::DEBUG : Logger::INFO
       end
       if !options.include?(:token) && (!options.include?(:enabled) || options.enabled)
         options[:logger].warn('`token` options is missing')

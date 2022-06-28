@@ -21,7 +21,7 @@ module GraphQL
           )
 
         http = ::Net::HTTP.new(uri.host, uri.port)
-        http.use_ssl = true
+        http.use_ssl = @options[:port].to_s == '443'
         http.read_timeout = 2
         request = Net::HTTP::Post.new(uri.request_uri)
         request['content-type'] = 'application/json'
@@ -32,8 +32,8 @@ module GraphQL
         request.body = JSON.generate(body)
         response = http.request(request)
 
-        @options[:logger].debug(response.inspect) if @options[:debug]
-        @options[:logger].debug(response.body.inspect) if @options[:debug]
+        @options[:logger].debug(response.inspect)
+        @options[:logger].debug(response.body.inspect)
       rescue StandardError => e
         @options[:logger].fatal("Failed to send data: #{e}")
       end

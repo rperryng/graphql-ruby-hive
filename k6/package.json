@@ -1,0 +1,11 @@
+{
+  "name": "k6-usage-api",
+  "version": "0.0.0",
+  "main": "usage-api.js",
+  "author": "Charly POLY",
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "express": "^4.18.1"
+  }
+}
