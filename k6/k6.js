@@ -57,35 +57,34 @@ export default function () {
 }
 
 export function handleSummary(data) {
-  console.log(JSON.stringify(data, null, 2));
+  const overheadPercentage = null;
+  if (
+    data.metrics["http_req_duration{hive:enabled}"] &&
+    data.metrics["http_req_duration{hive:disabled}"]
+  ) {
+    const withHive =
+      data.metrics["http_req_duration{hive:enabled}"].values["avg"];
+    const withoutHive =
+      data.metrics["http_req_duration{hive:disabled}"].values["avg"];
+    overheadPercentage = 100 - ((withHive * 100.0) / withoutHive;)
+  }
   if (__ENV.GITHUB_TOKEN) {
-    // githubComment(data, {
-    //   token: __ENV.GITHUB_TOKEN,
-    //   commit: __ENV.GITHUB_SHA,
-    //   pr: __ENV.GITHUB_PR,
-    //   org: "charlypoly",
-    //   repo: "graphql-ruby-hive",
-    //   renderTitle({ passes }) {
-    //     return passes ? "✅ Benchmark Results" : "❌ Benchmark Failed";
-    //   },
-    //   renderMessage({ passes, checks, thresholds }) {
-    //     const result = [];
-    //     if (thresholds.failures) {
-    //       result.push(
-    //         `**Performance regression detected**: it seems like your Pull Request adds some extra latency to GraphQL Yoga`
-    //       );
-    //     }
-    //     if (checks.failures) {
-    //       result.push("**Failed assertions detected**");
-    //     }
-    //     if (!passes) {
-    //       result.push(
-    //         `> If the performance regression is expected, please increase the failing threshold.`
-    //       );
-    //     }
-    //     return result.join("\n");
-    //   },
-    // });
+    githubComment(data, {
+      token: __ENV.GITHUB_TOKEN,
+      commit: __ENV.GITHUB_SHA,
+      pr: __ENV.GITHUB_PR,
+      org: "charlypoly",
+      repo: "graphql-ruby-hive",
+      renderTitle({ passes }) {
+        return overheadPercentage < 5 ? "✅ Benchmark Results" : "❌ Benchmark Failed";
+      },
+      renderMessage({ passes, checks, thresholds }) {
+        if (overheadPercentage > 5) {
+          return  '**Performance regression detected**: it seems like your Pull Request adds some extra latency to GraphQL Hive operations processing'
+        }
+        return ''
+      },
+    });
   }
   return {
     stdout: textSummary(data, { indent: " ", enableColors: true }),
