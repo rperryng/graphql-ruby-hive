@@ -52,6 +52,7 @@ module GraphQL
     DEFAULT_OPTIONS = {
       enabled: true,
       debug: false,
+      port: '443',
       collect_usage: true,
       read_operations: true,
       report_schema: true,
