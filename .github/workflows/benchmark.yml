@@ -16,12 +16,14 @@ jobs:
         with:
           node-version: 14
           cache: 'yarn'
+        working-directory: ./k6/
 
       - name: Use Ruby
         uses: ruby/setup-ruby@359bebbc29cbe6c87da6bc9ea3bc930432750108
         with:
           ruby-version: 2.6
           bundler-cache: true
+        working-directory: ./k6/graphql-api
 
       - name: Start GraphQL API with hive enabled
         working-directory: ./k6/graphql-api
