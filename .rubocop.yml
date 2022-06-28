@@ -3,6 +3,7 @@ AllCops:
   NewCops: enable
   Exclude:
     - 'examples/**/*'
+    - 'k6/**/*'
     - 'gemfiles/**/*'
     - 'tmp/**/*'
     - 'vendor/**/*'
