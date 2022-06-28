@@ -139,8 +139,10 @@ end
 
 **A note on `buffer_size` and performances**
 
-The `graphql-hive` usage reporter, responsible for sending the operations data to Hive, is running in a separate `Thread` to avoid any major impact on your GraphQL API performances.
+The `graphql-hive` usage reporter, responsible for sending the operations data to Hive, is running in a separate `Thread` to avoid any significant impact on your GraphQL API performances.
+
+The performance overhead (with the default `buffer_size` option) is around 1% and [is constantly evaluated for new PR](https://github.com/charlypoly/graphql-ruby-hive/actions/workflows/benchmark.yml).
 
 If your GraphQL API has a high RPM, we encourage you to increase the `buffer_size` value.
 
-However, please note that a higher `buffer_size` value will introduce some peak of increase of memory comsumption.
+However, please note that a higher `buffer_size` value will introduce some peak of increase in memory consumption.
