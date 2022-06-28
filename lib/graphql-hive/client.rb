@@ -21,7 +21,7 @@ module GraphQL
           )
 
         http = ::Net::HTTP.new(uri.host, uri.port)
-        http.use_ssl = true
+        http.use_ssl = @options[:port].to_s == '443'
         http.read_timeout = 2
         request = Net::HTTP::Post.new(uri.request_uri)
         request['content-type'] = 'application/json'

@@ -51,6 +51,7 @@ module GraphQL
 
     DEFAULT_OPTIONS = {
       enabled: true,
+      debug: false,
       collect_usage: true,
       read_operations: true,
       report_schema: true,
@@ -146,7 +147,7 @@ module GraphQL
 
     def initialize_options!(options)
       if options[:logger].nil?
-        options[:logger] = Logger.new($stdout)
+        options[:logger] = Logger.new($stderr)
         original_formatter = Logger::Formatter.new
         options[:logger].formatter = proc { |severity, datetime, progname, msg|
           original_formatter.call(severity, datetime, progname, "[hive] #{msg.dump}")
