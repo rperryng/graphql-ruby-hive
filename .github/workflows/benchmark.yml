@@ -13,10 +13,10 @@ jobs:
 
       - name: Use Node
         uses: actions/setup-node@master
-        working-directory: ./k6/
         with:
           node-version: 14
           cache: 'yarn'
+          cache-dependency-path: 'k6/yarn.lock'
 
       - name: Use Ruby
         working-directory: ./k6/graphql-api
