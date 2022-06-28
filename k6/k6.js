@@ -75,12 +75,12 @@ export function handleSummary(data) {
       pr: __ENV.GITHUB_PR,
       org: "charlypoly",
       repo: "graphql-ruby-hive",
-      renderTitle({ passes }) {
+      renderTitle() {
         return overheadPercentage < 5
           ? "✅ Benchmark Results"
           : "❌ Benchmark Failed";
       },
-      renderMessage({ passes, checks, thresholds }) {
+      renderMessage() {
         if (overheadPercentage > 5) {
           return "**Performance regression detected**: it seems like your Pull Request adds some extra latency to GraphQL Hive operations processing";
         }
