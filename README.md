@@ -117,6 +117,7 @@ class MySchema < GraphQL::Schema
       endpoint: 'app.graphql-hive.com',  # optional
       port: 80,  # optional
       buffer_size: 50, # forward the operations data to Hive every 50 requests
+      collect_usage_sampling: 1.0,
       reporting: {  # mandatory if `report_schema: true`
         # mandatory member of `reporting`
         author: 'Author of the latest change',
