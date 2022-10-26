@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 require 'logger'
+require 'securerandom'
+
 
 require 'graphql-hive/version'
 require 'graphql-hive/usage_reporter'
@@ -57,7 +59,8 @@ module GraphQL
       read_operations: true,
       report_schema: true,
       buffer_size: 50,
-      logger: nil
+      logger: nil,
+      collect_usage_sampling: 1.0
     }.freeze
 
     self.platform_keys = {
@@ -114,7 +117,7 @@ module GraphQL
           elapsed = ending - starting
           duration = (elapsed.to_f * (10**9)).to_i
 
-          report_usage(timestamp, queries, results, duration) unless queries.empty?
+          report_usage(timestamp, queries, results, duration) if !queries.empty? && SecureRandom.random_number() <= @options[:collect_usage_sampling]
 
           results
         else
