@@ -27,6 +27,31 @@ module GraphQL
 
         @options_mutex = Mutex.new
         @queue = Queue.new
+
+        start_thread
+      end
+
+      def add_operation(operation)
+        @queue.push(operation)
+      end
+
+      def on_exit
+        @queue.close
+        @thread.join
+      end
+
+      def on_start
+        start_thread
+      end
+
+      private
+
+      def start_thread
+        if @thread && @thread.alive?
+          @options[:logger].warn("Tried to start operations flushing thread but it was already alive")
+          return
+        end
+
         @thread = Thread.new do
           buffer = []
           while (operation = @queue.pop(false))
@@ -41,22 +66,10 @@ module GraphQL
             end
           end
           unless buffer.size.zero?
-            @options[:logger].debug('shuting down with buffer, sending!')
             process_operations(buffer)
           end
         end
       end
-
-      def add_operation(operation)
-        @queue.push(operation)
-      end
-
-      def on_exit
-        @queue.close
-        @thread.join
-      end
-
-      private
 
       def process_operations(operations)
         report = {
