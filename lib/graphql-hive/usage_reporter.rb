@@ -27,6 +27,30 @@ module GraphQL
 
         @options_mutex = Mutex.new
         @queue = Queue.new
+
+        start_consuming
+      end
+
+      def add_operation(operation)
+        @queue.push(operation)
+        check_thread
+      end
+
+      def on_exit
+        @queue.close
+        @thread.join
+      end
+
+      private
+
+      def check_thread
+        return unless @thread.alive?
+
+        @options[:logger].debug("buffer consuming thread died - restarting")
+        start_consuming
+      end
+
+      def start_consuming
         @thread = Thread.new do
           buffer = []
           while (operation = @queue.pop(false))
@@ -46,17 +70,6 @@ module GraphQL
           end
         end
       end
-
-      def add_operation(operation)
-        @queue.push(operation)
-      end
-
-      def on_exit
-        @queue.close
-        @thread.join
-      end
-
-      private
 
       def process_operations(operations)
         report = {
