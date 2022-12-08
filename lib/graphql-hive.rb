@@ -148,6 +148,10 @@ module GraphQL
       @usage_reporter.on_exit
     end
 
+    def on_start
+      @usage_reporter.on_start
+    end
+
     private
 
     def initialize_options!(options)
