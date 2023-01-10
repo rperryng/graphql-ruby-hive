@@ -47,8 +47,8 @@ module GraphQL
       private
 
       def start_thread
-        if @thread && @thread.alive?
-          @options[:logger].warn("Tried to start operations flushing thread but it was already alive")
+        if @thread&.alive?
+          @options[:logger].warn('Tried to start operations flushing thread but it was already alive')
           return
         end
 
