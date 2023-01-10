@@ -64,6 +64,39 @@ If you only want to use the operations monitoring, replace the `reporting` optio
 
 <br/>
 
+## 3. (Optional) Configure Lifecycle Hooks
+
+Calling these hooks are situational - it's likely that you may not need to call
+them at all!
+
+### `on_start`
+
+Call this hook if you are running `GraphQL::Hive` in a process that becomes
+`forked` - for example a puma web server in its ["clustered
+mode"](https://github.com/puma/puma/tree/6d8b728b42a61bcf3c1e4c698c9165a45e6071e8#clustered-mode),
+
+```ruby
+# config/puma.rb
+preload_app!
+
+on_worker_boot do
+  GraphQL::Hive.instance.on_start
+end
+```
+
+### `on_exit`
+
+If your GraphQL API process is shut down non-gracefully but has a shutdown hook
+to call into (like `puma` does when running in its clustered mode), call
+`on_worker_exit`
+
+```ruby
+on_worker_shutdown do
+  GraphQL::Hive.instance.on_exit
+end
+```
+
+<br />
 
 **You are all set! 🚀**
 
@@ -74,7 +107,7 @@ When deploying or starting up your GraphQL API, `graphql-hive` will immediately:
 
 <br/>
 
-## 3. See how your GraphQL API is operating
+## 4. See how your GraphQL API is operating
 
 You should now see operations information (RPM, error rate, queries performed) on your [GraphQL Hive dashboard](https://app.graphql-hive.com/):
 
@@ -86,7 +119,7 @@ You should now see operations information (RPM, error rate, queries performed) o
 <br/>
 
 
-## 4. Going further: use the Hive Github app
+## 5. Going further: use the Hive Github app
 
 Stay on top of your GraphQL Schema changes by installing the Hive Github Application and enabling Slack notifications about breaking changes:
 
