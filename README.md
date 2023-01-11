@@ -71,9 +71,11 @@ them at all!
 
 ### `on_start`
 
-Call this hook if you are running `GraphQL::Hive` in a process that becomes
-`forked` - for example a puma web server in its ["clustered
-mode"](https://github.com/puma/puma/tree/6d8b728b42a61bcf3c1e4c698c9165a45e6071e8#clustered-mode),
+Call this hook if you are running `GraphQL::Hive` in a process that `fork`s
+itself.
+
+example: `puma` web server running in (["clustered
+mode"](https://github.com/puma/puma/tree/6d8b728b42a61bcf3c1e4c698c9165a45e6071e8#clustered-mode))
 
 ```ruby
 # config/puma.rb
@@ -87,10 +89,13 @@ end
 ### `on_exit`
 
 If your GraphQL API process is shut down non-gracefully but has a shutdown hook
-to call into (like `puma` does when running in its clustered mode), call
-`on_worker_exit`
+to call into, call `on_worker_exit`.
+
+`puma` example:
 
 ```ruby
+# config/puma.rb
+
 on_worker_shutdown do
   GraphQL::Hive.instance.on_exit
 end
