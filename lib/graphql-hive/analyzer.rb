@@ -15,10 +15,12 @@ module GraphQL
       end
 
       def on_leave_argument(node, parent, visitor)
-        @used_fields.add([visitor.parent_type_definition.graphql_name, parent.name, node.name].join('.'))
+        if parent.respond_to?(:name)
+          @used_fields.add([visitor.parent_type_definition.graphql_name, parent.name, node.name].join('.'))
+        end
 
         arg_type = visitor.argument_definition.type.unwrap
-        arg_type_kind = visitor.argument_definition.type.unwrap.kind
+        arg_type_kind = arg_type.kind
         if arg_type_kind.input_object?
           @used_fields.add(arg_type.graphql_name)
           arg_type.arguments.each do |arg|
