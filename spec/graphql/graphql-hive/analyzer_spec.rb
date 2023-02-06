@@ -151,7 +151,7 @@ RSpec.describe 'GraphQL::Hive::Analyzer' do
     end
   end
 
-  context 'with nested input object argument' do
+  context 'with only some input object fields used' do
     let(:query_string) do
       %|
         query getProjects($limit: Int!, $type: ProjectType!) {
@@ -162,17 +162,46 @@ RSpec.describe 'GraphQL::Hive::Analyzer' do
       |
     end
 
-    it 'collects fields of all input objects' do
+    it 'collects fields of specified input objects' do
       expect(used_fields).to include(
+        'FilterInput',
+        'FilterInput.order'
+        'FilterInput.pagination',
+        'FilterInput.type',
         'PaginationInput',
         'PaginationInput.limit',
-        'PaginationInput.offset',
         'ProjectType.type',
         'Query.projects.filter',
-        'FilterInput',
-        'FilterInput.type',
+      )
+
+      expect(used_fields).not_to include(
+        'PaginationInput.offset',
+      )
+    end
+  end
+
+  context 'with query containining both non-destructured input object argument and destructured arguments' do
+    let(:query_string) do
+      %|
+        query getProjects($type: ProjectType!, $pagination: PaginationInput) {
+          projects(filter: { pagination: $pagination, type: $type }) {
+            id
+          }
+        }
+      |
+    end
+
+    it 'collects all fields of the non-destructured input object and only fields of the explicitly destructured input object' do
+      expect(used_fields).to include(
+        'Pagination',
+        'Pagination.limit',
+        'PaginationInput.offset',
+        'FilterInput.type'
         'FilterInput.pagination',
-        'FilterInput.order'
+      )
+
+      expect(used_fields).not_to include(
+        'FilterInput.order',
       )
     end
   end
