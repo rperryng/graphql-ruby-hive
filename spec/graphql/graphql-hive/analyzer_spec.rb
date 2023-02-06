@@ -150,7 +150,7 @@ RSpec.describe 'GraphQL::Hive::Analyzer' do
       expect(used_fields).not_to include(
         'ProjectType.STITCHING',
         'ProjectType.SINGLE',
-        'ProjectType.CUSTOM',
+        'ProjectType.CUSTOM'
       )
     end
   end
@@ -173,13 +173,12 @@ RSpec.describe 'GraphQL::Hive::Analyzer' do
         'FilterInput.type',
         'PaginationInput',
         'PaginationInput.limit',
-        'ProjectType.type',
-        'Query.projects.filter',
+        'Query.projects.filter'
       )
 
       expect(used_fields).not_to include(
         'FilterInput.order',
-        'PaginationInput.offset',
+        'PaginationInput.offset'
       )
     end
   end
@@ -201,11 +200,11 @@ RSpec.describe 'GraphQL::Hive::Analyzer' do
         'Pagination.limit',
         'PaginationInput.offset',
         'FilterInput.type',
-        'FilterInput.pagination',
+        'FilterInput.pagination'
       )
 
       expect(used_fields).not_to include(
-        'FilterInput.order',
+        'FilterInput.order'
       )
     end
   end
@@ -215,8 +214,6 @@ RSpec.describe 'GraphQL::Hive::Analyzer' do
       %|
         query getProjects($type: ProjectType!, $limit: Int) {
           projects(filter: { pagination: { limit: $limit }, type: $type, order: ASC }) {
-            limit: Int
-            offset: Int
             id
           }
         }
@@ -229,7 +226,7 @@ RSpec.describe 'GraphQL::Hive::Analyzer' do
       )
 
       expect(used_fields).not_to include(
-        'OrderDirection.DESC',
+        'OrderDirection.DESC'
       )
     end
   end
