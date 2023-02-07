@@ -30,9 +30,6 @@ module GraphQL
         elsif arg_type.kind.enum?
           collect_enum_values(node, arg_type)
         end
-      rescue StandardError => e
-        require 'pry'
-        binding.pry
       end
 
       attr_reader :used_fields
@@ -71,11 +68,7 @@ module GraphQL
             @used_fields.add(make_id(enum_type.graphql_name, n))
           end
         else
-          begin
-            @used_fields.add(make_id(enum_type.graphql_name, node.value.name))
-          rescue StandardError => e
-            binding.pry
-          end
+          @used_fields.add(make_id(enum_type.graphql_name, node.value.name))
         end
       end
 
