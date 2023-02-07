@@ -9,15 +9,45 @@ module GraphQL
         @used_fields = Set.new
       end
 
-      def on_leave_field(node, _parent, visitor)
+      def on_enter_field(node, _parent, visitor)
         @used_fields.add(visitor.parent_type_definition.graphql_name)
         @used_fields.add([visitor.parent_type_definition.graphql_name, node.name].join('.'))
+      end
 
-        arguments = visitor.query.arguments_for(node, visitor.field_definition)
-        # If there was an error when preparing this argument object,
-        # then this might be an error or something:
-        if arguments.respond_to?(:argument_values)
-          extract_arguments(arguments.argument_values, visitor.field_definition)
+      # Visitor also calls 'on_enter_argument' when visiting explicit input object fields
+      def on_enter_argument(node, parent, visitor)
+        is_variable = node.value.is_a?(GraphQL::Language::Nodes::VariableIdentifier)
+        arg_type = visitor.argument_definition.type.unwrap
+        @used_fields.add(arg_type.graphql_name)
+
+        # collect argument path
+        # input object fields won't have a "parent.name" method available
+        if parent.respond_to?(:name)
+          @used_fields.add([visitor.parent_type_definition.graphql_name, parent.name, node.name].join('.'))
+        end
+
+        # collect used input object fields
+        if arg_type.kind.input_object?
+          if is_variable
+            arg_type.all_argument_definitions.map(&:graphql_name).each do |n|
+              @used_fields.add([arg_type.graphql_name, n].join('.'))
+            end
+          else
+            node.value.arguments.map(&:name).each do |n|
+              @used_fields.add([arg_type.graphql_name, n].join('.'))
+            end
+          end
+        end
+
+        # collect used enum values
+        if arg_type.kind.enum?
+          if is_variable
+            arg_type.values.values.map(&:graphql_name).each do |n|
+              @used_fields.add([arg_type.graphql_name, n].join('.'))
+            end
+          else
+            @used_fields.add([arg_type.graphql_name, node.value.name].join('.'))
+          end
         end
       end
 
@@ -25,46 +55,6 @@ module GraphQL
 
       def result
         @used_fields
-      end
-
-      private
-
-      def extract_arguments(argument_values, argument_parent_definition = nil)
-        argument_values.each_pair do |_argument_name, argument|
-          type = argument.definition.type
-
-          if type.unwrap.kind.enum?
-            @used_fields.add(type.unwrap.graphql_name)
-            @used_fields.add([type.unwrap.graphql_name, argument.value].join('.'))
-          elsif type.unwrap.kind.input_object?
-            @used_fields.add(type.unwrap.graphql_name)
-
-            if argument_parent_definition.type.unwrap.kind.object?
-              # visiting field argument
-              @used_fields.add([
-                argument_parent_definition.owner.graphql_name,
-                argument_parent_definition.graphql_name,
-                argument.definition.graphql_name
-              ].join('.'))
-            elsif argument_parent_definition.type.unwrap.kind.input_object?
-              # visiting input object field
-              @used_fields.add([
-                argument_parent_definition.type.unwrap.graphql_name,
-                argument.definition.graphql_name
-              ].join('.'))
-            end
-
-            # TODO: nested input objects are missing
-            extract_arguments(argument.value.arguments.argument_values, argument.definition)
-          elsif argument.definition.type.list?
-            argument
-              .value
-              .select { |value| value.respond_to?(:arguments) }
-              .each do |value|
-                extract_arguments(value.arguments.argument_values)
-              end
-          end
-        end
       end
     end
   end

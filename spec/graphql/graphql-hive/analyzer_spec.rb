@@ -102,7 +102,6 @@ RSpec.describe 'GraphQL::Hive::Analyzer' do
   end
 
   it 'collects used fields' do
-    puts used_fields
     expect(used_fields).to include(
       'DeleteProjectPayload',
       'DeleteProjectPayload.selector',
@@ -196,8 +195,8 @@ RSpec.describe 'GraphQL::Hive::Analyzer' do
 
     it 'collects all fields of the non-destructured input object and only fields of the explicitly destructured input object' do
       expect(used_fields).to include(
-        'Pagination',
-        'Pagination.limit',
+        'PaginationInput',
+        'PaginationInput.limit',
         'PaginationInput.offset',
         'FilterInput.type',
         'FilterInput.pagination'
@@ -213,7 +212,16 @@ RSpec.describe 'GraphQL::Hive::Analyzer' do
     let(:query_string) do
       %|
         query getProjects($type: ProjectType!, $limit: Int) {
-          projects(filter: { pagination: { limit: $limit }, type: $type, order: ASC }) {
+          projects(filter: {
+            pagination: {
+              limit: $limit
+            },
+            type: $type,
+            order: {
+              field: "test",
+              direction: ASC,
+            }
+          }) {
             id
           }
         }
