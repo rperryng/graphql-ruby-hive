@@ -11,18 +11,18 @@ module GraphQL
 
       def on_enter_field(node, _parent, visitor)
         @used_fields.add(visitor.parent_type_definition.graphql_name)
-        @used_fields.add([visitor.parent_type_definition.graphql_name, node.name].join('.'))
+        @used_fields.add(make_id(visitor.parent_type_definition.graphql_name, node.name))
       end
 
-      # Visitor also calls 'on_enter_argument' when visiting explicit input object fields
+      # Visitor also calls 'on_enter_argument' when visiting input object fields in arguments
       def on_enter_argument(node, parent, visitor)
         arg_type = visitor.argument_definition.type.unwrap
         @used_fields.add(arg_type.graphql_name)
 
-        # collect argument path
+        # collect field argument path
         # input object fields won't have a "parent.name" method available
         if parent.respond_to?(:name)
-          @used_fields.add([visitor.parent_type_definition.graphql_name, parent.name, node.name].join('.'))
+          @used_fields.add(make_id(visitor.parent_type_definition.graphql_name, parent.name, node.name))
         end
 
         if arg_type.kind.input_object?
@@ -30,6 +30,9 @@ module GraphQL
         elsif arg_type.kind.enum?
           collect_enum_values(node, arg_type)
         end
+      rescue StandardError => e
+        require 'pry'
+        binding.pry
       end
 
       attr_reader :used_fields
@@ -43,11 +46,15 @@ module GraphQL
       def collect_input_object_fields(node, input_type)
         if node.value.is_a?(GraphQL::Language::Nodes::VariableIdentifier)
           input_type.all_argument_definitions.map(&:graphql_name).each do |n|
-            @used_fields.add([input_type.graphql_name, n].join('.'))
+            @used_fields.add(make_id(input_type.graphql_name, n))
+          end
+        elsif node.value.is_a?(Array)
+          node.value.flat_map(&:arguments).map(&:name).each do |n|
+            @used_fields.add(make_id(input_type.graphql_name, n))
           end
         else
           node.value.arguments.map(&:name).each do |n|
-            @used_fields.add([input_type.graphql_name, n].join('.'))
+            @used_fields.add(make_id(input_type.graphql_name, n))
           end
         end
       end
@@ -55,11 +62,23 @@ module GraphQL
       def collect_enum_values(node, enum_type)
         if node.value.is_a?(GraphQL::Language::Nodes::VariableIdentifier)
           enum_type.values.values.map(&:graphql_name).each do |n|
-            @used_fields.add([enum_type.graphql_name, n].join('.'))
+            @used_fields.add(make_id(enum_type.graphql_name, n))
+          end
+        elsif node.value.is_a?(Array)
+          node.value.map(&:name).each do |n|
+            @used_fields.add(make_id(enum_type.graphql_name, n))
           end
         else
-          @used_fields.add([enum_type.graphql_name, node.value.name].join('.'))
+          begin
+            @used_fields.add(make_id(enum_type.graphql_name, node.value.name))
+          rescue StandardError => e
+            binding.pry
+          end
         end
+      end
+
+      def make_id(*tokens)
+        tokens.join('.')
       end
     end
   end

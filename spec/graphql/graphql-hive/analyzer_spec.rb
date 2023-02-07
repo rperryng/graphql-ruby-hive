@@ -20,6 +20,7 @@ RSpec.describe 'GraphQL::Hive::Analyzer' do
       type Query {
         project(selector: ProjectSelectorInput!): Project
         projectsByType(type: ProjectType!): [Project!]!
+        projectsByManyTypes(type: [ProjectType!]!): [Project!]!
         projects(filter: FilterInput): [Project!]!
       }
 
@@ -229,7 +230,74 @@ RSpec.describe 'GraphQL::Hive::Analyzer' do
     end
   end
 
-  context 'with query containing enum value in nested input object' do
+  context 'with query containing list of input objects' do
+    let(:query_string) do
+      %|
+      query getProjects($limit: Int!, $type: ProjectType!) {
+        projects(filter: {
+          pagination: {
+            limit: $limit
+          },
+          type: $type,
+          order: [
+            {
+              field: "id",
+            }
+          ]
+        }) {
+          id
+        }
+      }
+      |
+    end
+
+    it 'collects fields from the input values' do
+      expect(used_fields).to include(
+        'ProjectOrderByInput.field',
+      )
+      expect(used_fields).to_not include(
+        'ProjectOrderByInput.direction',
+      )
+    end
+  end
+
+  context 'with query containing enum value inside input object list' do
+    let(:query_string) do
+      %|
+      query getProjects($limit: Int!, $type: ProjectType!) {
+        projects(filter: {
+          pagination: {
+            limit: $limit
+          },
+          type: $type,
+          order: [
+            {
+              field: "id",
+              direction: ASC
+            },
+            {
+              field: "cleanId",
+            }
+          ]
+        }) {
+          id
+        }
+      }
+      |
+    end
+
+    it 'collects the used enum values' do
+      expect(used_fields).to include(
+        'OrderDirection.ASC'
+      )
+
+      expect(used_fields).not_to include(
+        'OrderDirection.DESC'
+      )
+    end
+  end
+
+  context 'with query containing enum value in nested input object list' do
     let(:query_string) do
       %|
       query getProjects($type: ProjectType!, $limit: Int) {
@@ -256,6 +324,28 @@ RSpec.describe 'GraphQL::Hive::Analyzer' do
 
       expect(used_fields).not_to include(
         'OrderDirection.DESC'
+      )
+    end
+  end
+
+  context 'with query containing argument of enum values' do
+    let(:query_string) do
+      %|
+      query getGatewayProjects {
+        projectsByManyTypes(type: [STITCHING, FEDERATION])
+      }
+      |
+    end
+
+    it 'collects the used enum values' do
+      expect(used_fields).to include(
+        'ProjectType.STITCHING',
+        'ProjectType.FEDERATION',
+      )
+
+      expect(used_fields).not_to include(
+        'ProjectType.SINGLE',
+        'ProjectType.CUSTOM',
       )
     end
   end
