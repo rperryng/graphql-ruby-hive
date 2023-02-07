@@ -101,7 +101,7 @@ RSpec.describe 'GraphQL::Hive::Analyzer' do
     |
   end
 
-  it 'collects used fields' do
+  it 'collects used fields and arguments' do
     expect(used_fields).to include(
       'DeleteProjectPayload',
       'DeleteProjectPayload.selector',
@@ -131,16 +131,33 @@ RSpec.describe 'GraphQL::Hive::Analyzer' do
     )
   end
 
-  context 'with enum values in arguments' do
-    let(:query_string) do
-      %|
-        query getProjects {
-          projectsByType(type: FEDERATION) {
-            id
-          }
+  context 'with enum value in argument' do
+    let(:query_string) {%|
+      query getProjects($type: ProjectType!) {
+        projectsByType(type: $type) {
+          id
         }
-      |
+      }
+    |}
+
+    it 'collects all values of that enum type' do
+      expect(used_fields).to include(
+        'ProjectType.FEDERATION',
+        'ProjectType.STITCHING',
+        'ProjectType.SINGLE',
+        'ProjectType.CUSTOM'
+      )
     end
+  end
+
+  context 'with enum value hardcoded into the query' do
+    let(:query_string) {%|
+      query getProjects {
+        projectsByType(type: FEDERATION) {
+          id
+        }
+      }
+    |}
 
     it 'collects used enumn values' do
       expect(used_fields).to include(
@@ -155,15 +172,13 @@ RSpec.describe 'GraphQL::Hive::Analyzer' do
   end
 
   context 'with only some input object fields used' do
-    let(:query_string) do
-      %|
-        query getProjects($limit: Int!, $type: ProjectType!) {
-          projects(filter: { pagination: { limit: $limit }, type: $type }) {
-            id
-          }
+    let(:query_string) {%|
+      query getProjects($limit: Int!, $type: ProjectType!) {
+        projects(filter: { pagination: { limit: $limit }, type: $type }) {
+          id
         }
-      |
-    end
+      }
+    |}
 
     it 'collects fields of specified input objects' do
       expect(used_fields).to include(
@@ -182,18 +197,16 @@ RSpec.describe 'GraphQL::Hive::Analyzer' do
     end
   end
 
-  context 'with query containining both non-destructured input object argument and destructured arguments' do
-    let(:query_string) do
-      %|
-        query getProjects($type: ProjectType!, $pagination: PaginationInput) {
-          projects(filter: { pagination: $pagination, type: $type }) {
-            id
-          }
+  context 'with query containining both input object variable as well as explicit input object fields' do
+    let(:query_string) {%|
+      query getProjects($type: ProjectType!, $pagination: PaginationInput) {
+        projects(filter: { pagination: $pagination, type: $type }) {
+          id
         }
-      |
-    end
+      }
+    |}
 
-    it 'collects all fields of the non-destructured input object and only fields of the explicitly destructured input object' do
+    it 'collects all fields of input object variable, but only specific fields for the other input object type' do
       expect(used_fields).to include(
         'PaginationInput',
         'PaginationInput.limit',
@@ -209,24 +222,22 @@ RSpec.describe 'GraphQL::Hive::Analyzer' do
   end
 
   context 'with query containing enum value in nested input object' do
-    let(:query_string) do
-      %|
-        query getProjects($type: ProjectType!, $limit: Int) {
-          projects(filter: {
-            pagination: {
-              limit: $limit
-            },
-            type: $type,
-            order: {
-              field: "test",
-              direction: ASC,
-            }
-          }) {
-            id
+    let(:query_string) {%|
+      query getProjects($type: ProjectType!, $limit: Int) {
+        projects(filter: {
+          pagination: {
+            limit: $limit
+          },
+          type: $type,
+          order: {
+            field: "test",
+            direction: ASC,
           }
+        }) {
+          id
         }
-      |
-    end
+      }
+    |}
 
     it 'collects the enum value' do
       expect(used_fields).to include(

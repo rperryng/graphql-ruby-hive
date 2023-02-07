@@ -16,7 +16,6 @@ module GraphQL
 
       # Visitor also calls 'on_enter_argument' when visiting explicit input object fields
       def on_enter_argument(node, parent, visitor)
-        is_variable = node.value.is_a?(GraphQL::Language::Nodes::VariableIdentifier)
         arg_type = visitor.argument_definition.type.unwrap
         @used_fields.add(arg_type.graphql_name)
 
@@ -26,28 +25,10 @@ module GraphQL
           @used_fields.add([visitor.parent_type_definition.graphql_name, parent.name, node.name].join('.'))
         end
 
-        # collect used input object fields
         if arg_type.kind.input_object?
-          if is_variable
-            arg_type.all_argument_definitions.map(&:graphql_name).each do |n|
-              @used_fields.add([arg_type.graphql_name, n].join('.'))
-            end
-          else
-            node.value.arguments.map(&:name).each do |n|
-              @used_fields.add([arg_type.graphql_name, n].join('.'))
-            end
-          end
-        end
-
-        # collect used enum values
-        if arg_type.kind.enum?
-          if is_variable
-            arg_type.values.values.map(&:graphql_name).each do |n|
-              @used_fields.add([arg_type.graphql_name, n].join('.'))
-            end
-          else
-            @used_fields.add([arg_type.graphql_name, node.value.name].join('.'))
-          end
+          collect_input_object_fields(node, arg_type)
+        elsif arg_type.kind.enum?
+          collect_enum_values(node, arg_type)
         end
       end
 
@@ -55,6 +36,30 @@ module GraphQL
 
       def result
         @used_fields
+      end
+
+      private
+
+      def collect_input_object_fields(node, input_type)
+        if node.value.is_a?(GraphQL::Language::Nodes::VariableIdentifier)
+          input_type.all_argument_definitions.map(&:graphql_name).each do |n|
+            @used_fields.add([input_type.graphql_name, n].join('.'))
+          end
+        else
+          node.value.arguments.map(&:name).each do |n|
+            @used_fields.add([input_type.graphql_name, n].join('.'))
+          end
+        end
+      end
+
+      def collect_enum_values(node, enum_type)
+        if node.value.is_a?(GraphQL::Language::Nodes::VariableIdentifier)
+          enum_type.values.values.map(&:graphql_name).each do |n|
+            @used_fields.add([enum_type.graphql_name, n].join('.'))
+          end
+        else
+          @used_fields.add([enum_type.graphql_name, node.value.name].join('.'))
+        end
       end
     end
   end
