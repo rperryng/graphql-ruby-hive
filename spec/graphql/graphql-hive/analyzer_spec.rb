@@ -253,10 +253,10 @@ RSpec.describe 'GraphQL::Hive::Analyzer' do
 
     it 'collects fields from the input values' do
       expect(used_fields).to include(
-        'ProjectOrderByInput.field',
+        'ProjectOrderByInput.field'
       )
       expect(used_fields).to_not include(
-        'ProjectOrderByInput.direction',
+        'ProjectOrderByInput.direction'
       )
     end
   end
@@ -340,12 +340,12 @@ RSpec.describe 'GraphQL::Hive::Analyzer' do
     it 'collects the used enum values' do
       expect(used_fields).to include(
         'ProjectType.STITCHING',
-        'ProjectType.FEDERATION',
+        'ProjectType.FEDERATION'
       )
 
       expect(used_fields).not_to include(
         'ProjectType.SINGLE',
-        'ProjectType.CUSTOM',
+        'ProjectType.CUSTOM'
       )
     end
   end

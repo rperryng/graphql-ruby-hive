@@ -44,11 +44,12 @@ module GraphQL
       private
 
       def collect_input_object_fields(node, input_type)
-        if node.value.is_a?(GraphQL::Language::Nodes::VariableIdentifier)
+        case node.value
+        when GraphQL::Language::Nodes::VariableIdentifier
           input_type.all_argument_definitions.map(&:graphql_name).each do |n|
             @used_fields.add(make_id(input_type.graphql_name, n))
           end
-        elsif node.value.is_a?(Array)
+        when Array
           node.value.flat_map(&:arguments).map(&:name).each do |n|
             @used_fields.add(make_id(input_type.graphql_name, n))
           end
@@ -60,11 +61,12 @@ module GraphQL
       end
 
       def collect_enum_values(node, enum_type)
-        if node.value.is_a?(GraphQL::Language::Nodes::VariableIdentifier)
+        case node.value
+        when GraphQL::Language::Nodes::VariableIdentifier
           enum_type.values.values.map(&:graphql_name).each do |n|
             @used_fields.add(make_id(enum_type.graphql_name, n))
           end
-        elsif node.value.is_a?(Array)
+        when Array
           node.value.map(&:name).each do |n|
             @used_fields.add(make_id(enum_type.graphql_name, n))
           end
