@@ -132,13 +132,15 @@ RSpec.describe 'GraphQL::Hive::Analyzer' do
   end
 
   context 'with enum value in argument' do
-    let(:query_string) {%|
+    let(:query_string) do
+      %|
       query getProjects($type: ProjectType!) {
         projectsByType(type: $type) {
           id
         }
       }
-    |}
+    |
+    end
 
     it 'collects all values of that enum type' do
       expect(used_fields).to include(
@@ -151,13 +153,15 @@ RSpec.describe 'GraphQL::Hive::Analyzer' do
   end
 
   context 'with enum value hardcoded into the query' do
-    let(:query_string) {%|
+    let(:query_string) do
+      %|
       query getProjects {
         projectsByType(type: FEDERATION) {
           id
         }
       }
-    |}
+    |
+    end
 
     it 'collects used enumn values' do
       expect(used_fields).to include(
@@ -172,13 +176,15 @@ RSpec.describe 'GraphQL::Hive::Analyzer' do
   end
 
   context 'with only some input object fields used' do
-    let(:query_string) {%|
+    let(:query_string) do
+      %|
       query getProjects($limit: Int!, $type: ProjectType!) {
         projects(filter: { pagination: { limit: $limit }, type: $type }) {
           id
         }
       }
-    |}
+    |
+    end
 
     it 'collects fields of specified input objects' do
       expect(used_fields).to include(
@@ -198,13 +204,15 @@ RSpec.describe 'GraphQL::Hive::Analyzer' do
   end
 
   context 'with query containining both input object variable as well as explicit input object fields' do
-    let(:query_string) {%|
+    let(:query_string) do
+      %|
       query getProjects($type: ProjectType!, $pagination: PaginationInput) {
         projects(filter: { pagination: $pagination, type: $type }) {
           id
         }
       }
-    |}
+    |
+    end
 
     it 'collects all fields of input object variable, but only specific fields for the other input object type' do
       expect(used_fields).to include(
@@ -222,7 +230,8 @@ RSpec.describe 'GraphQL::Hive::Analyzer' do
   end
 
   context 'with query containing enum value in nested input object' do
-    let(:query_string) {%|
+    let(:query_string) do
+      %|
       query getProjects($type: ProjectType!, $limit: Int) {
         projects(filter: {
           pagination: {
@@ -237,7 +246,8 @@ RSpec.describe 'GraphQL::Hive::Analyzer' do
           id
         }
       }
-    |}
+    |
+    end
 
     it 'collects the enum value' do
       expect(used_fields).to include(
