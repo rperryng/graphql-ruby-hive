@@ -69,7 +69,7 @@ module GraphQL
             @options[:logger].debug('shuting down with buffer, sending!')
             process_operations(buffer)
           end
-        rescue Exception => e
+        rescue StandardError => e
           # ensure configured logger receives exception as well in setups where STDERR might not be
           # monitored.
           @options[:logger].error('GraphQL Hive usage collection thread terminating')
