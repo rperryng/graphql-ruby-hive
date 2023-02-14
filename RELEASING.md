@@ -7,4 +7,4 @@
 1. Build the gem: `gem build graphql-hive`
 1. A new file should have been created, ex: `graphql-hive-0.3.0.gem`
 1. Then, login to RubyGems: `gem login`
-1. And publish the new version: `gem publish <path_to_gem_file>` (ex: `gem publish graphql-hive-0.3.0.gem`)
+1. And publish the new version: `gem push <path_to_gem_file>` (ex: `gem push graphql-hive-0.3.0.gem`)
