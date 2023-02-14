@@ -33,7 +33,13 @@ module GraphQL
       end
 
       def print_selections(selections, indent: '')
-        super(selections.sort_by(&:name), indent: indent)
+        sorted_nodes = selections.sort_by do |s|
+          next s.name if s.respond_to?(:name)
+          next s.type.name if s.respond_to?(:type)
+
+          raise "don't know how to sort selection node: #{s.inspect}"
+        end
+        super(sorted_nodes, indent: indent)
       end
 
       def print_directive(directive)
