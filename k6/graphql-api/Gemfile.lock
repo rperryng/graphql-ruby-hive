@@ -1,7 +1,7 @@
 PATH
   remote: ../..
   specs:
-    graphql-hive (0.3.1)
+    graphql-hive (0.3.2)
       graphql (~> 2.0.9)
 
 GEM
