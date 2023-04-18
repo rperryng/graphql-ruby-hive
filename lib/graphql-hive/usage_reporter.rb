@@ -154,7 +154,7 @@ module GraphQL
           errors = result.to_h.fetch('errors', [])
           errors.each do |error|
             acc[:errorsTotal] += 1
-            acc[:errors] << { message: error['message'], path: error['path'].join('.') }
+            acc[:errors] << { message: error['message'], path: error['path']&.join('.') }
           end
         end
         acc
