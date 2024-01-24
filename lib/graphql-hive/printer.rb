@@ -33,14 +33,10 @@ module GraphQL
       end
 
       def print_directives(directives)
-        return '' if directives.empty?
-
         super(directives.sort_by(&:name))
       end
 
       def print_selections(selections, indent: '')
-        return '' if selections.empty?
-
         sorted_nodes = selections.sort_by do |s|
           next s.name if s.respond_to?(:name)
           next s.type.name if s.respond_to?(:type)
