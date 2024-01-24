@@ -2,7 +2,7 @@ PATH
   remote: .
   specs:
     graphql-hive (0.3.3)
-      graphql (~> 2.0.9)
+      graphql (~> 2.2.5)
 
 GEM
   remote: https://rubygems.org/
@@ -12,7 +12,8 @@ GEM
       irb (~> 1.10)
       reline (>= 0.3.8)
     diff-lcs (1.5.0)
-    graphql (2.0.27)
+    graphql (2.2.5)
+      racc (~> 1.4)
     io-console (0.7.2)
     irb (1.11.1)
       rdoc
@@ -22,6 +23,7 @@ GEM
       ast (~> 2.4.1)
     psych (5.1.2)
       stringio
+    racc (1.7.3)
     rainbow (3.1.1)
     rake (10.5.0)
     rdoc (6.6.2)
