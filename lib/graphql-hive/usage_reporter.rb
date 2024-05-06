@@ -111,12 +111,12 @@ module GraphQL
             analyzers: [analyzer]
           )
 
-          visitor.visit
+          visit = visitor.visit
 
           fields.merge(analyzer.result)
 
           operation += "\n" unless operation.empty?
-          operation += GraphQL::Hive::Printer.new.print(visitor.result)
+          operation += GraphQL::Hive::Printer.new.print(visit)
         end
 
         md5 = Digest::MD5.new
