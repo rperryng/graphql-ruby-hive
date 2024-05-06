@@ -9,27 +9,32 @@ module GraphQL
       def print_node(node, indent: '')
         case node
         when Float, Integer
-          '0'
+          print_string '0'
         when String
-          ''
+          print_string ''
         else
           super(node, indent: indent)
         end
       end
 
-      # rubocop:disable Style/RedundantInterpolation
-      def print_field(field, indent: '')
-        out = "#{indent}".dup
-        out << "#{field.name}"
-        out << "(#{field.arguments.sort_by(&:name).map { |a| print_argument(a) }.join(', ')})" if field.arguments.any?
-        out << print_directives(field.directives)
-        out << print_selections(field.selections, indent: indent)
-        out
-      end
-      # rubocop:enable Style/RedundantInterpolation
-
       def print_directives(directives)
         super(directives.sort_by(&:name))
+      end
+
+      # Copy of the base class method with removed alias and added sort_by
+      def print_field(field, indent: '')
+        print_string(indent)
+        print_string(field.name)
+        if field.arguments.any?
+          print_string('(')
+          field.arguments.sort_by(&:name).each_with_index do |a, i|
+            print_argument(a)
+            print_string(', ') if i < field.arguments.size - 1
+          end
+          print_string(')')
+        end
+        print_directives(field.directives)
+        print_selections(field.selections, indent: indent)
       end
 
       def print_selections(selections, indent: '')
@@ -42,29 +47,43 @@ module GraphQL
         super(sorted_nodes, indent: indent)
       end
 
+      # Copy of the base class method with added sort_by
       def print_directive(directive)
-        out = "@#{directive.name}".dup
+        print_string('@')
+        print_string(directive.name)
 
         if directive.arguments.any?
-          out << "(#{directive.arguments.sort_by(&:name).map { |a| print_argument(a) }.join(', ')})"
+          print_string('(')
+          directive.arguments.sort_by(&:name).each_with_index do |a, i|
+            print_argument(a)
+            print_string(', ') if i < directive.arguments.size - 1
+          end
+          print_string(')')
         end
 
-        out
+        print_string(out)
       end
 
+      # Copy of the base class method with the added sort_by
       def print_operation_definition(operation_definition, indent: '')
-        out = "#{indent}#{operation_definition.operation_type}".dup
-        out << " #{operation_definition.name}" if operation_definition.name
-
-        # rubocop:disable Layout/LineLength
-        if operation_definition.variables.any?
-          out << "(#{operation_definition.variables.sort_by(&:name).map { |v| print_variable_definition(v) }.join(', ')})"
+        print_string(indent)
+        print_string(operation_definition.operation_type)
+        if operation_definition.name
+          print_string(' ')
+          print_string(operation_definition.name)
         end
-        # rubocop:enable Layout/LineLength
 
-        out << print_directives(operation_definition.directives)
-        out << print_selections(operation_definition.selections, indent: indent)
-        out
+        if operation_definition.variables.any?
+          print_string('(')
+          operation_definition.variables.sort_by(&:name).each_with_index do |v, i|
+            print_variable_definition(v)
+            print_string(', ') if i < operation_definition.variables.size - 1
+          end
+          print_string(')')
+        end
+
+        print_directives(operation_definition.directives)
+        print_selections(operation_definition.selections, indent: indent)
       end
     end
   end
