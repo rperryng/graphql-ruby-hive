@@ -54,14 +54,14 @@ module GraphQL
         print_string('@')
         print_string(directive.name)
 
-        if directive.arguments.any?
-          print_string('(')
-          directive.arguments.sort_by(&:name).each_with_index do |a, i|
-            print_argument(a)
-            print_string(', ') if i < directive.arguments.size - 1
-          end
-          print_string(')')
+        return if directive.arguments.blank?
+
+        print_string('(')
+        directive.arguments.sort_by(&:name).each_with_index do |a, i|
+          print_argument(a)
+          print_string(', ') if i < directive.arguments.size - 1
         end
+        print_string(')')
       end
 
       # from GraphQL::Language::Printer with sort_by name
