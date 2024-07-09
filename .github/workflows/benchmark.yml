@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Use Node
         uses: actions/setup-node@master
@@ -22,7 +22,7 @@ jobs:
         uses: ruby/setup-ruby@359bebbc29cbe6c87da6bc9ea3bc930432750108
         with:
           working-directory: ./k6/graphql-api
-          ruby-version: 2.6
+          ruby-version: '3.3'
           bundler-cache: true
 
       - name: Start GraphQL API with hive enabled
