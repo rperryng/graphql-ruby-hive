@@ -1,7 +1,7 @@
 PATH
   remote: ../..
   specs:
-    graphql-hive (0.1.4)
+    graphql-hive (0.3.2)
       graphql (~> 2.0.9)
 
 GEM
@@ -45,4 +45,4 @@ DEPENDENCIES
   sinatra-contrib
 
 BUNDLED WITH
-   1.17.3
+   2.5.15
