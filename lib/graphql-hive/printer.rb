@@ -13,7 +13,7 @@ module GraphQL
         when String
           ''
         else
-          super(node, indent: indent)
+          super
         end
       end
 
