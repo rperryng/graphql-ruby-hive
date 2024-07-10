@@ -7,6 +7,10 @@ require_relative 'schema'
 class DemoApp < Sinatra::Base
   use Rack::JSONBodyParser
 
+  get '/' do
+    status 200
+  end
+
   post '/graphql' do
     result = Schema.execute(
       params['query'],

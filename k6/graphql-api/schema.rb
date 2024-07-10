@@ -29,7 +29,13 @@ end
 class Schema < GraphQL::Schema
   query QueryType
 
-  use(GraphQL::Hive,
-      { enabled: ENV['HIVE_ENABLED'] === 'true', endpoint: 'localhost', debug: true, port: 8888, token: 'stress-token',
-        report_schema: false })
+  use(
+    GraphQL::Hive,
+    enabled: ENV['HIVE_ENABLED'] === 'true',
+    endpoint: 'localhost',
+    debug: true,
+    port: 8888,
+    token: 'stress-token',
+    report_schema: false
+  )
 end

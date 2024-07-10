@@ -65,7 +65,7 @@ module GraphQL
               end
             end
           end
-          unless buffer.size.zero?
+          unless buffer.empty?
             @options[:logger].debug('shuting down with buffer, sending!')
             process_operations(buffer)
           end
