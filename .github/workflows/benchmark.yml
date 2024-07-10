@@ -19,7 +19,7 @@ jobs:
           cache-dependency-path: 'k6/yarn.lock'
 
       - name: Use Ruby
-        uses: ruby/setup-ruby@359bebbc29cbe6c87da6bc9ea3bc930432750108
+        uses: ruby/setup-ruby@2a9a743e19810b9f3c38060637daf594dbd7b37f
         with:
           working-directory: ./k6/graphql-api
           ruby-version: '3.3'
