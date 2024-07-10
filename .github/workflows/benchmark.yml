@@ -50,7 +50,7 @@ jobs:
       - name: Run k6 local test
         uses: grafana/k6-action@655099b3d4b0a2b748f84e9e0811616617f8bbc5
         with:
-          filename: k6/my-script-file.js
+          filename: k6/k6.js
           flags: >
             --env GITHUB_PR=${{ github.event.number }}
             --env GITHUB_SHA=${{ github.sha }}
