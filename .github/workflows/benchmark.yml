@@ -9,27 +9,28 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Use Node
-        uses: actions/setup-node@master
+        uses: actions/setup-node@v4
         with:
-          node-version: 14
+          node-version: 22
           cache: 'yarn'
           cache-dependency-path: 'k6/yarn.lock'
 
       - name: Use Ruby
-        uses: ruby/setup-ruby@359bebbc29cbe6c87da6bc9ea3bc930432750108
+        uses: ruby/setup-ruby@2a9a743e19810b9f3c38060637daf594dbd7b37f
         with:
           working-directory: ./k6/graphql-api
-          ruby-version: 2.6
+          ruby-version: '3.3'
           bundler-cache: true
 
       - name: Start GraphQL API with hive enabled
         working-directory: ./k6/graphql-api
         run: |
           bundle
-          bundle exec puma -t 0:1 -p 9292 & sleep 5
+          bundle exec puma -t 0:1 -p 9292 &
+          npx wait-on http://localhost:9292 --timeout 5s
         env:
           HIVE_ENABLED: 'true'
 
@@ -37,7 +38,8 @@ jobs:
         working-directory: ./k6/graphql-api
         run: |
           bundle
-          bundle exec puma -t 0:1 -p 9291 & sleep 5
+          bundle exec puma -t 0:1 -p 9291 &
+          npx wait-on http://localhost:9291 --timeout 5s
         env:
           HIVE_ENABLED: 'false'
 
@@ -45,15 +47,21 @@ jobs:
         working-directory: ./k6/
         run: |
           yarn
-          node usage-api.js & sleep 5s
+          node usage-api.js &
+          npx wait-on http://localhost:8888 --timeout 5s
 
-      - name: Setup K6
+      - name: Install k6
+        working-directory: ./k6
+        env:
+          K6_RELEASE_ARTIFACT_URL:
+            https://github.com/grafana/k6/releases/download/v0.37.0/k6-v0.37.0-linux-amd64.tar.gz
+        run: curl "${K6_RELEASE_ARTIFACT_URL}" -L | tar xvz --strip-components 1
+
+      - name: Run Benchmark
+        working-directory: ./k6
         run: |
-          sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
-          echo "deb https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
-          sudo apt-get update
-          sudo apt-get install k6=0.37.0
-
-      - name: Start and Report Benchmark
-        working-directory: ./k6/
-        run: k6 -e GITHUB_PR=${{ github.event.number }} -e GITHUB_SHA=${{ github.sha }} -e GITHUB_TOKEN=${{secrets.GH_PA_TOKEN}} run k6.js
+          ./k6 \
+            -e GITHUB_PR=${{ github.event.number }} \
+            -e GITHUB_SHA=${{ github.sha }} \
+            -e GITHUB_TOKEN=${{secrets.GH_PA_TOKEN}} \
+            run k6.js

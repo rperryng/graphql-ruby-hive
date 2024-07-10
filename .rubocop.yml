@@ -36,3 +36,6 @@ Metrics/MethodLength:
 
 Metrics/ClassLength:
   Enabled: false
+
+Gemspec/DevelopmentDependencies:
+  EnforcedStyle: 'gemspec'
