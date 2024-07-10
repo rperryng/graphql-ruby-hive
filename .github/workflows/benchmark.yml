@@ -55,7 +55,7 @@ jobs:
         env:
           K6_RELEASE_ARTIFACT_URL:
             https://github.com/grafana/k6/releases/download/v0.37.0/k6-v0.37.0-linux-amd64.tar.gz
-        run: curl "${K6_RELEASE_URL}" -L | tar xvz --strip-components 1
+        run: curl "${K6_RELEASE_ARTIFACT_URL}" -L | tar xvz --strip-components 1
 
       - name: Run Benchmark
         working-directory: ./k6
