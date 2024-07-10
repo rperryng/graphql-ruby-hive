@@ -6,6 +6,10 @@ app.use(express.json());
 
 let count = 0;
 
+app.get("/", (req, res) => {
+  res.status(200).send({ status: 'ok' })
+});
+
 app.get("/count", (req, res) => {
   res.status(200).send({ count });
 });

@@ -12,9 +12,9 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Use Node
-        uses: actions/setup-node@master
+        uses: actions/setup-node@v4
         with:
-          node-version: 14
+          node-version: 22
           cache: 'yarn'
           cache-dependency-path: 'k6/yarn.lock'
 
@@ -29,7 +29,8 @@ jobs:
         working-directory: ./k6/graphql-api
         run: |
           bundle
-          bundle exec puma -t 0:1 -p 9292 & sleep 5
+          bundle exec puma -t 0:1 -p 9292 &
+          npx wait-on http://localhost:9292 --timeout 5s
         env:
           HIVE_ENABLED: 'true'
 
@@ -37,7 +38,8 @@ jobs:
         working-directory: ./k6/graphql-api
         run: |
           bundle
-          bundle exec puma -t 0:1 -p 9291 & sleep 5
+          bundle exec puma -t 0:1 -p 9291 &
+          npx wait-on http://localhost:9291 --timeout 5s
         env:
           HIVE_ENABLED: 'false'
 
@@ -45,13 +47,21 @@ jobs:
         working-directory: ./k6/
         run: |
           yarn
-          node usage-api.js & sleep 5s
+          node usage-api.js &
+          npx wait-on http://localhost:8888 --timeout 5s
 
-      - name: Run k6 local test
-        uses: grafana/k6-action@655099b3d4b0a2b748f84e9e0811616617f8bbc5
+      - name: Install k6
+        working-directory: ./k6
         env:
-          GITHUB_PR: ${{ github.event.number }}
-          GITHUB_SHA: ${{ github.sha }}
-          GITHUB_TOKEN: ${{ secrets.GH_PA_TOKEN }}
-        with:
-          filename: k6/k6.js
+          K6_RELEASE_ARTIFACT_URL:
+            https://github.com/grafana/k6/releases/download/v0.37.0/k6-v0.37.0-linux-amd64.tar.gz
+        run: curl "${K6_RELEASE_URL}" -L | tar xvz --strip-components 1
+
+      - name: Run Benchmark
+        working-directory: ./k6
+        run: |
+          ./k6 \
+            -e GITHUB_PR=${{ github.event.number }} \
+            -e GITHUB_SHA=${{ github.sha }} \
+            -e GITHUB_TOKEN=${{secrets.GH_PA_TOKEN}} \
+            run k6.js
