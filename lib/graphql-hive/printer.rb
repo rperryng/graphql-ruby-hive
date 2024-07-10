@@ -6,6 +6,11 @@ module GraphQL
     # - removes aliases
     # - sort nodes and directives (files, arguments, variables)
     class Printer < GraphQL::Language::Printer
+
+      def print_string(str)
+        @out.append(str)
+      end
+
       def print_node(node, indent: '')
         case node
         when Float, Integer
