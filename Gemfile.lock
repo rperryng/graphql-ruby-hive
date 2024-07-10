@@ -20,7 +20,7 @@ GEM
       racc
     racc (1.8.0)
     rainbow (3.1.1)
-    rake (10.5.0)
+    rake (13.2.1)
     regexp_parser (2.9.2)
     rexml (3.3.1)
       strscan
@@ -61,9 +61,9 @@ PLATFORMS
 DEPENDENCIES
   bundler (~> 2)
   graphql-hive!
-  rake (~> 10.0)
-  rspec (~> 3.0)
-  rubocop (~> 1.30)
+  rake (~> 13)
+  rspec (~> 3)
+  rubocop (~> 1)
 
 BUNDLED WITH
    2.5.15
