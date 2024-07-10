@@ -49,9 +49,9 @@ jobs:
 
       - name: Run k6 local test
         uses: grafana/k6-action@655099b3d4b0a2b748f84e9e0811616617f8bbc5
+        env:
+          GITHUB_PR: ${{ github.event.number }}
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_TOKEN: ${{ secrets.GH_PA_TOKEN }}
         with:
           filename: k6/k6.js
-          flags: >
-            --env GITHUB_PR=${{ github.event.number }}
-            --env GITHUB_SHA=${{ github.sha }}
-            --env GITHUB_TOKEN=${{ secrets.GH_PA_TOKEN }}
