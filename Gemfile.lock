@@ -2,7 +2,7 @@ PATH
   remote: .
   specs:
     graphql-hive (0.3.4)
-      graphql (>= 2, < 3)
+      graphql (~> 2.3)
 
 GEM
   remote: https://rubygems.org/
