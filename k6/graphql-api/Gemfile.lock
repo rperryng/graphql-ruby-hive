@@ -1,14 +1,14 @@
 PATH
   remote: ../..
   specs:
-    graphql-hive (0.3.3)
-      graphql (~> 2.0.9)
+    graphql-hive (0.3.4)
+      graphql (~> 2.3)
 
 GEM
   remote: https://rubygems.org/
   specs:
     base64 (0.2.0)
-    graphql (2.0.31)
+    graphql (2.3.7)
       base64
     multi_json (1.15.0)
     mustermann (2.0.2)
