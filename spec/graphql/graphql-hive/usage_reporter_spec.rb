@@ -80,7 +80,7 @@ RSpec.describe GraphQL::Hive::UsageReporter do
       expect(subject.instance_variable_get(:@queue).pop).to eq(operation)
     end
 
-    context 'successful operaiton' do
+    context 'successful operation' do
       let(:options) do
         { logger: logger, buffer_size: 2 }
       end
