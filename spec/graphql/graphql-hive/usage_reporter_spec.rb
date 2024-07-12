@@ -101,16 +101,26 @@ RSpec.describe GraphQL::Hive::UsageReporter do
 
         # call process_operation with send
         subject.send(:process_operations, [operation])
-        expect(client).to have_received(:send).with('/usage',
-                                                    { map: { '8b8412ce86f3ea7accb931b1a5de335d' =>
-                                                        { fields: ['Query', 'Query.test'],
-                                                          operation: "query TestingHive {\n  test\n}",
-                                                          operationName: 'TestingHive' } },
-                                                      operations: [{ execution: { duration: 100_000, errors: [], errorsTotal: 0, ok: true },
-                                                                     operationMapKey: '8b8412ce86f3ea7accb931b1a5de335d',
-                                                                     timestamp: 1_720_705_946_333 }],
-                                                      size: 1 },
-                                                    :usage)
+        expect(client).to have_received(:send).with(
+          '/usage',
+          {
+            map: { '8b8412ce86f3ea7accb931b1a5de335d' =>
+              {
+                fields: %w[Query Query.test],
+                operation: "query TestingHive {\n  test\n}",
+                operationName: 'TestingHive'
+              } },
+            operations: [
+              {
+                execution: { duration: 100_000, errors: [], errorsTotal: 0, ok: true },
+                operationMapKey: '8b8412ce86f3ea7accb931b1a5de335d',
+                timestamp: 1_720_705_946_333
+              }
+            ],
+            size: 1
+          },
+          :usage
+        )
       end
     end
   end
