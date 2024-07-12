@@ -1,8 +1,8 @@
 PATH
   remote: .
   specs:
-    graphql-hive (0.3.3)
-      graphql (~> 2.0.9)
+    graphql-hive (0.3.4)
+      graphql (>= 2.3, < 3)
 
 GEM
   remote: https://rubygems.org/
@@ -10,7 +10,7 @@ GEM
     ast (2.4.2)
     base64 (0.2.0)
     diff-lcs (1.5.1)
-    graphql (2.0.31)
+    graphql (2.3.7)
       base64
     json (2.7.2)
     language_server-protocol (3.17.0.3)
