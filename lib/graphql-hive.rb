@@ -6,6 +6,7 @@ require 'securerandom'
 require 'graphql-hive/version'
 require 'graphql-hive/usage_reporter'
 require 'graphql-hive/client'
+require 'graphql-hive/sampler'
 
 # class MySchema < GraphQL::Schema
 #   use(
