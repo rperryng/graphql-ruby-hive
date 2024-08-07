@@ -47,6 +47,16 @@ RSpec.describe GraphQL::Hive::Sampler do
         sampler_instance = described_class.new(mock_sampler)
         expect { sampler_instance.should_include('operation') }.to raise_error(StandardError, "Sampler must return a number")
       end
+
+      describe 'when provided an operation key generator' do
+        it 'uses the operation key generator to track operations' do
+          mock_sampler = Proc.new { |sample_context| 0 }
+          mock_operation_key_generator = Proc.new { |operation| 'same_key' }
+          sampler_instance = described_class.new(mock_sampler, mock_operation_key_generator)
+          expect(sampler_instance.should_include('operation')).to eq(true)
+          expect(sampler_instance.should_include('different_operation')).to eq(false)
+        end
+      end
     end
     
     describe 'when provided a sample rate'do 
