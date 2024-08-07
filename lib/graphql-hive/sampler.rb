@@ -34,7 +34,7 @@ module GraphQL
       end
 
       private
-      
+
       def get_sample_context(operation) 
         _, queries, results, _ = operation
 
@@ -47,12 +47,12 @@ module GraphQL
         end
         document = GraphQL::Language::Nodes::Document.new(definitions: parsed_definitions)
 
-        context = results[0].query.context
+        context_value = results[0].query.context
 
         {
           operation_name: operation_name,
           document: document,
-          context: context
+          context_value: context_value
         }
       end
     end
