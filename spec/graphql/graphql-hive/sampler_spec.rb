@@ -1,11 +1,12 @@
 require 'spec_helper'
+require 'ostruct'
 
 RSpec.describe GraphQL::Hive::Sampler do
   let(:time) { Time.now }
-  let(:queries) { [ { operations: { query: 'query' } } ] }
-  let(:results) { [ { query: { context: 'context' } } ] }
+  let(:queries) { [OpenStruct.new(operations: { 'getField' => {} })] }
+  let(:results) { [OpenStruct.new(query: OpenStruct.new(context: { header: 'value' }))] }
   let(:duration) { 100 }
-  
+
   let(:operation) { [time, queries, results, duration] }
 
   describe '#initialize' do

@@ -39,6 +39,7 @@ module GraphQL
 
         operation_name = queries.map(&:operations).map(&:keys).flatten.compact.join(', ')
         context = results[0].query.context
+        
         document = GraphQL::Language::Nodes::Document.new(definitions: [])
         queries.each do |query|
           parsed_query = GraphQL.parse(query)
