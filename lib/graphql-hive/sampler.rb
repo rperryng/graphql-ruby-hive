@@ -16,12 +16,14 @@ module GraphQL
 
       def should_include(operation)
         if (@sampler)
-          raise StandardError, "Sampler must return a number" unless (@sampler.call(operation).is_a?(Numeric))
+          sample_context = get_sample_context(operation)
 
-          operation_key = @operation_key_generator ? @operation_key_generator.call(operation).to_s : operation
+          raise StandardError, "Sampler must return a number" unless (@sampler.call(sample_context).is_a?(Numeric))
+
+          operation_key = @operation_key_generator ? @operation_key_generator.call(sample_context).to_s : operation
 
           if (@tracked_operations.has_key?(operation_key))
-            @sample_rate = @sampler.call(operation) # TODO: determine necessary arguments
+            @sample_rate = @sampler.call(sample_context)
           else
             @tracked_operations[operation_key] = true 
             return true
@@ -29,6 +31,25 @@ module GraphQL
         end
 
         rand(0.0..1.0) <= @sample_rate
+      end
+
+      private
+      def get_sample_context(operation) 
+        _, queries, results, _ = operation
+
+        operation_name = queries.map(&:operations).map(&:keys).flatten.compact.join(', ')
+        context = results[0].query.context
+        document = GraphQL::Language::Nodes::Document.new(definitions: [])
+        queries.each do |query|
+          parsed_query = GraphQL.parse(query)
+          document.definitions.concat(parsed_query.definitions)
+        end
+
+        {
+          operation_name: operation_name,
+          document: document,
+          context: context
+        }
       end
     end
   end
