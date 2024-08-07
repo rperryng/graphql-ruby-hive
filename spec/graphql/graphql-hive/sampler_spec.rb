@@ -40,6 +40,11 @@ RSpec.describe GraphQL::Hive::Sampler do
   end
 
   describe '#should_include' do
+    before do
+      mock_document = GraphQL::Language::Nodes::Document.new(definitions: [OpenStruct.new(name: 'mockDefinition')])
+      allow(GraphQL).to receive(:parse).and_return(mock_document)
+    end
+
     describe 'when provided a sampler' do
       it 'returns true for the first operation and follows the sampler for remaining operations' do
         mock_sampler = Proc.new { |sample_context| 0 }
@@ -59,8 +64,13 @@ RSpec.describe GraphQL::Hive::Sampler do
           mock_sampler = Proc.new { |sample_context| 0 }
           mock_operation_key_generator = Proc.new { |sample_context| 'same_key' }
           sampler_instance = described_class.new(mock_sampler, mock_operation_key_generator)
+
           expect(sampler_instance.should_include(operation)).to eq(true)
-          expect(sampler_instance.should_include('different_operation')).to eq(false)
+
+          queries = [OpenStruct.new(operations: { 'getDifferentField' => {} })]
+          different_operation = [time, queries, results, duration]
+
+          expect(sampler_instance.should_include(different_operation)).to eq(false)
         end
       end
     end
