@@ -34,7 +34,7 @@ RSpec.describe GraphQL::Hive::Sampler do
     describe 'when no sample rate or sampler provided' do
       it 'sets the sample rate to 1' do
         sampler_instance = described_class.new(nil)
-        
+
         expect(sampler_instance.instance_variable_get(:@sample_rate)).to eq(1)
         expect(sampler_instance.instance_variable_get(:@sampler)).to eq(nil)
         expect(sampler_instance.instance_variable_get(:@tracked_operations)).to eq(nil)
@@ -49,6 +49,13 @@ RSpec.describe GraphQL::Hive::Sampler do
     end
 
     describe 'when provided a sampler' do
+      it 'raises an error if the sampler does not return a number' do
+        mock_sampler = Proc.new { |sample_context| 'string' }
+
+        sampler_instance = described_class.new(mock_sampler)
+        expect { sampler_instance.should_include(operation) }.to raise_error(StandardError, "Sampler must return a number")
+      end
+
       it 'returns true for the first operation and follows the sampler for remaining operations' do
         mock_sampler = Proc.new { |sample_context| 0 }
 
@@ -57,15 +64,8 @@ RSpec.describe GraphQL::Hive::Sampler do
         expect(sampler_instance.should_include(operation)).to eq(false)
       end
 
-      it 'raises an error if the sampler does not return a number' do
-        mock_sampler = Proc.new { |sample_context| 'string' }
-
-        sampler_instance = described_class.new(mock_sampler)
-        expect { sampler_instance.should_include(operation) }.to raise_error(StandardError, "Sampler must return a number")
-      end
-
       describe 'when provided an operation key generator' do
-        it 'tracks operations by their keys' do
+        it 'tracks operations by their keys, not contents' do
           mock_sampler = Proc.new { |sample_context| 0 }
           mock_operation_key_generator = Proc.new { |sample_context| 'same_key' }
 

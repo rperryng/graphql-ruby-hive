@@ -3,7 +3,7 @@ module GraphQL
     # Dynamic sampler for operations reporting
     class Sampler
       def initialize(client_sampler, operation_key_generator = nil)
-        if (client_sampler.is_a?(Proc))
+        if (client_sampler.respond_to?(:call))
           @sampler = client_sampler
           @tracked_operations = Hash.new
           @operation_key_generator = operation_key_generator
@@ -17,13 +17,14 @@ module GraphQL
       def should_include(operation)
         if (@sampler)
           sample_context = get_sample_context(operation)
+          sample_rate = @sampler.call(sample_context)
 
-          raise StandardError, "Sampler must return a number" unless (@sampler.call(sample_context).is_a?(Numeric))
+          raise StandardError, "Sampler must return a number" unless (sample_rate.is_a?(Numeric))
 
-          operation_key = @operation_key_generator ? @operation_key_generator.call(sample_context).to_s : operation.join(', ')
+          operation_key = @operation_key_generator&.respond_to?(:call) ? @operation_key_generator.call(sample_context).to_s : operation.join(', ')
 
           if (@tracked_operations.has_key?(operation_key))
-            @sample_rate = @sampler.call(sample_context)
+            @sample_rate = sample_rate
           else
             @tracked_operations[operation_key] = true 
             return true
