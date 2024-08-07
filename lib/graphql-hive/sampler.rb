@@ -20,7 +20,7 @@ module GraphQL
 
           raise StandardError, "Sampler must return a number" unless (@sampler.call(sample_context).is_a?(Numeric))
 
-          operation_key = @operation_key_generator ? @operation_key_generator.call(sample_context).to_s : operation
+          operation_key = @operation_key_generator ? @operation_key_generator.call(sample_context).to_s : operation.join(', ')
 
           if (@tracked_operations.has_key?(operation_key))
             @sample_rate = @sampler.call(sample_context)
@@ -34,11 +34,11 @@ module GraphQL
       end
 
       private
+      
       def get_sample_context(operation) 
         _, queries, results, _ = operation
 
         operation_name = queries.map(&:operations).map(&:keys).flatten.compact.join(', ')
-        context = results[0].query.context
 
         parsed_definitions = []
         queries.each do |query|
@@ -46,6 +46,8 @@ module GraphQL
           parsed_definitions.concat(parsed_query.definitions)
         end
         document = GraphQL::Language::Nodes::Document.new(definitions: parsed_definitions)
+
+        context = results[0].query.context
 
         {
           operation_name: operation_name,

@@ -29,7 +29,7 @@ RSpec.describe GraphQL::Hive::Sampler do
       end
     end
 
-    describe 'no sample rate or sampler provided' do
+    describe 'when no sample rate or sampler provided' do
       it 'sets the sample rate to 1' do
         sampler_instance = described_class.new(nil)
         expect(sampler_instance.instance_variable_get(:@sample_rate)).to eq(1)
@@ -41,7 +41,7 @@ RSpec.describe GraphQL::Hive::Sampler do
 
   describe '#should_include' do
     before do
-      mock_document = GraphQL::Language::Nodes::Document.new(definitions: [OpenStruct.new(name: 'mockDefinition')])
+      mock_document = GraphQL::Language::Nodes::Document.new(definitions: [])
       allow(GraphQL).to receive(:parse).and_return(mock_document)
     end
 
@@ -60,7 +60,7 @@ RSpec.describe GraphQL::Hive::Sampler do
       end
 
       describe 'when provided an operation key generator' do
-        it 'uses the operation key generator to track operations' do
+        it 'tracks operations by their keys' do
           mock_sampler = Proc.new { |sample_context| 0 }
           mock_operation_key_generator = Proc.new { |sample_context| 'same_key' }
           sampler_instance = described_class.new(mock_sampler, mock_operation_key_generator)
@@ -82,7 +82,7 @@ RSpec.describe GraphQL::Hive::Sampler do
       end
     end
 
-    describe 'no sample rate or sampler provided' do
+    describe 'when no sample rate or sampler provided' do
       it 'returns true for all operations' do
         sampler_instance = described_class.new(nil)
         expect(sampler_instance.should_include(operation)).to eq(true)
