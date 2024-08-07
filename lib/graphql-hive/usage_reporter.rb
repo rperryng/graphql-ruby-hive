@@ -54,9 +54,11 @@ module GraphQL
 
         @thread = Thread.new do
           buffer = []
+          sampler = Sampler.new(@options[:sampler], @options[:operation_key_generator]) # TODO: add tests and update readme with this feature + might change variable name
+
           while (operation = @queue.pop(false))
             @options[:logger].debug("add operation to buffer: #{operation}")
-            buffer << operation
+            buffer << operation if sampler.should_include(operation)
             @options_mutex.synchronize do
               if buffer.size >= @options[:buffer_size]
                 @options[:logger].debug('buffer is full, sending!')
@@ -65,6 +67,7 @@ module GraphQL
               end
             end
           end
+
           unless buffer.empty?
             @options[:logger].debug('shuting down with buffer, sending!')
             process_operations(buffer)
