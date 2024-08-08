@@ -33,6 +33,15 @@ RSpec.describe GraphQL::Hive::UsageReporter do
       described_class.new(options, client)
       expect(described_class.instance).to_not eq(nil)
     end
+
+    context 'when provided a sampler' do
+      let(:client_sampler) { Proc.new {} }
+
+      it 'creates the sampler' do
+        described_class.new(options.merge(collect_usage_sampler: client_sampler), client)
+        expect(subject.instance_variable_get(:@sampler)).to be_an_instance_of(GraphQL::Hive::Sampler)
+      end
+    end
   end
 
   describe '#add_operation' do
@@ -64,14 +73,13 @@ RSpec.describe GraphQL::Hive::UsageReporter do
   describe '#start_thread' do
     it 'logs a warning if the thread is already alive' do
       described_class.new(options, client)
-      subject.instance_variable_set(:@thread, Thread.new { })
+      subject.instance_variable_set(:@thread, Thread.new {})
       expect(logger).to receive(:warn)
       subject.on_start
     end
     
     context 'when provided a sampler' do
-      let(:client_sampler) { Proc.new { } }
-      let(:sampler_instance) { instance_double('GraphQL::Hive::Sampler') }
+      let(:client_sampler) { Proc.new {} }
       let(:options) do
         {
           logger: logger,
@@ -79,42 +87,37 @@ RSpec.describe GraphQL::Hive::UsageReporter do
           collect_usage_sampler: client_sampler
         }
       end
+      
+      let(:sampler_class_double) { class_double(GraphQL::Hive::Sampler).as_stubbed_const }
+      let(:sampler_instance) { instance_double('GraphQL::Hive::Sampler') }
 
       before do
-        allow(GraphQL::Hive::Sampler).to receive(:new).and_return(sampler_instance)
+        allow(sampler_class_double).to receive(:new).and_return(sampler_instance)
         allow(sampler_instance).to receive(:sample?)
         allow(client).to receive(:send)
       end
 
-      it 'uses the sampler to determine if the operation should be included' do
-        described_class.new(options, client)
-        subject.add_operation(operation)
-
-        expect(GraphQL::Hive::Sampler).to receive(:new).with(client_sampler, nil)
-        subject.on_start
-        expect(sampler_instance).to have_received(:sample?).with(operation)
-      end
-
       it 'adds the operation to the buffer if it should be included' do
+        reporter_instance = described_class.new(options, client)
         allow(sampler_instance).to receive(:sample?).and_return(true)
 
-        described_class.new(options, client)
-        subject.add_operation(operation)
+        reporter_instance.add_operation(operation)
 
-        expect(logger).to receive(:debug).with("adding operation to buffer: #{operation}")
-        subject.on_start
-        sleep 0.01 # allow thread to process to log
+        reporter_instance.on_start
+        expect(sampler_instance).to have_received(:sample?).with(operation)
+        expect(client).to have_received(:send)
       end
 
+      # TODO: fix
       it 'does not add the operation to the buffer if it should not be included' do
+        reporter_instance = described_class.new(options, client)
         allow(sampler_instance).to receive(:sample?).and_return(false)
 
-        described_class.new(options, client)
-        subject.add_operation(operation)
+        reporter_instance.add_operation(operation)
 
-        expect(logger).not_to receive(:debug).with("adding operation to buffer: #{operation}")
-        subject.on_start
-        sleep 0.01 # allow thread to process to log
+        reporter_instance.on_start
+        expect(sampler_instance).to have_received(:sample?).with(operation)
+        expect(client).not_to have_received(:send)
       end
     end
   end

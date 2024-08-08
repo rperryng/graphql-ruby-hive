@@ -17,7 +17,7 @@ module GraphQL
       def sample?(operation)
         if (@sampler)
           sample_context = get_sample_context(operation)
-          
+
           sample_rate = get_sample_rate(sample_context)
           operation_key = get_sample_key(sample_context)
 
@@ -70,6 +70,7 @@ module GraphQL
       end
 
       def default_sample_key
+        # TODO: ensure this is unique
         Proc.new { |sample_context| sample_context[:operation_name] }
       end
     end
