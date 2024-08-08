@@ -62,7 +62,7 @@ module GraphQL
           while (operation = @queue.pop(false))
             @options[:logger].debug("processing operation from queue: #{operation}")
 
-            if sampler.should_include(operation)
+            if sampler.sample?(operation)
               @options[:logger].debug("adding operation to buffer: #{operation}")
               buffer << operation
             end

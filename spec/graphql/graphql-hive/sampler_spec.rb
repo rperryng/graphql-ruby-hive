@@ -3,7 +3,7 @@ require 'ostruct'
 
 RSpec.describe GraphQL::Hive::Sampler do
   let(:time) { Time.now }
-  let(:queries) { [OpenStruct.new(operations: { 'getField' => {} })] }
+  let(:queries) { [OpenStruct.new(operations: { 'getField' => {} }, query_string: 'query { field }')] }
   let(:results) { [OpenStruct.new(query: OpenStruct.new(context: { header: 'value' }))] }
   let(:duration) { 100 }
 
@@ -42,7 +42,7 @@ RSpec.describe GraphQL::Hive::Sampler do
     end
   end
 
-  describe '#should_include' do
+  describe '#sample?' do
     before do
       mock_document = GraphQL::Language::Nodes::Document.new(definitions: [])
       allow(GraphQL).to receive(:parse).and_return(mock_document)
@@ -53,15 +53,15 @@ RSpec.describe GraphQL::Hive::Sampler do
         mock_sampler = Proc.new { |sample_context| 'string' }
 
         sampler_instance = described_class.new(mock_sampler)
-        expect { sampler_instance.should_include(operation) }.to raise_error(StandardError, "Sampler must return a number")
+        expect { sampler_instance.sample?(operation) }.to raise_error(StandardError, "Sampler must return a number")
       end
 
       it 'returns true for the first operation and follows the sampler for remaining operations' do
         mock_sampler = Proc.new { |sample_context| 0 }
 
         sampler_instance = described_class.new(mock_sampler)
-        expect(sampler_instance.should_include(operation)).to eq(true)
-        expect(sampler_instance.should_include(operation)).to eq(false)
+        expect(sampler_instance.sample?(operation)).to eq(true)
+        expect(sampler_instance.sample?(operation)).to eq(false)
       end
 
       context 'when provided an operation key generator' do
@@ -71,12 +71,12 @@ RSpec.describe GraphQL::Hive::Sampler do
 
           sampler_instance = described_class.new(mock_sampler, mock_operation_key_generator)
 
-          expect(sampler_instance.should_include(operation)).to eq(true)
+          expect(sampler_instance.sample?(operation)).to eq(true)
 
-          queries = [OpenStruct.new(operations: { 'getDifferentField' => {} })]
+          queries = [OpenStruct.new(operations: { 'getDifferentField' => {} }, query_string: 'query { field }')]
           different_operation = [time, queries, results, duration]
 
-          expect(sampler_instance.should_include(different_operation)).to eq(false)
+          expect(sampler_instance.sample?(different_operation)).to eq(false)
         end
       end
     end
@@ -85,7 +85,7 @@ RSpec.describe GraphQL::Hive::Sampler do
       it 'follows the sample rate for all operations' do
         sampler_instance = described_class.new(0)
 
-        expect(sampler_instance.should_include(operation)).to eq(false)
+        expect(sampler_instance.sample?(operation)).to eq(false)
       end
     end
 
@@ -93,8 +93,8 @@ RSpec.describe GraphQL::Hive::Sampler do
       it 'returns true for all operations' do
         sampler_instance = described_class.new(nil)
 
-        expect(sampler_instance.should_include(operation)).to eq(true)
-        expect(sampler_instance.should_include(operation)).to eq(true)
+        expect(sampler_instance.sample?(operation)).to eq(true)
+        expect(sampler_instance.sample?(operation)).to eq(true)
       end
     end
   end

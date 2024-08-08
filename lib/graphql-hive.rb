@@ -117,10 +117,8 @@ module GraphQL
           elapsed = ending - starting
           duration = (elapsed.to_f * (10**9)).to_i
 
-          # rubocop:disable Layout/LineLength
           report_usage(timestamp, queries, results, duration) if !queries.empty?
-          # rubocop:enable Layout/LineLength
-
+          
           results
         else
           yield

@@ -82,7 +82,7 @@ RSpec.describe GraphQL::Hive::UsageReporter do
 
       before do
         allow(GraphQL::Hive::Sampler).to receive(:new).and_return(sampler_instance)
-        allow(sampler_instance).to receive(:should_include)
+        allow(sampler_instance).to receive(:sample?)
         allow(client).to receive(:send)
       end
 
@@ -92,11 +92,11 @@ RSpec.describe GraphQL::Hive::UsageReporter do
 
         expect(GraphQL::Hive::Sampler).to receive(:new).with(client_sampler, nil)
         subject.on_start
-        expect(sampler_instance).to have_received(:should_include).with(operation)
+        expect(sampler_instance).to have_received(:sample?).with(operation)
       end
 
       it 'adds the operation to the buffer if it should be included' do
-        allow(sampler_instance).to receive(:should_include).and_return(true)
+        allow(sampler_instance).to receive(:sample?).and_return(true)
 
         described_class.new(options, client)
         subject.add_operation(operation)
@@ -107,7 +107,7 @@ RSpec.describe GraphQL::Hive::UsageReporter do
       end
 
       it 'does not add the operation to the buffer if it should not be included' do
-        allow(sampler_instance).to receive(:should_include).and_return(false)
+        allow(sampler_instance).to receive(:sample?).and_return(false)
 
         described_class.new(options, client)
         subject.add_operation(operation)
