@@ -64,17 +64,29 @@ RSpec.describe GraphQL::Hive::UsageReporter do
   describe '#start_thread' do
     it 'logs a warning if the thread is already alive' do
       described_class.new(options, client)
-      subject.instance_variable_set(:@thread, Thread.new { p 'test' })
+      subject.instance_variable_set(:@thread, Thread.new { })
       expect(logger).to receive(:warn)
       subject.on_start
     end
-  end
+    
+    context 'when provided a sampler' do
+      let(:client_sampler) { Proc.new { |sampling_context| 0 } }
+      let(:sampler_instance) { instance_double('GraphQL::Hive::Sampler') }
 
-  describe '#add_operation' do
-    it 'adds an operation to the buffer' do
-      described_class.new(options, client)
-      subject.add_operation(operation)
-      expect(subject.instance_variable_get(:@queue).pop).to eq(operation)
+      before do
+        allow(GraphQL::Hive::Sampler).to receive(:new).and_return(sampler_instance)
+        allow(sampler_instance).to receive(:should_include).and_return(true)
+        allow(client).to receive(:send)
+      end
+
+      it 'calls the sampler to decide if a queue operation should be included in the buffer' do
+        described_class.new(options.merge(collect_usage_sampler: client_sampler), client)
+        subject.add_operation(operation)
+        subject.on_start
+        
+        expect(GraphQL::Hive::Sampler).to have_received(:new)
+        expect(sampler_instance).to have_received(:should_include).with(operation)
+      end
     end
   end
 
