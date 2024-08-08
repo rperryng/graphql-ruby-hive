@@ -101,7 +101,7 @@ RSpec.describe GraphQL::Hive::UsageReporter do
         described_class.new(options, client)
         subject.add_operation(operation)
 
-        expect(logger).to receive(:debug).with("processing operation from queue: #{operation}")
+        expect(logger).to receive(:debug).with("adding operation to buffer: #{operation}")
         subject.on_start
         sleep 0.01 # allow thread to process to log
       end
