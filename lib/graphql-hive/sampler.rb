@@ -70,8 +70,7 @@ module GraphQL
       end
 
       def default_sample_key
-        # TODO: ensure this is unique
-        Proc.new { |sample_context| sample_context[:operation_name] }
+        Proc.new { |sample_context| sample_context[:operation_name] + sample_context[:document].to_query_string }
       end
     end
   end
