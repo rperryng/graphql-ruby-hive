@@ -43,7 +43,7 @@ module GraphQL
 
         parsed_definitions = []
         queries.each do |query|
-          parsed_query = GraphQL.parse(query)
+          parsed_query = GraphQL::Language::Parser.parse(query.query_string)
           parsed_definitions.concat(parsed_query.definitions)
         end
         document = GraphQL::Language::Nodes::Document.new(definitions: parsed_definitions)
