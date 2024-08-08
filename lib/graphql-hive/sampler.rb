@@ -17,11 +17,10 @@ module GraphQL
       def sample?(operation)
         if (@sampler)
           sample_context = get_sample_context(operation)
-          sample_rate = @sampler.call(sample_context)
+          
+          sample_rate = get_sample_rate(sample_context)
+          operation_key = get_sample_key(sample_context)
 
-          raise StandardError, "Sampler must return a number" unless (sample_rate.is_a?(Numeric))
-
-          operation_key =  @sample_key_generator.call(sample_context).to_s
           if (@tracked_operations.has_key?(operation_key))
             @sample_rate = sample_rate
           else
@@ -54,6 +53,20 @@ module GraphQL
           document: document,
           context_value: context_value
         }
+      end
+
+      def get_sample_rate(sample_context)
+        sample_rate = @sampler.call(sample_context)
+        raise StandardError, "Sampler must return a number" unless (sample_rate.is_a?(Numeric))
+        sample_rate
+      rescue => e
+        raise StandardError, "Error calling sampler: #{e}"
+      end
+
+      def get_sample_key(sample_context)
+        @sample_key_generator.call(sample_context).to_s
+      rescue => e
+        raise StandardError, "Error getting key for sample: #{e}"
       end
 
       def default_sample_key

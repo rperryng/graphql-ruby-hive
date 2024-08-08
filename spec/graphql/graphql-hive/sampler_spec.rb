@@ -53,7 +53,7 @@ RSpec.describe GraphQL::Hive::Sampler do
         mock_sampler = Proc.new { |sample_context| 'string' }
 
         sampler_instance = described_class.new(mock_sampler)
-        expect { sampler_instance.sample?(operation) }.to raise_error(StandardError, "Sampler must return a number")
+        expect { sampler_instance.sample?(operation) }.to raise_error(StandardError, "Error calling sampler: Sampler must return a number")
       end
 
       it 'returns true for the first operation and follows the sampler for remaining operations' do
