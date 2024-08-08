@@ -79,13 +79,16 @@ RSpec.describe GraphQL::Hive::UsageReporter do
         allow(client).to receive(:send)
       end
 
-      it 'calls the sampler to decide if a queue operation should be included in the buffer' do
+      it 'calls the sampler to decide if each queue operation should be included in the buffer' do
         described_class.new(options.merge(collect_usage_sampler: client_sampler), client)
+
+        subject.add_operation(operation)
+        subject.add_operation(operation)
         subject.add_operation(operation)
         subject.on_start
-        
-        expect(GraphQL::Hive::Sampler).to have_received(:new)
-        expect(sampler_instance).to have_received(:should_include).with(operation)
+
+        expect(GraphQL::Hive::Sampler).to have_received(:new).with(client_sampler, nil)
+        expect(sampler_instance).to have_received(:should_include).with(operation).exactly(3).times
       end
     end
   end
