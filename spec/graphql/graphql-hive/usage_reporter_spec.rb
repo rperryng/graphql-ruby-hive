@@ -86,7 +86,7 @@ RSpec.describe GraphQL::Hive::UsageReporter do
       allow(client).to receive(:send)
     end
 
-    it 'processes the operations if the buffer is full' do
+    it 'adds the operations to report' do
       described_class.new(options, client)
       subject.send(:process_operations, [operation])
 
@@ -113,3 +113,14 @@ RSpec.describe GraphQL::Hive::UsageReporter do
     end
   end
 end
+
+# context 'with a client sampler for at least once sampling' do
+#   let(:sampler) { Proc.new { |sampling_context| 0 } }
+#   let(:options) do
+#     {
+#       logger: logger,
+#       buffer_size: 1,
+#       collect_usage_sampler: sampler
+#     }
+#   end
+# end
