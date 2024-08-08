@@ -85,16 +85,19 @@ RSpec.describe GraphQL::Hive::UsageReporter do
         allow(client).to receive(:send)
       end
 
-      it 'adds the operation to the buffer and processes the operation if it should be included' do
+      it 'adds the operation to the buffer if it should be included' do
         allow(sampler_instance).to receive(:should_include).and_return(true)
 
         described_class.new(options, client)
         subject.add_operation(operation)
         subject.on_start
 
+        # allow thread to process
+        sleep 0.01
+
         expect(GraphQL::Hive::Sampler).to have_received(:new).with(client_sampler, nil)
         expect(sampler_instance).to have_received(:should_include).with(operation)
-        expect(logger).to receive(:debug).with("adding operation to buffer: #{operation}")
+        expect(logger).to have_received(:debug).with("processing operation from queue: #{operation}")
       end
 
       it 'does not add the operation to the buffer if it should not be included' do
@@ -104,9 +107,12 @@ RSpec.describe GraphQL::Hive::UsageReporter do
         subject.add_operation(operation)
         subject.on_start
 
+        # allow thread to process
+        sleep 0.01
+
         expect(GraphQL::Hive::Sampler).to have_received(:new).with(client_sampler, nil)
         expect(sampler_instance).to have_received(:should_include).with(operation)
-        expect(logger).not_to receive(:debug).with("adding operation to buffer: #{operation}")
+        expect(logger).not_to have_received(:debug).with("adding operation to buffer: #{operation}")
       end
     end
   end
