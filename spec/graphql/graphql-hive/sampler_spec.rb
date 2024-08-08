@@ -10,7 +10,7 @@ RSpec.describe GraphQL::Hive::Sampler do
   let(:operation) { [time, queries, results, duration] }
 
   describe '#initialize' do
-    describe 'when provided a sampler' do
+    context 'when provided a sampler' do
       it 'sets the sampler and tracked operations hash' do
         mock_sampler = Proc.new { |sample_context| 1 }
         sampler_instance = described_class.new(mock_sampler)
@@ -21,7 +21,7 @@ RSpec.describe GraphQL::Hive::Sampler do
       end
     end
 
-    describe 'when provided a sample rate'do 
+    context 'when provided a sample rate'do 
       it 'sets the sample rate' do
         sampler_instance = described_class.new(0)
 
@@ -31,7 +31,7 @@ RSpec.describe GraphQL::Hive::Sampler do
       end
     end
 
-    describe 'when no sample rate or sampler provided' do
+    context 'when no sample rate or sampler provided' do
       it 'sets the sample rate to 1' do
         sampler_instance = described_class.new(nil)
 
@@ -48,7 +48,7 @@ RSpec.describe GraphQL::Hive::Sampler do
       allow(GraphQL).to receive(:parse).and_return(mock_document)
     end
 
-    describe 'when provided a sampler' do
+    context 'when provided a sampler' do
       it 'raises an error if the sampler does not return a number' do
         mock_sampler = Proc.new { |sample_context| 'string' }
 
@@ -64,7 +64,7 @@ RSpec.describe GraphQL::Hive::Sampler do
         expect(sampler_instance.should_include(operation)).to eq(false)
       end
 
-      describe 'when provided an operation key generator' do
+      context 'when provided an operation key generator' do
         it 'tracks operations by their keys, not contents' do
           mock_sampler = Proc.new { |sample_context| 0 }
           mock_operation_key_generator = Proc.new { |sample_context| 'same_key' }
@@ -81,7 +81,7 @@ RSpec.describe GraphQL::Hive::Sampler do
       end
     end
     
-    describe 'when provided a sample rate'do 
+    context 'when provided a sample rate'do 
       it 'follows the sample rate for all operations' do
         sampler_instance = described_class.new(0)
 
@@ -89,7 +89,7 @@ RSpec.describe GraphQL::Hive::Sampler do
       end
     end
 
-    describe 'when no sample rate or sampler provided' do
+    context 'when no sample rate or sampler provided' do
       it 'returns true for all operations' do
         sampler_instance = described_class.new(nil)
 
