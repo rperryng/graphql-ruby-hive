@@ -94,7 +94,7 @@ RSpec.describe GraphQL::Hive::UsageReporter do
 
         expect(GraphQL::Hive::Sampler).to have_received(:new).with(client_sampler, nil)
         expect(sampler_instance).to have_received(:should_include).with(operation)
-        expect(logger).to receive(:debug).with("buffer is full, sending!")
+        expect(logger).to receive(:debug).with("adding operation to buffer: #{operation}")
       end
 
       it 'does not add the operation to the buffer if it should not be included' do
@@ -106,7 +106,7 @@ RSpec.describe GraphQL::Hive::UsageReporter do
 
         expect(GraphQL::Hive::Sampler).to have_received(:new).with(client_sampler, nil)
         expect(sampler_instance).to have_received(:should_include).with(operation)
-        expect(logger).not_to receive(:debug).with("buffer is full, sending!")
+        expect(logger).not_to receive(:debug).with("adding operation to buffer: #{operation}")
       end
     end
   end
