@@ -24,10 +24,8 @@ module GraphQL
           operation_key = @sample_key_generator&.respond_to?(:call) ? @sample_key_generator.call(sample_context).to_s : sample_context[:operation_name]
 
           if (@tracked_operations.has_key?(operation_key))
-            Rails.logger.info "Operation already tracked: #{operation_key}"
             @sample_rate = sample_rate
           else
-            Rails.logger.info "Operation NOT already tracked: #{operation_key}"
             @tracked_operations[operation_key] = true 
             return true
           end
