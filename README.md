@@ -166,6 +166,11 @@ class MySchema < GraphQL::Schema
       },
       # you can pass an optional proc that will help identify the client (ex: Apollo web app) that performed the query
       client_info: Proc.new { |context| { name: context.client_name, version: context.client_version } }
+      # NOTE: the following field overrides collect_usage_sampling
+      # if you want all operations to be sampled at least once, you can pass an optional proc to assign sampling rates, based on the sampling context of the operation
+      collect_usage_sampler: Proc.new { |sampling_context| sampling_context.operation_name.includes?('getQuery') 1 : 0.2 }
+      # if you use a sampler, you can pass an optional proc to specify how operations should be keyed, based on the sampling context of the operation
+      sample_key_generator: Proc.new { |sampling_context| sampling_context.operation_name }
     }
   )
 

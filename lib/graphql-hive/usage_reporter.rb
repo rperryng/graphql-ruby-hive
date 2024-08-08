@@ -54,7 +54,10 @@ module GraphQL
 
         @thread = Thread.new do
           buffer = []
-          sampler = Sampler.new(@options[:sampler], @options[:operation_key_generator]) # TODO: add tests and update readme with this feature + might change variable name
+          sampler = Sampler.new(
+            @options[:collect_usage_sampler] || @options[:collect_usage_sampling], 
+            dynamic_sampling[:sample_key_generator]
+          )
 
           while (operation = @queue.pop(false))
             @options[:logger].debug("add operation to buffer: #{operation}")

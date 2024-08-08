@@ -2,11 +2,11 @@ module GraphQL
   class Hive
     # Dynamic sampler for operations reporting
     class Sampler
-      def initialize(client_sampler, operation_key_generator = nil)
+      def initialize(client_sampler, sample_key_generator = nil)
         if (client_sampler.respond_to?(:call))
           @sampler = client_sampler
           @tracked_operations = Hash.new
-          @operation_key_generator = operation_key_generator
+          @sample_key_generator = sample_key_generator
         elsif (client_sampler.is_a?(Numeric))
           @sample_rate = client_sampler
         else
@@ -21,7 +21,7 @@ module GraphQL
 
           raise StandardError, "Sampler must return a number" unless (sample_rate.is_a?(Numeric))
 
-          operation_key = @operation_key_generator&.respond_to?(:call) ? @operation_key_generator.call(sample_context).to_s : operation.join(', ')
+          operation_key = @sample_key_generator&.respond_to?(:call) ? @sample_key_generator.call(sample_context).to_s : operation.join(', ')
 
           if (@tracked_operations.has_key?(operation_key))
             @sample_rate = sample_rate
