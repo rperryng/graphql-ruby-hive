@@ -60,10 +60,11 @@ module GraphQL
           )
 
           while (operation = @queue.pop(false))
-            @options[:logger].debug("add operation to buffer: #{operation}")
+            @options[:logger].debug("add operation to buffer: #{operation}") # TODO: update this debug statement
             buffer << operation if sampler.should_include(operation)
             @options_mutex.synchronize do
               if buffer.size >= @options[:buffer_size]
+                puts "hi"
                 @options[:logger].debug('buffer is full, sending!')
                 process_operations(buffer)
                 buffer = []

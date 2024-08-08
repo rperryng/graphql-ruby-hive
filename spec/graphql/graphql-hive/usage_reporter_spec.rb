@@ -72,23 +72,41 @@ RSpec.describe GraphQL::Hive::UsageReporter do
     context 'when provided a sampler' do
       let(:client_sampler) { Proc.new { |sampling_context| 0 } }
       let(:sampler_instance) { instance_double('GraphQL::Hive::Sampler') }
+      let(:options) do
+        {
+          logger: logger,
+          buffer_size: 1,
+          collect_usage_sampler: client_sampler
+        }
+      end
 
       before do
         allow(GraphQL::Hive::Sampler).to receive(:new).and_return(sampler_instance)
-        allow(sampler_instance).to receive(:should_include).and_return(true)
         allow(client).to receive(:send)
       end
 
-      it 'calls the sampler to decide if each queue operation should be included in the buffer' do
-        described_class.new(options.merge(collect_usage_sampler: client_sampler), client)
+      it 'adds the operation to the buffer and processes the operation if it should be included' do
+        allow(sampler_instance).to receive(:should_include).and_return(true)
 
-        subject.add_operation(operation)
-        subject.add_operation(operation)
+        described_class.new(options, client)
         subject.add_operation(operation)
         subject.on_start
 
         expect(GraphQL::Hive::Sampler).to have_received(:new).with(client_sampler, nil)
-        expect(sampler_instance).to have_received(:should_include).with(operation).exactly(3).times
+        expect(sampler_instance).to have_received(:should_include).with(operation)
+        expect(logger).to receive(:debug).with("buffer is full, sending!")
+      end
+
+      it 'does not add the operation to the buffer if it should not be included' do
+        allow(sampler_instance).to receive(:should_include).and_return(false)
+
+        described_class.new(options, client)
+        subject.add_operation(operation)
+        subject.on_start
+
+        expect(GraphQL::Hive::Sampler).to have_received(:new).with(client_sampler, nil)
+        expect(sampler_instance).to have_received(:should_include).with(operation)
+        expect(logger).not_to receive(:debug).with("buffer is full, sending!")
       end
     end
   end
