@@ -70,7 +70,7 @@ RSpec.describe GraphQL::Hive::UsageReporter do
     end
     
     context 'when provided a sampler' do
-      let(:client_sampler) { Proc.new { |sampling_context| 0 } }
+      let(:client_sampler) { Proc.new { } }
       let(:sampler_instance) { instance_double('GraphQL::Hive::Sampler') }
       let(:options) do
         {
@@ -82,7 +82,17 @@ RSpec.describe GraphQL::Hive::UsageReporter do
 
       before do
         allow(GraphQL::Hive::Sampler).to receive(:new).and_return(sampler_instance)
+        allow(sampler_instance).to receive(:should_include)
         allow(client).to receive(:send)
+      end
+
+      it 'uses the sampler to determine if the operation should be included' do
+        described_class.new(options, client)
+        subject.add_operation(operation)
+        subject.on_start
+
+        expect(GraphQL::Hive::Sampler).to have_received(:new).with(client_sampler, nil)
+        expect(sampler_instance).to have_received(:should_include).with(operation)
       end
 
       it 'adds the operation to the buffer if it should be included' do
@@ -92,11 +102,7 @@ RSpec.describe GraphQL::Hive::UsageReporter do
         subject.add_operation(operation)
         subject.on_start
 
-        # allow thread to process
-        sleep 0.01
-
-        expect(GraphQL::Hive::Sampler).to have_received(:new).with(client_sampler, nil)
-        expect(sampler_instance).to have_received(:should_include).with(operation)
+        sleep 0.01 # allow thread to process to log
         expect(logger).to have_received(:debug).with("processing operation from queue: #{operation}")
       end
 
@@ -107,11 +113,7 @@ RSpec.describe GraphQL::Hive::UsageReporter do
         subject.add_operation(operation)
         subject.on_start
 
-        # allow thread to process
-        sleep 0.01
-
-        expect(GraphQL::Hive::Sampler).to have_received(:new).with(client_sampler, nil)
-        expect(sampler_instance).to have_received(:should_include).with(operation)
+        sleep 0.01 # allow thread to process to log
         expect(logger).not_to have_received(:debug).with("adding operation to buffer: #{operation}")
       end
     end
