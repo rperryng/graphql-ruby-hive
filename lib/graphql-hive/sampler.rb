@@ -31,7 +31,7 @@ module GraphQL
           end
         end
 
-        rand(0.0..1.0) <= @sample_rate
+        SecureRandom.random_number <= @sample_rate
       end
 
       private

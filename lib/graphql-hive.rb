@@ -118,7 +118,7 @@ module GraphQL
           duration = (elapsed.to_f * (10**9)).to_i
 
           # rubocop:disable Layout/LineLength
-          report_usage(timestamp, queries, results, duration) if !queries.empty? && SecureRandom.random_number <= @options[:collect_usage_sampling]
+          report_usage(timestamp, queries, results, duration) if !queries.empty?
           # rubocop:enable Layout/LineLength
 
           results
