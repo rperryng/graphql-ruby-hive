@@ -49,7 +49,7 @@ RSpec.describe GraphQL::Hive::UsageReporter do
 
       it 'creates the sampler' do
         described_class.new(options, client)
-        expect(subject.instance_variable_get(:@sampler)).to be_an_instance_of(GraphQL::Hive::DynamicSampler)
+        expect(subject.instance_variable_get(:@sampler)).to be_an_instance_of(GraphQL::Hive::Sampler::DynamicSampler)
       end
     end
   end
@@ -104,8 +104,8 @@ RSpec.describe GraphQL::Hive::UsageReporter do
     end
     
     context 'when provided a sampler' do
-      let(:sampler_class) { class_double(GraphQL::Hive::DynamicSampler).as_stubbed_const }
-      let(:sampler_instance) { instance_double('GraphQL::Hive::DynamicSampler') }
+      let(:sampler_class) { class_double(GraphQL::Hive::Sampler::DynamicSampler).as_stubbed_const }
+      let(:sampler_instance) { instance_double('GraphQL::Hive::Sampler::DynamicSampler') }
 
       let(:options) do
         {

@@ -24,8 +24,8 @@ module GraphQL
         @queue = Queue.new
 
         @sampler = options[:collect_usage_sampler] ? 
-          DynamicSampler.new(options[:collect_usage_sampler], options[:sample_key_generator]) : 
-          BasicSampler.new(options[:collect_usage_sampling])
+          Sampler::DynamicSampler.new(options[:collect_usage_sampler], options[:sample_key_generator]) : 
+          Sampler::BasicSampler.new(options[:collect_usage_sampling], options[:sample_key_generator])
 
         start_thread
       end
