@@ -2,6 +2,16 @@
 
 require 'spec_helper'
 
+RSpec.configure do |config|
+  config.before(:each) do
+    puts "Starting test suite with #{Thread.list.count} threads."
+  end
+
+  config.after(:each) do
+    puts "Finished test suite with #{Thread.list.count} threads."
+  end
+end
+
 RSpec.describe GraphQL::Hive::UsageReporter do
   let(:subject) { described_class.instance }
   let(:client) { instance_double('Hive::Client') }
@@ -125,7 +135,6 @@ RSpec.describe GraphQL::Hive::UsageReporter do
 
         described_class.new(options, client)
         subject.add_operation(operation)
-        subject.on_start
         subject.on_exit
         
         expect(sampler_instance).to have_received(:sample?).with(operation)
@@ -137,7 +146,6 @@ RSpec.describe GraphQL::Hive::UsageReporter do
 
         described_class.new(options, client)
         subject.add_operation(operation)
-        subject.on_start
         subject.on_exit
 
         expect(sampler_instance).to have_received(:sample?).with(operation)
@@ -149,7 +157,6 @@ RSpec.describe GraphQL::Hive::UsageReporter do
 
         described_class.new(options, client)
         subject.add_operation(operation)
-        subject.on_start
         subject.on_exit
 
         expect(logger).to have_received(:warn).with('All operations are sampled because sampling configuration contains an error: some_error')
