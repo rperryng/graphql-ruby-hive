@@ -1,32 +1,28 @@
 module GraphQL
   class Hive
-    # Dynamic sampler for operations reporting
-    class Sampler
+    # Dynamic sampling for operations reporting
+    class DynamicSampler
       def initialize(client_sampler, sample_key_generator = default_sample_key)
         if (client_sampler.respond_to?(:call))
           @sampler = client_sampler
           @tracked_operations = Hash.new
           @sample_key_generator = sample_key_generator
-        elsif (client_sampler.is_a?(Numeric))
-          @sample_rate = client_sampler
         else
           @sample_rate = 1
         end
       end
 
       def sample?(operation)
-        if (@sampler)
-          sample_context = get_sample_context(operation)
+        sample_context = get_sample_context(operation)
 
-          sample_rate = get_sample_rate(sample_context)
-          operation_key = get_sample_key(sample_context)
+        sample_rate = get_sample_rate(sample_context)
+        operation_key = get_sample_key(sample_context)
 
-          if (@tracked_operations.has_key?(operation_key))
-            @sample_rate = sample_rate
-          else
-            @tracked_operations[operation_key] = true 
-            return true
-          end
+        if (@tracked_operations.has_key?(operation_key))
+          @sample_rate = sample_rate
+        else
+          @tracked_operations[operation_key] = true 
+          return true
         end
 
         SecureRandom.random_number <= @sample_rate
@@ -57,7 +53,7 @@ module GraphQL
 
       def get_sample_rate(sample_context)
         sample_rate = @sampler.call(sample_context)
-        raise StandardError, "Sampler must return a number" unless (sample_rate.is_a?(Numeric))
+        raise StandardError, "DynamicSampler must return a number" unless (sample_rate.is_a?(Numeric))
         sample_rate
       rescue => e
         raise StandardError, "Error calling sampler: #{e}"

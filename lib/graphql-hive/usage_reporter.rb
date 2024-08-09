@@ -23,10 +23,9 @@ module GraphQL
         @options_mutex = Mutex.new
         @queue = Queue.new
 
-        @sampler = Sampler.new(
-          @options[:collect_usage_sampler] || @options[:collect_usage_sampling], 
-          @options[:sample_key_generator]
-        ) # TODO: separate into two sampler classes depending if rate or function is provided
+        @sampler = options[:collect_usage_sampler] ? 
+          DynamicSampler.new(options[:collect_usage_sampler], options[:sample_key_generator]) : 
+          BasicSampler.new(options[:collect_usage_sampling])
 
         start_thread
       end

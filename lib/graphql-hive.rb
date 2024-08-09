@@ -4,9 +4,11 @@ require 'logger'
 require 'securerandom'
 
 require 'graphql-hive/version'
-require 'graphql-hive/usage_reporter'
 require 'graphql-hive/client'
-require 'graphql-hive/sampler'
+
+require 'graphql-hive/usage_reporter'
+require 'graphql-hive/basic_sampler'
+require 'graphql-hive/dynamic_sampler'
 
 # class MySchema < GraphQL::Schema
 #   use(
