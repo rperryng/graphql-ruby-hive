@@ -178,7 +178,7 @@ class MySchema < GraphQL::Schema
 
       # for every operation to be sampled at least once, pass an optional proc to generate distinct operation keys
       # returning "default" like so will result in the operation name and document being used as the key
-      sample_key_generator: Proc.new { |sampling_context| "default" }
+      at_least_once_sampling_keygen: Proc.new { |sampling_context| "default" }
     }
   )
 
