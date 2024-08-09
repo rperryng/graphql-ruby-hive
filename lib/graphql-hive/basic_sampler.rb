@@ -3,11 +3,7 @@ module GraphQL
     # Basic sampling for operations reporting
     class BasicSampler
       def initialize(client_sample_rate)
-        if (client_sample_rate.is_a?(Numeric))
-          @sample_rate = client_sample_rate
-        else
-          @sample_rate = 1
-        end
+        @sample_rate = client_sample_rate
       end
 
       def sample?(operation)

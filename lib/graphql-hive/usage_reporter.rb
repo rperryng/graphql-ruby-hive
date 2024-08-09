@@ -55,11 +55,7 @@ module GraphQL
           buffer = []
           while (operation = @queue.pop(false))
             @options[:logger].debug("processing operation from queue: #{operation}")
-
-            if @sampler.sample?(operation)
-              @options[:logger].debug("adding operation to buffer: #{operation}")
-              buffer << operation
-            end
+            buffer << operation if sample_operation?(operation)
 
             @options_mutex.synchronize do
               if buffer.size >= @options[:buffer_size]
@@ -82,6 +78,13 @@ module GraphQL
 
           raise e
         end
+      end
+
+      def sample_operation?(operation)
+        @sampler.sample?(operation)
+      rescue => e
+        @options[:logger].warn("All operations are sampled because sampling configuration contains an error: #{e}")
+        true
       end
 
       def process_operations(operations)

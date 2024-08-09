@@ -14,11 +14,6 @@ RSpec.describe GraphQL::Hive::BasicSampler do
       sampler_instance = described_class.new(0.5)
       expect(sampler_instance.instance_variable_get(:@sample_rate)).to eq(0.5)
     end
-
-    it 'sets the sample rate to 1 if provided sample rate is invalid' do
-      sampler_instance = described_class.new(nil)
-      expect(sampler_instance.instance_variable_get(:@sample_rate)).to eq(1)
-    end
   end
 
   describe '#sample?' do    

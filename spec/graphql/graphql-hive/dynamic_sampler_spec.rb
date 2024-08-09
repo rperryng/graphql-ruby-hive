@@ -18,14 +18,6 @@ RSpec.describe GraphQL::Hive::DynamicSampler do
       expect(sampler_instance.instance_variable_get(:@sampler)).to eq(mock_sampler)
       expect(sampler_instance.instance_variable_get(:@tracked_operations)).to eq({})
     end
-
-    it 'sets the sample rate to 1 if provided sampler is invalid' do
-      sampler_instance = described_class.new(nil)
-
-      expect(sampler_instance.instance_variable_get(:@sample_rate)).to eq(1)
-      expect(sampler_instance.instance_variable_get(:@sampler)).to eq(nil)
-      expect(sampler_instance.instance_variable_get(:@tracked_operations)).to eq(nil)
-    end
   end
 
   describe '#sample?' do

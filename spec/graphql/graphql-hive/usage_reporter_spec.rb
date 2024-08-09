@@ -78,6 +78,7 @@ RSpec.describe GraphQL::Hive::UsageReporter do
       subject.on_start
     end
     
+    # TODO: fix shared instance doubles breaking tests
     context 'when provided a sampler' do
       let(:client_sampler) { Proc.new {} }
       let(:options) do
@@ -108,7 +109,6 @@ RSpec.describe GraphQL::Hive::UsageReporter do
         expect(client).to have_received(:send)
       end
 
-      # TODO: fix
       it 'does not add the operation to the buffer if it should not be included' do
         reporter_instance = described_class.new(options, client)
         allow(sampler_instance).to receive(:sample?).and_return(false)
@@ -118,6 +118,20 @@ RSpec.describe GraphQL::Hive::UsageReporter do
         reporter_instance.on_start
         expect(sampler_instance).to have_received(:sample?).with(operation)
         expect(client).not_to have_received(:send)
+      end
+
+      context 'when the sampler is invalid' do
+        it 'adds the operation to the buffer but logs a warning' do
+          reporter_instance = described_class.new(options, client)
+          allow(sampler_instance).to receive(:sample?).and_raise(StandardError.new('some_error'))
+
+          reporter_instance.add_operation(operation)
+
+          reporter_instance.on_start
+          expect(logger).to have_received(:warn).with('All operations are sampled because sampling configuration contains an error: some_error')
+          expect(sampler_instance).to have_received(:sample?).with(operation)
+          expect(client).to have_received(:send)
+        end
       end
     end
   end

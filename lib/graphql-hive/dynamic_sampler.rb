@@ -3,13 +3,9 @@ module GraphQL
     # Dynamic sampling for operations reporting
     class DynamicSampler
       def initialize(client_sampler, sample_key_generator = default_sample_key)
-        if (client_sampler.respond_to?(:call))
-          @sampler = client_sampler
-          @tracked_operations = Hash.new
-          @sample_key_generator = sample_key_generator
-        else
-          @sample_rate = 1
-        end
+        @sampler = client_sampler
+        @tracked_operations = Hash.new
+        @sample_key_generator = sample_key_generator
       end
 
       def sample?(operation)
