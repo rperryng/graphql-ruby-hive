@@ -159,16 +159,6 @@ class MySchema < GraphQL::Schema
       port: 80, 
       buffer_size: 50, # forward the operations data to Hive every 50 requests
 
-      report_schema: true,  # publish schema to Hive
-      reporting: {  # mandatory if `report_schema: true`
-        # mandatory members of `reporting`
-        author: 'Author of the latest change',
-        commit: 'git sha or any identifier',
-        # optional members of `reporting  
-        service_name: '', # optional
-        service_url: '', # optional
-      },
-
       # pass an optional proc to client_info to help identify the client (ex: Apollo web app) that performed the query
       client_info: Proc.new { |context| { name: context.client_name, version: context.client_version } }
 
@@ -179,6 +169,17 @@ class MySchema < GraphQL::Schema
       # for every operation to be sampled at least once, pass an optional proc to generate distinct operation keys
       # returning "default" like so will result in the operation name and document being used as the key
       at_least_once_sampling_keygen: Proc.new { |sampling_context| "default" }
+
+      report_schema: true,  # publish schema to Hive
+      # mandatory if `report_schema: true`
+      reporting: { 
+        # mandatory members of `reporting`
+        author: 'Author of the latest change',
+        commit: 'git sha or any identifier',
+        # optional members of `reporting  
+        service_name: '',
+        service_url: '',
+      },
     }
   )
 
