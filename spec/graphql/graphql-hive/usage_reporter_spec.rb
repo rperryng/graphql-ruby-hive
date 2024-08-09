@@ -28,6 +28,10 @@ RSpec.describe GraphQL::Hive::UsageReporter do
   end
 
   describe '#initialize' do
+    after do
+      subject.on_exit
+    end
+
     it 'sets the instance' do
       expect(described_class.instance).to eq(nil)
       described_class.new(options, client)
@@ -51,6 +55,10 @@ RSpec.describe GraphQL::Hive::UsageReporter do
   end
 
   describe '#add_operation' do
+    after do
+      subject.on_exit
+    end
+    
     it 'adds an operation to the queue' do
       operation = { operation: 'test' }
       described_class.new(options, client)
@@ -60,15 +68,22 @@ RSpec.describe GraphQL::Hive::UsageReporter do
   end
 
   describe '#on_exit' do
+    after do
+      subject.on_exit
+    end
+
     it 'closes the queue and joins the thread' do
       described_class.new(options, client)
       expect(subject.instance_variable_get(:@queue)).to receive(:close)
       expect(subject.instance_variable_get(:@thread)).to receive(:join)
-      subject.on_exit
     end
   end
 
   describe '#on_start' do
+    after do
+      subject.on_exit
+    end
+
     it 'starts the thread' do
       described_class.new(options, client)
       expect(subject).to receive(:start_thread)
@@ -77,6 +92,10 @@ RSpec.describe GraphQL::Hive::UsageReporter do
   end
 
   describe '#start_thread' do
+    after do
+      subject.on_exit
+    end
+    
     it 'logs a warning if the thread is already alive' do
       described_class.new(options, client)
       subject.instance_variable_set(:@thread, Thread.new {})
@@ -146,6 +165,10 @@ RSpec.describe GraphQL::Hive::UsageReporter do
 
     before do
       allow(client).to receive(:send)
+    end
+
+    after do
+      subject.on_exit
     end
 
     it 'processes and reports the operation to the client' do
