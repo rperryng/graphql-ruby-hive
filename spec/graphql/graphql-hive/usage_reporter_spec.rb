@@ -35,10 +35,16 @@ RSpec.describe GraphQL::Hive::UsageReporter do
     end
 
     context 'when provided a sampler' do
-      let(:client_sampler) { Proc.new {} }
+      let(:options) do
+        {
+          logger: logger,
+          buffer_size: 1,
+          collect_usage_sampler: Proc.new {}
+        }
+      end
 
       it 'creates the sampler' do
-        described_class.new(options.merge(collect_usage_sampler: client_sampler), client)
+        described_class.new(options, client)
         expect(subject.instance_variable_get(:@sampler)).to be_an_instance_of(GraphQL::Hive::DynamicSampler)
       end
     end
@@ -78,60 +84,58 @@ RSpec.describe GraphQL::Hive::UsageReporter do
       subject.on_start
     end
     
-    # TODO: fix shared instance doubles breaking tests
     context 'when provided a sampler' do
-      let(:client_sampler) { Proc.new {} }
+      let(:sampler_class) { class_double(GraphQL::Hive::DynamicSampler).as_stubbed_const }
+      let(:sampler_instance) { instance_double('GraphQL::Hive::DynamicSampler') }
+
       let(:options) do
         {
           logger: logger,
           buffer_size: 1,
-          collect_usage_sampler: client_sampler
+          collect_usage_sampler: Proc.new {}
         }
       end
-      
-      let(:sampler_class_double) { class_double(GraphQL::Hive::DynamicSampler).as_stubbed_const }
-      let(:sampler_instance) { instance_double('GraphQL::Hive::DynamicSampler') }
 
       before do
-        allow(sampler_class_double).to receive(:new).and_return(sampler_instance)
-        allow(sampler_instance).to receive(:sample?)
+        allow(sampler_class).to receive(:new).and_return(sampler_instance)
         allow(client).to receive(:send)
       end
 
-      it 'adds the operation to the buffer if it should be included' do
-        reporter_instance = described_class.new(options, client)
+      it 'reports the operation if it should be included' do
         allow(sampler_instance).to receive(:sample?).and_return(true)
 
-        reporter_instance.add_operation(operation)
-
-        reporter_instance.on_start
+        described_class.new(options, client)
+        subject.add_operation(operation)
+        subject.on_start
+        subject.on_exit
+        
         expect(sampler_instance).to have_received(:sample?).with(operation)
         expect(client).to have_received(:send)
       end
 
-      it 'does not add the operation to the buffer if it should not be included' do
-        reporter_instance = described_class.new(options, client)
+      it 'does not report the operation if it should not be included' do
         allow(sampler_instance).to receive(:sample?).and_return(false)
 
-        reporter_instance.add_operation(operation)
+        described_class.new(options, client)
+        subject.add_operation(operation)
+        subject.on_start
+        subject.on_exit
 
-        reporter_instance.on_start
         expect(sampler_instance).to have_received(:sample?).with(operation)
         expect(client).not_to have_received(:send)
       end
 
-      context 'when the sampler is invalid' do
-        it 'adds the operation to the buffer but logs a warning' do
-          reporter_instance = described_class.new(options, client)
-          allow(sampler_instance).to receive(:sample?).and_raise(StandardError.new('some_error'))
+      it 'reports the operation but logs a warning if sampler is invalid' do
+        allow(sampler_instance).to receive(:sample?).and_raise(StandardError.new('some_error'))
 
-          reporter_instance.add_operation(operation)
+        described_class.new(options, client)
+        subject.add_operation(operation)
+        subject.on_start
+        subject.on_exit
 
-          reporter_instance.on_start
-          expect(logger).to have_received(:warn).with('All operations are sampled because sampling configuration contains an error: some_error')
-          expect(sampler_instance).to have_received(:sample?).with(operation)
-          expect(client).to have_received(:send)
-        end
+        expect(logger).to have_received(:warn).with('All operations are sampled because sampling configuration contains an error: some_error')
+        expect(sampler_instance).to have_received(:sample?).with(operation)
+        expect(client).to have_received(:send)
       end
     end
   end
