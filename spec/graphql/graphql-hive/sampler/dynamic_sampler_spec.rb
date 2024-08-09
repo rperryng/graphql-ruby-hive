@@ -51,9 +51,9 @@ RSpec.describe GraphQL::Hive::Sampler::DynamicSampler do
       context 'when provided a custom key generator' do
         it 'tracks operations by their custom keys' do
           mock_sampler = Proc.new { |sample_context| 0 }
-          mock_operation_key_generator = Proc.new { |sample_context| 'same_key' }
+          mock_key_generator = Proc.new { |sample_context| 'same_key' }
 
-          sampler_instance = described_class.new(mock_sampler, mock_operation_key_generator)
+          sampler_instance = described_class.new(mock_sampler, mock_key_generator)
 
           expect(sampler_instance.sample?(operation)).to eq(true)
 

@@ -16,7 +16,7 @@ module GraphQL
         def sample?(operation)
           if (@at_least_once_sampling_keygen)
             sample_context = get_sample_context(operation)
-            operation_key = get_sample_key(sample_context)
+            operation_key = get_sample_key(@at_least_once_sampling_keygen, sample_context)
 
             unless(@tracked_operations.has_key?(operation_key))
               @tracked_operations[operation_key] = true 
