@@ -146,29 +146,39 @@ class MySchema < GraphQL::Schema
   use(
     GraphQL::Hive,
     {
+      # mandatory
       token: 'YOUR-TOKEN',
-      collect_usage: true, # report usage to Hive (optional)
-      report_schema: true,  # publish schema to Hive (optional)
-      enabled: true, # enable/disable Hive Client (optional)
+
+      # optional
+      enabled: true, # enable/disable Hive Client
+      collect_usage: true, # report usage to Hive
+      collect_usage_sampling: 1.0, # % of operations reported
       debug: false, # verbose logs
-      logger: MyLogger.new,  # optional
-      endpoint: 'app.graphql-hive.com',  # optional
-      port: 80,  # optional
-      buffer_size: 50, # forward the operations data to Hive every 50 requests (optional)
-      collect_usage_sampling: 1.0, # report % of operations (optional)
+      logger: MyLogger.new,
+      endpoint: 'app.graphql-hive.com',
+      port: 80, 
+      buffer_size: 50, # forward the operations data to Hive every 50 requests
+
+      report_schema: true,  # publish schema to Hive
       reporting: {  # mandatory if `report_schema: true`
-        author: 'Author of the latest change', # mandatory member of `reporting`
-        commit: 'git sha or any identifier',  # mandatory member of `reporting`
+        # mandatory members of `reporting`
+        author: 'Author of the latest change',
+        commit: 'git sha or any identifier',
+        # optional members of `reporting  
         service_name: '', # optional
         service_url: '', # optional
       },
-      # you can pass an optional proc that will help identify the client (ex: Apollo web app) that performed the query
+
+      # pass an optional proc to client_info to help identify the client (ex: Apollo web app) that performed the query
       client_info: Proc.new { |context| { name: context.client_name, version: context.client_version } }
+
       # NOTE: the following field overrides collect_usage_sampling
-      # if you want all operations to be sampled at least once, you can pass an optional proc to conditionally assign sampling rates, based on the sampling context of the operation
+      # pass an optional proc to collect_usage_sampler to assign custom sampling rates
       collect_usage_sampler: Proc.new { |sampling_context| sampling_context.operation_name.includes?('someQuery') 1 : 0.2 }
-      # if you use a sampler, you can pass an optional proc to specify how operations should be keyed, based on the sampling context of the operation
-      sample_key_generator: Proc.new { |sampling_context| sampling_context.operation_name }
+
+      # for every operation to be sampled at least once, pass an optional proc to generate distinct operation keys
+      # returning "default" like so will result in the operation name and document being used as the key
+      sample_key_generator: Proc.new { |sampling_context| "default" }
     }
   )
 
@@ -176,6 +186,8 @@ class MySchema < GraphQL::Schema
 
 end
 ```
+
+Please see default options for the optional parameters [here](https://github.com/charlypoly/graphql-ruby-hive/blob/01407d8fed80912a7006fee503bf2967fa20a79c/lib/graphql-hive.rb#L53).
 
 <br/>
 
