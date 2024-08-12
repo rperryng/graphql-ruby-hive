@@ -4,6 +4,10 @@ require 'spec_helper'
 require 'ostruct'
 
 RSpec.describe GraphQL::Hive::Sampler::BasicSampler do
+  let(:sampler_instance) { described_class.new(sampling_rate, sampling_keygen) }
+  let(:sampling_rate) { 0 }
+  let(:sampling_keygen) { nil }
+
   let(:time) { Time.now }
   let(:queries) { [OpenStruct.new(operations: { 'getField' => {} }, query_string: 'query { field }')] }
   let(:results) { [OpenStruct.new(query: OpenStruct.new(context: { header: 'value' }))] }
@@ -20,23 +24,19 @@ RSpec.describe GraphQL::Hive::Sampler::BasicSampler do
 
   describe '#sample?' do
     it 'follows the sample rate for all operations' do
-      sampler_instance = described_class.new(0)
       expect(sampler_instance.sample?(operation)).to eq(false)
     end
 
     context 'with at least once sampling' do
+      let(:sampling_keygen) { proc { |_sample_context| 'default' } }
+
       it 'returns true for the first operation, then follows the sample rate for remaining operations' do
-        sampler_instance = described_class.new(0, 'default')
         expect(sampler_instance.sample?(operation)).to eq(true)
         expect(sampler_instance.sample?(operation)).to eq(false)
       end
 
       context 'when provided a custom key generator' do
         it 'tracks operations by their custom keys' do
-          mock_key_generator = proc { |_sample_context| 'same_key' }
-
-          sampler_instance = described_class.new(0, mock_key_generator)
-
           expect(sampler_instance.sample?(operation)).to eq(true)
 
           queries = [OpenStruct.new(operations: { 'getDifferentField' => {} }, query_string: 'query { field }')]
