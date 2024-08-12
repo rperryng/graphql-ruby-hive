@@ -9,7 +9,7 @@ module GraphQL
       class BasicSampler
         include GraphQL::Hive::Sampler::SamplingContext
 
-        def initialize(client_sample_rate, at_least_once_sampling_keygen = nil)
+        def initialize(client_sample_rate = 1, at_least_once_sampling_keygen = nil)
           @sample_rate = client_sample_rate
           @tracked_operations = {}
           @at_least_once_sampling_keygen = at_least_once_sampling_keygen

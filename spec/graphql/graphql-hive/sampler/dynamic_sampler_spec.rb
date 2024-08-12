@@ -38,14 +38,14 @@ RSpec.describe GraphQL::Hive::Sampler::DynamicSampler do
       mock_sampler = proc { |_sample_context| 'string' }
 
       sampler_instance = described_class.new(mock_sampler)
-      expect { sampler_instance.sample?(operation) }.to raise_error(StandardError, "Error calling sampler: Sampler must return a number")
+      expect { sampler_instance.sample?(operation) }.to raise_error(StandardError, 'Error calling sampler: Sampler must return a number')
     end
 
     context 'with at least once sampling' do
       it 'returns true for the first operation, then follows the sampler for remaining operations' do
         mock_sampler = proc { |_sample_context| 0 }
 
-        sampler_instance = described_class.new(mock_sampler, "default")
+        sampler_instance = described_class.new(mock_sampler, 'default')
         expect(sampler_instance.sample?(operation)).to eq(true)
         expect(sampler_instance.sample?(operation)).to eq(false)
       end

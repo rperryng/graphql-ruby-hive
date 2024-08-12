@@ -23,9 +23,7 @@ module GraphQL
         @options_mutex = Mutex.new
         @queue = Queue.new
 
-        @sampler = options[:collect_usage_sampler] ? 
-          Sampler::DynamicSampler.new(options[:collect_usage_sampler], options[:at_least_once_sampling_keygen]) :
-          Sampler::BasicSampler.new(options[:collect_usage_sampling], options[:at_least_once_sampling_keygen])
+        @sampler = initialize_sampler(options)
 
         start_thread
       end
@@ -78,6 +76,24 @@ module GraphQL
 
           raise e
         end
+      end
+
+      def initialize_sampler(options)
+        if options[:collect_usage_sampler]
+          return Sampler::DynamicSampler.new(
+            options[:collect_usage_sampler],
+            options[:at_least_once_sampling_keygen]
+          )
+        end
+
+        if options[:collect_usage_sampling]
+          @options[:logger].warn('`collect_usage_sampling` is deprecated, use `collect_usage_sampling_rate` or `collect_usage_sampler` instead') # rubocop:disable Layout/LineLength
+        end
+
+        Sampler::BasicSampler.new(
+          options[:collect_usage_sampling_rate] || options[:collect_usage_sampling],
+          options[:at_least_once_sampling_keygen]
+        )
       end
 
       def sample_operation?(operation)
