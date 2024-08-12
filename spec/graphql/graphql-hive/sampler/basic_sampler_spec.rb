@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 require 'ostruct'
 
@@ -16,7 +18,7 @@ RSpec.describe GraphQL::Hive::Sampler::BasicSampler do
     end
   end
 
-  describe '#sample?' do    
+  describe '#sample?' do
     it 'follows the sample rate for all operations' do
       sampler_instance = described_class.new(0)
       expect(sampler_instance.sample?(operation)).to eq(false)
@@ -24,14 +26,14 @@ RSpec.describe GraphQL::Hive::Sampler::BasicSampler do
 
     context 'with at least once sampling' do
       it 'returns true for the first operation, then follows the sample rate for remaining operations' do
-        sampler_instance = described_class.new(0, "default")
+        sampler_instance = described_class.new(0, 'default')
         expect(sampler_instance.sample?(operation)).to eq(true)
         expect(sampler_instance.sample?(operation)).to eq(false)
       end
 
       context 'when provided a custom key generator' do
         it 'tracks operations by their custom keys' do
-          mock_key_generator = Proc.new { |sample_context| 'same_key' }
+          mock_key_generator = proc { |_sample_context| 'same_key' }
 
           sampler_instance = described_class.new(0, mock_key_generator)
 

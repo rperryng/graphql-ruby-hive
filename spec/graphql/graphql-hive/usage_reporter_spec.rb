@@ -45,7 +45,7 @@ RSpec.describe GraphQL::Hive::UsageReporter do
         {
           logger: logger,
           buffer_size: 1,
-          collect_usage_sampler: Proc.new {}
+          collect_usage_sampler: proc {}
         }
       end
 
@@ -56,7 +56,7 @@ RSpec.describe GraphQL::Hive::UsageReporter do
     end
   end
 
-  describe '#add_operation' do    
+  describe '#add_operation' do
     it 'adds an operation to the queue' do
       operation = { operation: 'test' }
       described_class.new(options, client)
@@ -81,14 +81,16 @@ RSpec.describe GraphQL::Hive::UsageReporter do
     end
   end
 
-  describe '#start_thread' do    
+  describe '#start_thread' do
     it 'logs a warning if the thread is already alive' do
       described_class.new(options, client)
-      subject.instance_variable_set(:@thread, Thread.new {})
+      subject.instance_variable_set(:@thread, Thread.new do
+        # do nothing
+      end)
       expect(logger).to receive(:warn)
       subject.on_start
     end
-    
+
     context 'when provided a sampler' do
       let(:sampler_class) { class_double(GraphQL::Hive::Sampler::DynamicSampler).as_stubbed_const }
       let(:sampler_instance) { instance_double('GraphQL::Hive::Sampler::DynamicSampler') }
@@ -97,7 +99,7 @@ RSpec.describe GraphQL::Hive::UsageReporter do
         {
           logger: logger,
           buffer_size: 1,
-          collect_usage_sampler: Proc.new {}
+          collect_usage_sampler: proc {}
         }
       end
 

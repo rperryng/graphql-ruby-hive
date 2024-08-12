@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 require 'ostruct'
 
@@ -11,7 +13,7 @@ RSpec.describe GraphQL::Hive::Sampler::DynamicSampler do
 
   describe '#initialize' do
     it 'sets the sampler and tracked operations hash' do
-      mock_sampler = Proc.new { |sample_context| 1 }
+      mock_sampler = proc { |_sample_context| 1 }
       sampler_instance = described_class.new(mock_sampler)
 
       expect(sampler_instance.instance_variable_get(:@sampler)).to eq(mock_sampler)
@@ -26,14 +28,14 @@ RSpec.describe GraphQL::Hive::Sampler::DynamicSampler do
     end
 
     it 'follows the sampler for all operations' do
-      mock_sampler = Proc.new { |sample_context| 0 }
+      mock_sampler = proc { |_sample_context| 0 }
 
       sampler_instance = described_class.new(mock_sampler)
       expect(sampler_instance.sample?(operation)).to eq(false)
     end
 
     it 'raises an error if the sampler does not return a number' do
-      mock_sampler = Proc.new { |sample_context| 'string' }
+      mock_sampler = proc { |_sample_context| 'string' }
 
       sampler_instance = described_class.new(mock_sampler)
       expect { sampler_instance.sample?(operation) }.to raise_error(StandardError, "Error calling sampler: Sampler must return a number")
@@ -41,7 +43,7 @@ RSpec.describe GraphQL::Hive::Sampler::DynamicSampler do
 
     context 'with at least once sampling' do
       it 'returns true for the first operation, then follows the sampler for remaining operations' do
-        mock_sampler = Proc.new { |sample_context| 0 }
+        mock_sampler = proc { |_sample_context| 0 }
 
         sampler_instance = described_class.new(mock_sampler, "default")
         expect(sampler_instance.sample?(operation)).to eq(true)
@@ -50,8 +52,8 @@ RSpec.describe GraphQL::Hive::Sampler::DynamicSampler do
 
       context 'when provided a custom key generator' do
         it 'tracks operations by their custom keys' do
-          mock_sampler = Proc.new { |sample_context| 0 }
-          mock_key_generator = Proc.new { |sample_context| 'same_key' }
+          mock_sampler = proc { |_sample_context| 0 }
+          mock_key_generator = proc { |_sample_context| 'same_key' }
 
           sampler_instance = described_class.new(mock_sampler, mock_key_generator)
 
