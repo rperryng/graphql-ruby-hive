@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'graphql-hive/sampler/sampling_context'
 
 module GraphQL
@@ -9,17 +11,17 @@ module GraphQL
 
         def initialize(client_sampler, at_least_once_sampling_keygen = nil)
           @sampler = client_sampler
-          @tracked_operations = Hash.new
+          @tracked_operations = {}
           @at_least_once_sampling_keygen = at_least_once_sampling_keygen
         end
 
         def sample?(operation)
           sample_context = get_sample_context(operation)
 
-          if (@at_least_once_sampling_keygen)
+          if @at_least_once_sampling_keygen
             operation_key = get_sample_key(@at_least_once_sampling_keygen, sample_context)
-            unless(@tracked_operations.has_key?(operation_key))
-              @tracked_operations[operation_key] = true 
+            unless @tracked_operations.key?(operation_key)
+              @tracked_operations[operation_key] = true
               return true
             end
           end

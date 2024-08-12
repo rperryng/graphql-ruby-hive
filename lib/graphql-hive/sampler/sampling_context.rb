@@ -1,11 +1,14 @@
+# frozen_string_literal: true
+
 module GraphQL
   class Hive
     module Sampler
+      # Helper methods for sampling
       module SamplingContext
         private
 
-        def get_sample_context(operation) 
-          _, queries, results, _ = operation
+        def get_sample_context(operation)
+          _, queries, results, = operation
 
           operation_name = queries.map(&:operations).map(&:keys).flatten.compact.join(', ')
 
@@ -27,23 +30,23 @@ module GraphQL
 
         def get_sample_rate(sampler, sample_context)
           sample_rate = sampler.call(sample_context)
-          raise StandardError, "Sampler must return a number" unless (sample_rate.is_a?(Numeric))
+          raise StandardError, 'Sampler must return a number' unless sample_rate.is_a?(Numeric)
 
           sample_rate
-        rescue => e
+        rescue StandardError => e
           raise StandardError, "Error calling sampler: #{e}"
         end
 
         def get_sample_key(sampling_keygen, sample_context)
-          return default_sample_key.call(sample_context) if @at_least_once_sampling_keygen == "default"
-          
+          return default_sample_key.call(sample_context) if @at_least_once_sampling_keygen == 'default'
+
           sampling_keygen.call(sample_context).to_s
-        rescue => e
+        rescue StandardError => e
           raise StandardError, "Error getting key for sample: #{e}"
         end
 
         def default_sample_key
-          Proc.new { |sample_context| sample_context[:operation_name] + sample_context[:document].to_query_string }
+          proc { |sample_context| sample_context[:operation_name] + sample_context[:document].to_query_string }
         end
       end
     end

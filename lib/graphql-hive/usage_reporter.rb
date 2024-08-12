@@ -82,7 +82,7 @@ module GraphQL
 
       def sample_operation?(operation)
         @sampler.sample?(operation)
-      rescue => e
+      rescue StandardError => e
         @options[:logger].warn("All operations are sampled because sampling configuration contains an error: #{e}")
         true
       end

@@ -69,7 +69,7 @@ RSpec.describe GraphQL::Hive::UsageReporter do
     it 'closes the queue and joins the thread' do
       expect(usage_reporter_instance.instance_variable_get(:@queue)).to receive(:close)
       expect(usage_reporter_instance.instance_variable_get(:@thread)).to receive(:join)
-      
+
       usage_reporter_instance.on_exit
     end
   end
