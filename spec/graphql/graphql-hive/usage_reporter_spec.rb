@@ -3,7 +3,7 @@
 require 'spec_helper'
 
 RSpec.describe GraphQL::Hive::UsageReporter do
-  let(:subject) { described_class.instance }
+  let(:usage_reporter_instance) { described_class.new(options, client) }
   let(:client) { instance_double('Hive::Client') }
   let(:options) do
     {
@@ -27,17 +27,15 @@ RSpec.describe GraphQL::Hive::UsageReporter do
     allow(logger).to receive(:debug)
   end
 
-  # NOTE: creating a new instance of usage_reporter starts a new thread, so we must call on_exit after each test
-
-  after do
-    subject.on_exit
-  end
+  # NOTE: creating a new instance of usage_reporter starts a new thread, so we must call on_exit after each test to close the thread
 
   describe '#initialize' do
+    after do
+      usage_reporter_instance.on_exit
+    end
+
     it 'sets the instance' do
-      expect(described_class.instance).to eq(nil)
-      described_class.new(options, client)
-      expect(described_class.instance).to_not eq(nil)
+      expect(usage_reporter_instance.instance_variable_get(:@options)).to eq(options)
     end
 
     context 'when provided a sampler' do
@@ -50,45 +48,54 @@ RSpec.describe GraphQL::Hive::UsageReporter do
       end
 
       it 'creates the sampler' do
-        described_class.new(options, client)
-        expect(subject.instance_variable_get(:@sampler)).to be_an_instance_of(GraphQL::Hive::Sampler::DynamicSampler)
+        expect(usage_reporter_instance.instance_variable_get(:@sampler)).to be_an_instance_of(GraphQL::Hive::Sampler::DynamicSampler)
       end
     end
   end
 
   describe '#add_operation' do
+    after do
+      usage_reporter_instance.on_exit
+    end
+
     it 'adds an operation to the queue' do
       operation = { operation: 'test' }
-      described_class.new(options, client)
-      subject.add_operation(operation)
-      expect(subject.instance_variable_get(:@queue).pop).to eq(operation)
+      usage_reporter_instance.add_operation(operation)
+      expect(usage_reporter_instance.instance_variable_get(:@queue).pop).to eq(operation)
     end
   end
 
   describe '#on_exit' do
     it 'closes the queue and joins the thread' do
-      described_class.new(options, client)
-      expect(subject.instance_variable_get(:@queue)).to receive(:close)
-      expect(subject.instance_variable_get(:@thread)).to receive(:join)
+      expect(usage_reporter_instance.instance_variable_get(:@queue)).to receive(:close)
+      expect(usage_reporter_instance.instance_variable_get(:@thread)).to receive(:join)
+      
+      usage_reporter_instance.on_exit
     end
   end
 
   describe '#on_start' do
+    after do
+      usage_reporter_instance.on_exit
+    end
+
     it 'starts the thread' do
-      described_class.new(options, client)
-      expect(subject).to receive(:start_thread)
-      subject.on_start
+      expect(usage_reporter_instance).to receive(:start_thread)
+      usage_reporter_instance.on_start
     end
   end
 
   describe '#start_thread' do
+    after do
+      usage_reporter_instance.on_exit
+    end
+
     it 'logs a warning if the thread is already alive' do
-      described_class.new(options, client)
-      subject.instance_variable_set(:@thread, Thread.new do
+      usage_reporter_instance.instance_variable_set(:@thread, Thread.new do
         # do nothing
       end)
       expect(logger).to receive(:warn)
-      subject.on_start
+      usage_reporter_instance.on_start
     end
 
     context 'when provided a sampler' do
@@ -114,8 +121,7 @@ RSpec.describe GraphQL::Hive::UsageReporter do
         expect(sampler_instance).to receive(:sample?).with(operation)
         expect(client).to receive(:send)
 
-        described_class.new(options, client)
-        subject.add_operation(operation)
+        usage_reporter_instance.add_operation(operation)
       end
 
       it 'does not report the operation if it should not be included' do
@@ -124,8 +130,7 @@ RSpec.describe GraphQL::Hive::UsageReporter do
         expect(sampler_instance).to receive(:sample?).with(operation)
         expect(client).not_to receive(:send)
 
-        described_class.new(options, client)
-        subject.add_operation(operation)
+        usage_reporter_instance.add_operation(operation)
       end
 
       it 'reports the operation but logs a warning if sampler is invalid' do
@@ -135,8 +140,7 @@ RSpec.describe GraphQL::Hive::UsageReporter do
         expect(client).to receive(:send)
         expect(logger).to receive(:warn).with('All operations are sampled because sampling configuration contains an error: some_error')
 
-        described_class.new(options, client)
-        subject.add_operation(operation)
+        usage_reporter_instance.add_operation(operation)
       end
     end
   end
@@ -149,10 +153,12 @@ RSpec.describe GraphQL::Hive::UsageReporter do
       allow(client).to receive(:send)
     end
 
-    it 'processes and reports the operation to the client' do
-      described_class.new(options, client)
-      subject.send(:process_operations, [operation])
+    after do
+      usage_reporter_instance.on_exit
+    end
 
+    it 'processes and reports the operation to the client' do
+      usage_reporter_instance.send(:process_operations, [operation])
       expect(client).to have_received(:send).with(
         '/usage',
         {
