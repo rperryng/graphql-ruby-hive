@@ -4,9 +4,9 @@ require 'spec_helper'
 require 'ostruct'
 
 RSpec.describe GraphQL::Hive::Sampler::DynamicSampler do
-  let(:sampler_instance) { described_class.new(sampler, sampling_keygen) }
+  let(:sampler_instance) { described_class.new(sampler, at_least_once_sampling) }
   let(:sampler) { proc { |_sample_context| 0 } }
-  let(:sampling_keygen) { nil }
+  let(:at_least_once_sampling) { nil }
 
   let(:schema) { GraphQL::Schema.from_definition('type Query { test: String }') }
   let(:timestamp) { 1_720_705_946_333 }
@@ -24,11 +24,6 @@ RSpec.describe GraphQL::Hive::Sampler::DynamicSampler do
   end
 
   describe '#sample?' do
-    before do
-      mock_document = GraphQL::Language::Nodes::Document.new(definitions: [])
-      allow(GraphQL).to receive(:parse).and_return(mock_document)
-    end
-
     it 'follows the sampler for all operations' do
       expect(sampler_instance.sample?(operation)).to eq(false)
     end
@@ -42,7 +37,7 @@ RSpec.describe GraphQL::Hive::Sampler::DynamicSampler do
     end
 
     context 'with at least once sampling' do
-      let(:sampling_keygen) { proc { |_sample_context| 'default' } }
+      let(:at_least_once_sampling) { true }
 
       it 'returns true for the first operation, then follows the sampler for remaining operations' do
         expect(sampler_instance.sample?(operation)).to eq(true)
@@ -50,7 +45,7 @@ RSpec.describe GraphQL::Hive::Sampler::DynamicSampler do
       end
 
       context 'when provided a custom key generator' do
-        let(:sampling_keygen) { proc { |_sample_context| 'same_key' } }
+        let(:at_least_once_sampling) { proc { |_sample_context| 'same_key' } }
 
         it 'tracks operations by their custom keys' do
           expect(sampler_instance.sample?(operation)).to eq(true)

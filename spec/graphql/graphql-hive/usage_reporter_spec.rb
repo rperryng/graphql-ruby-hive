@@ -4,12 +4,7 @@ require 'spec_helper'
 
 RSpec.describe GraphQL::Hive::UsageReporter do
   let(:usage_reporter_instance) { described_class.new(options, client) }
-  let(:options) do
-    {
-      logger: logger,
-      buffer_size: 1
-    }
-  end
+  let(:options) { { logger: logger } }
   let(:logger) { instance_double('Logger') }
   let(:client) { instance_double('Hive::Client') }
 
@@ -44,13 +39,7 @@ RSpec.describe GraphQL::Hive::UsageReporter do
     end
 
     context 'when provided a sampling rate' do
-      let(:options) do
-        {
-          logger: logger,
-          buffer_size: 1,
-          collect_usage_sampling_rate: 0.5
-        }
-      end
+      let(:options) { { collect_usage_sampling_rate: 0.5 } }
 
       it 'creates a basic sampler' do
         expect(usage_reporter_instance.instance_variable_get(:@sampler)).to be_an_instance_of(GraphQL::Hive::Sampler::BasicSampler)
@@ -60,7 +49,6 @@ RSpec.describe GraphQL::Hive::UsageReporter do
         let(:options) do
           {
             logger: logger,
-            buffer_size: 1,
             collect_usage_sampling: 1
           }
         end
@@ -76,13 +64,7 @@ RSpec.describe GraphQL::Hive::UsageReporter do
     end
 
     context 'when provided a sampler' do
-      let(:options) do
-        {
-          logger: logger,
-          buffer_size: 1,
-          collect_usage_sampler: proc {}
-        }
-      end
+      let(:options) { { collect_usage_sampler: proc {} } }
 
       it 'creates a dynamic sampler' do
         expect(usage_reporter_instance.instance_variable_get(:@sampler)).to be_an_instance_of(GraphQL::Hive::Sampler::DynamicSampler)
