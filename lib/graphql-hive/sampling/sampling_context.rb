@@ -2,7 +2,7 @@
 
 module GraphQL
   class Hive
-    module Sampler
+    module Sampling
       # Helper methods for sampling
       module SamplingContext
         private

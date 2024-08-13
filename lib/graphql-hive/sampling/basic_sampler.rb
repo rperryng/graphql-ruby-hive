@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
-require 'graphql-hive/sampler/sampling_context'
+require 'graphql-hive/sampling/sampling_context'
 
 module GraphQL
   class Hive
-    module Sampler
+    module Sampling
       # Basic sampling for operations reporting
       class BasicSampler
-        include GraphQL::Hive::Sampler::SamplingContext
+        include GraphQL::Hive::Sampling::SamplingContext
 
         def initialize(client_sample_rate, at_least_once_sampling)
           @sample_rate = client_sample_rate || 1

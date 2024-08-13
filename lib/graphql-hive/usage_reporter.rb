@@ -23,7 +23,7 @@ module GraphQL
         @options_mutex = Mutex.new
         @queue = Queue.new
 
-        @sampler = initialize_sampler(options)
+        @sampler = Sampler.new(options)
 
         start_thread
       end
@@ -53,7 +53,7 @@ module GraphQL
           buffer = []
           while (operation = @queue.pop(false))
             @options[:logger].debug("processing operation from queue: #{operation}")
-            buffer << operation if sample_operation?(operation)
+            buffer << operation if @sampler.sample?(operation)
 
             @options_mutex.synchronize do
               if buffer.size >= @options[:buffer_size]
@@ -76,31 +76,6 @@ module GraphQL
 
           raise e
         end
-      end
-
-      def initialize_sampler(options)
-        if options[:collect_usage_sampler]
-          return Sampler::DynamicSampler.new(
-            options[:collect_usage_sampler],
-            options[:at_least_once_sampling]
-          )
-        end
-
-        if options[:collect_usage_sampling]
-          @options[:logger].warn('`collect_usage_sampling` is deprecated, use `collect_usage_sampling_rate` or `collect_usage_sampler` instead') # rubocop:disable Layout/LineLength
-        end
-
-        Sampler::BasicSampler.new(
-          options[:collect_usage_sampling_rate] || options[:collect_usage_sampling],
-          options[:at_least_once_sampling]
-        )
-      end
-
-      def sample_operation?(operation)
-        @sampler.sample?(operation)
-      rescue StandardError => e
-        @options[:logger].warn("All operations are sampled because sampling configuration contains an error: #{e}")
-        true
       end
 
       def process_operations(operations)

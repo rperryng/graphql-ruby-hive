@@ -3,7 +3,7 @@
 require 'spec_helper'
 require 'ostruct'
 
-RSpec.describe GraphQL::Hive::Sampler::BasicSampler do
+RSpec.describe GraphQL::Hive::Sampling::BasicSampler do
   let(:sampler_instance) { described_class.new(sampling_rate, at_least_once_sampling) }
   let(:sampling_rate) { 0 }
   let(:at_least_once_sampling) do

@@ -7,8 +7,9 @@ require 'graphql-hive/version'
 require 'graphql-hive/usage_reporter'
 require 'graphql-hive/client'
 
-require 'graphql-hive/sampler/basic_sampler'
-require 'graphql-hive/sampler/dynamic_sampler'
+require 'graphql-hive/sampler'
+require 'graphql-hive/sampling/basic_sampler'
+require 'graphql-hive/sampling/dynamic_sampler'
 
 # class MySchema < GraphQL::Schema
 #   use(

@@ -3,7 +3,7 @@
 require 'spec_helper'
 require 'ostruct'
 
-RSpec.describe GraphQL::Hive::Sampler::DynamicSampler do
+RSpec.describe GraphQL::Hive::Sampling::DynamicSampler do
   let(:sampler_instance) { described_class.new(sampler, at_least_once_sampling) }
   let(:sampler) { proc { |_sample_context| 0 } }
   let(:at_least_once_sampling) do

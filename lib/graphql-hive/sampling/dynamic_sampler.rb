@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
-require 'graphql-hive/sampler/sampling_context'
+require 'graphql-hive/sampling/sampling_context'
 
 module GraphQL
   class Hive
-    module Sampler
+    module Sampling
       # Dynamic sampling for operations reporting
       class DynamicSampler
-        include GraphQL::Hive::Sampler::SamplingContext
+        include GraphQL::Hive::Sampling::SamplingContext
 
         def initialize(client_sampler, at_least_once_sampling)
           @sampler = client_sampler

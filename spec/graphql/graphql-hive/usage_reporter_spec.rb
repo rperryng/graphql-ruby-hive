@@ -17,6 +17,7 @@ RSpec.describe GraphQL::Hive::UsageReporter do
   before do
     allow(logger).to receive(:warn)
     allow(logger).to receive(:debug)
+    allow(logger).to receive(:error)
   end
 
   # NOTE: creating a new instance of usage_reporter starts a new thread, so we must call on_exit after each test to close the thread
@@ -32,40 +33,7 @@ RSpec.describe GraphQL::Hive::UsageReporter do
 
       expect(usage_reporter_instance.instance_variable_get(:@options_mutex)).to be_an_instance_of(Mutex)
       expect(usage_reporter_instance.instance_variable_get(:@queue)).to be_an_instance_of(Queue)
-      expect(usage_reporter_instance.instance_variable_get(:@sampler)).to be_an_instance_of(GraphQL::Hive::Sampler::BasicSampler)
-    end
-
-    context 'when provided a sampling rate' do
-      let(:options) { { collect_usage_sampling_rate: 0.5 } }
-
-      it 'creates a basic sampler' do
-        expect(usage_reporter_instance.instance_variable_get(:@sampler)).to be_an_instance_of(GraphQL::Hive::Sampler::BasicSampler)
-      end
-
-      context 'using the deprecated field' do
-        let(:options) do
-          {
-            logger: logger,
-            collect_usage_sampling: 1
-          }
-        end
-
-        it 'creates a basic sampler' do
-          expect(usage_reporter_instance.instance_variable_get(:@sampler)).to be_an_instance_of(GraphQL::Hive::Sampler::BasicSampler)
-        end
-
-        it 'logs a warning' do
-          expect(logger).to receive(:warn)
-        end
-      end
-    end
-
-    context 'when provided a sampler' do
-      let(:options) { { collect_usage_sampler: proc {} } }
-
-      it 'creates a dynamic sampler' do
-        expect(usage_reporter_instance.instance_variable_get(:@sampler)).to be_an_instance_of(GraphQL::Hive::Sampler::DynamicSampler)
-      end
+      expect(usage_reporter_instance.instance_variable_get(:@sampler)).to be_an_instance_of(GraphQL::Hive::Sampler)
     end
   end
 
@@ -105,66 +73,37 @@ RSpec.describe GraphQL::Hive::UsageReporter do
     end
 
     context 'when configured with sampling' do
-      RSpec.shared_examples 'a sampler' do |sampler_type|
-        let(:sampler_class) { class_double(sampler_type).as_stubbed_const }
-        let(:sampler_instance) { instance_double(sampler_type.to_s) }
-
-        before do
-          allow(sampler_class).to receive(:new).and_return(sampler_instance)
-          allow(client).to receive(:send)
-        end
-
-        it 'reports the operation if it should be included' do
-          allow(sampler_instance).to receive(:sample?).and_return(true)
-
-          expect(sampler_instance).to receive(:sample?).with(operation)
-          expect(client).to receive(:send)
-
-          usage_reporter_instance.add_operation(operation)
-        end
-
-        it 'does not report the operation if it should not be included' do
-          allow(sampler_instance).to receive(:sample?).and_return(false)
-
-          expect(sampler_instance).to receive(:sample?).with(operation)
-          expect(client).not_to receive(:send)
-
-          usage_reporter_instance.add_operation(operation)
-        end
-
-        it 'reports the operation but logs a warning if sampling error' do
-          allow(sampler_instance).to receive(:sample?).and_raise(StandardError.new('some_error'))
-
-          expect(sampler_instance).to receive(:sample?).with(operation)
-          expect(client).to receive(:send)
-          expect(logger).to receive(:warn).with('All operations are sampled because sampling configuration contains an error: some_error')
-
-          usage_reporter_instance.add_operation(operation)
-        end
+      let(:options) do
+        {
+          logger: logger,
+          buffer_size: 1
+        }
       end
 
-      context 'when provided a sampler' do
-        let(:options) do
-          {
-            logger: logger,
-            buffer_size: 1,
-            collect_usage_sampler: proc {}
-          }
-        end
+      let(:sampler_class) { class_double(GraphQL::Hive::Sampler).as_stubbed_const }
+      let(:sampler_instance) { instance_double('GraphQL::Hive::Sampler') }
 
-        it_behaves_like 'a sampler', GraphQL::Hive::Sampler::DynamicSampler
+      before do
+        allow(sampler_class).to receive(:new).and_return(sampler_instance)
+        allow(client).to receive(:send)
       end
 
-      context 'when provided a sampling rate' do
-        let(:options) do
-          {
-            logger: logger,
-            buffer_size: 1,
-            collect_usage_sampling_rate: 0.5
-          }
-        end
+      it 'reports the operation if it should be included' do
+        allow(sampler_instance).to receive(:sample?).and_return(true)
 
-        it_behaves_like 'a sampler', GraphQL::Hive::Sampler::BasicSampler
+        expect(sampler_instance).to receive(:sample?).with(operation)
+        expect(client).to receive(:send)
+
+        usage_reporter_instance.add_operation(operation)
+      end
+
+      it 'does not report the operation if it should not be included' do
+        allow(sampler_instance).to receive(:sample?).and_return(false)
+
+        expect(sampler_instance).to receive(:sample?).with(operation)
+        expect(client).not_to receive(:send)
+
+        usage_reporter_instance.add_operation(operation)
       end
     end
   end
