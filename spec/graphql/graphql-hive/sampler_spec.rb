@@ -3,8 +3,8 @@
 require 'spec_helper'
 
 RSpec.describe GraphQL::Hive::Sampler do
-  let(:options) { {} }
   let(:sampler_instance) { described_class.new(options) }
+  let(:options) { {} }
 
   describe '#initialize' do
     it 'creates a basic sampler' do
@@ -36,7 +36,8 @@ RSpec.describe GraphQL::Hive::Sampler do
         end
 
         it 'logs a warning' do
-          expect(logger).to receive(:warn)
+          sampler_instance
+          expect(logger).to have_received(:warn)
         end
       end
     end
