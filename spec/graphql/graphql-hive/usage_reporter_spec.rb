@@ -14,9 +14,6 @@ RSpec.describe GraphQL::Hive::UsageReporter do
   let(:duration) { 100_000 }
   let(:operation) { [timestamp, queries, results, duration] }
 
-  let(:schema) { GraphQL::Schema.from_definition('type Query { test: String }') }
-  let(:query_string) { 'query TestingHive { test }' }
-
   before do
     allow(logger).to receive(:warn)
     allow(logger).to receive(:debug)
@@ -173,6 +170,8 @@ RSpec.describe GraphQL::Hive::UsageReporter do
   end
 
   describe '#process_operation' do
+    let(:schema) { GraphQL::Schema.from_definition('type Query { test: String }') }
+    let(:query_string) { 'query TestingHive { test }' }
     let(:queries) { [GraphQL::Query.new(schema, query_string, variables: {})] }
     let(:results) { [GraphQL::Query::Result.new(query: queries.first, values: { 'data' => { 'test' => 'test' } })] }
 

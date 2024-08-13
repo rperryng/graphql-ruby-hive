@@ -8,14 +8,6 @@ RSpec.describe GraphQL::Hive::Sampler::BasicSampler do
   let(:sampling_rate) { 0 }
   let(:at_least_once_sampling) { nil }
 
-  let(:schema) { GraphQL::Schema.from_definition('type Query { test: String }') }
-  let(:timestamp) { 1_720_705_946_333 }
-  let(:queries) { [GraphQL::Query.new(schema, query: '{ test }')] }
-  let(:results) { [OpenStruct.new(query: OpenStruct.new(context: { header: 'value' }))] }
-  let(:duration) { 100 }
-
-  let(:operation) { [timestamp, queries, results, duration] }
-
   describe '#initialize' do
     it 'sets the sample rate' do
       sampler_instance = described_class.new(0.5)
@@ -24,6 +16,13 @@ RSpec.describe GraphQL::Hive::Sampler::BasicSampler do
   end
 
   describe '#sample?' do
+    let(:schema) { GraphQL::Schema.from_definition('type Query { test: String }') }
+    let(:timestamp) { 1_720_705_946_333 }
+    let(:queries) { [GraphQL::Query.new(schema, query: '{ test }', context: { header: 'value' })] }
+    let(:results) { [GraphQL::Query::Result.new(query: queries.first, values: { 'data' => { 'test' => 'test' } })] }
+    let(:duration) { 100 }
+    let(:operation) { [timestamp, queries, results, duration] }
+
     it 'follows the sample rate for all operations' do
       expect(sampler_instance.sample?(operation)).to eq(false)
     end
