@@ -31,6 +31,7 @@ module GraphQL
         def get_sample_rate(sampler, sample_context)
           sample_rate = sampler.call(sample_context)
           raise StandardError, 'Sampler must return a number' unless sample_rate.is_a?(Numeric)
+
           sample_rate
         rescue StandardError => e
           raise StandardError, "Error calling sampler: #{e}"
@@ -38,6 +39,7 @@ module GraphQL
 
         def get_sample_key(sampling_keygen, sample_context)
           return default_sample_key.call(sample_context) if @at_least_once_sampling_keygen == true
+
           sampling_keygen.call(sample_context).to_s
         rescue StandardError => e
           raise StandardError, "Error getting key for sample: #{e}"
