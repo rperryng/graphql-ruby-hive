@@ -119,8 +119,7 @@ module GraphQL
           elapsed = ending - starting
           duration = (elapsed.to_f * (10**9)).to_i
 
-          report_usage(timestamp, queries, results, duration) if !queries.empty?
-          
+          report_usage(timestamp, queries, results, duration) unless queries.empty?
           results
         else
           yield

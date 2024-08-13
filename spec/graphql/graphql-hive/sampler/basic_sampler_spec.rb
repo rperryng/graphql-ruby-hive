@@ -8,12 +8,13 @@ RSpec.describe GraphQL::Hive::Sampler::BasicSampler do
   let(:sampling_rate) { 0 }
   let(:sampling_keygen) { nil }
 
-  let(:time) { Time.now }
-  let(:queries) { [OpenStruct.new(operations: { 'getField' => {} }, query_string: 'query { field }')] }
+  let(:schema) { GraphQL::Schema.from_definition('type Query { test: String }') }
+  let(:timestamp) { 1_720_705_946_333 }
+  let(:queries) { [GraphQL::Query.new(schema, query: '{ test }')] }
   let(:results) { [OpenStruct.new(query: OpenStruct.new(context: { header: 'value' }))] }
   let(:duration) { 100 }
 
-  let(:operation) { [time, queries, results, duration] }
+  let(:operation) { [timestamp, queries, results, duration] }
 
   describe '#initialize' do
     it 'sets the sample rate' do
@@ -39,8 +40,8 @@ RSpec.describe GraphQL::Hive::Sampler::BasicSampler do
         it 'tracks operations by their custom keys' do
           expect(sampler_instance.sample?(operation)).to eq(true)
 
-          queries = [OpenStruct.new(operations: { 'getDifferentField' => {} }, query_string: 'query { field }')]
-          different_operation = [time, queries, results, duration]
+          queries = [GraphQL::Query.new(schema, query: '{ something_else }')]
+          different_operation = [timestamp, queries, results, duration]
 
           expect(sampler_instance.sample?(different_operation)).to eq(false)
         end
