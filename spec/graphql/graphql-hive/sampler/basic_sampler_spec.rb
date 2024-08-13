@@ -6,12 +6,15 @@ require 'ostruct'
 RSpec.describe GraphQL::Hive::Sampler::BasicSampler do
   let(:sampler_instance) { described_class.new(sampling_rate, at_least_once_sampling) }
   let(:sampling_rate) { 0 }
-  let(:at_least_once_sampling) { nil }
+  let(:at_least_once_sampling) do
+    {
+      enabled: false
+    }
+  end
 
   describe '#initialize' do
     it 'sets the sample rate' do
-      sampler_instance = described_class.new(0.5)
-      expect(sampler_instance.instance_variable_get(:@sample_rate)).to eq(0.5)
+      expect(sampler_instance.instance_variable_get(:@sample_rate)).to eq(0)
     end
   end
 
@@ -28,7 +31,11 @@ RSpec.describe GraphQL::Hive::Sampler::BasicSampler do
     end
 
     context 'with at least once sampling' do
-      let(:at_least_once_sampling) { true }
+      let(:at_least_once_sampling) do
+        {
+          enabled: true
+        }
+      end
 
       it 'returns true for the first operation, then follows the sample rate for remaining operations' do
         expect(sampler_instance.sample?(operation)).to eq(true)
@@ -36,7 +43,12 @@ RSpec.describe GraphQL::Hive::Sampler::BasicSampler do
       end
 
       context 'when provided a custom key generator' do
-        let(:at_least_once_sampling) { proc { |_sample_context| 'same_key' } }
+        let(:at_least_once_sampling) do
+          {
+            enabled: true,
+            keygen: proc { |_sample_context| 'same_key' }
+          }
+        end
 
         it 'tracks operations by their custom keys' do
           expect(sampler_instance.sample?(operation)).to eq(true)

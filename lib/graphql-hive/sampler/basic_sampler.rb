@@ -9,16 +9,16 @@ module GraphQL
       class BasicSampler
         include GraphQL::Hive::Sampler::SamplingContext
 
-        def initialize(client_sample_rate = 1, at_least_once_sampling_keygen = nil)
-          @sample_rate = client_sample_rate
+        def initialize(client_sample_rate, at_least_once_sampling)
+          @sample_rate = client_sample_rate || 1
           @tracked_operations = {}
-          @at_least_once_sampling_keygen = at_least_once_sampling_keygen
+          @key_generator = at_least_once_sampling&.[](:keygen) || DEFAULT_SAMPLE_KEY if at_least_once_sampling&.[](:enabled)
         end
 
         def sample?(operation)
-          if @at_least_once_sampling_keygen
+          if @key_generator
             sample_context = get_sample_context(operation)
-            operation_key = get_sample_key(@at_least_once_sampling_keygen, sample_context)
+            operation_key = @key_generator.call(sample_context)
 
             unless @tracked_operations.key?(operation_key)
               @tracked_operations[operation_key] = true

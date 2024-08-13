@@ -82,7 +82,7 @@ module GraphQL
         if options[:collect_usage_sampler]
           return Sampler::DynamicSampler.new(
             options[:collect_usage_sampler],
-            options[:at_least_once_sampling_keygen]
+            options[:at_least_once_sampling]
           )
         end
 
@@ -92,7 +92,7 @@ module GraphQL
 
         Sampler::BasicSampler.new(
           options[:collect_usage_sampling_rate] || options[:collect_usage_sampling],
-          options[:at_least_once_sampling_keygen]
+          options[:at_least_once_sampling]
         )
       end
 

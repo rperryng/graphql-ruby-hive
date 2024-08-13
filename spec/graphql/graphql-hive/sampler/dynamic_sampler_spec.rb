@@ -6,7 +6,11 @@ require 'ostruct'
 RSpec.describe GraphQL::Hive::Sampler::DynamicSampler do
   let(:sampler_instance) { described_class.new(sampler, at_least_once_sampling) }
   let(:sampler) { proc { |_sample_context| 0 } }
-  let(:at_least_once_sampling) { nil }
+  let(:at_least_once_sampling) do
+    {
+      enabled: false
+    }
+  end
 
   describe '#initialize' do
     it 'sets the sampler and tracked operations hash' do
@@ -31,12 +35,16 @@ RSpec.describe GraphQL::Hive::Sampler::DynamicSampler do
       let(:sampler) { proc { |_sample_context| 'not a number' } }
 
       it 'raises an error' do
-        expect { sampler_instance.sample?(operation) }.to raise_error(StandardError, 'Error calling sampler: Sampler must return a number')
+        expect { sampler_instance.sample?(operation) }.to raise_error(ArgumentError)
       end
     end
 
     context 'with at least once sampling' do
-      let(:at_least_once_sampling) { true }
+      let(:at_least_once_sampling) do
+        {
+          enabled: true
+        }
+      end
 
       it 'returns true for the first operation, then follows the sampler for remaining operations' do
         expect(sampler_instance.sample?(operation)).to eq(true)
@@ -44,7 +52,12 @@ RSpec.describe GraphQL::Hive::Sampler::DynamicSampler do
       end
 
       context 'when provided a custom key generator' do
-        let(:at_least_once_sampling) { proc { |_sample_context| 'same_key' } }
+        let(:at_least_once_sampling) do
+          {
+            enabled: true,
+            keygen: proc { |_sample_context| 'same_key' }
+          }
+        end
 
         it 'tracks operations by their custom keys' do
           expect(sampler_instance.sample?(operation)).to eq(true)

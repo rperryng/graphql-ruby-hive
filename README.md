@@ -151,21 +151,20 @@ class MySchema < GraphQL::Schema
 
       # optional
       enabled: true, # enable/disable Hive Client
-      collect_usage: true, # report usage to Hive
-      collect_usage_sampling_rate: 1.0, # % of operations reported
       debug: false, # verbose logs
       logger: MyLogger.new,
       endpoint: 'app.graphql-hive.com',
       port: 80, 
       buffer_size: 50, # forward the operations data to Hive every 50 requests
 
-      # to sample every distinct operation at least once, set `at_least_once_sampling_keygen` to `true`
-      # alternatively, pass an optional proc to use custom keys to distinguish between distinct operations
-      at_least_once_sampling_keygen: proc { |context| context.operation_name }
-
+      collect_usage: true, # report usage to Hive
+      collect_usage_sampling_rate: 1.0, # % of operations reported
+      at_least_once_sampling: {
+        enabled: true, # set to true to sample every distinct operation at least once
+        keygen: proc { |context| context.operation_name } # optionally assign custom keys to distinguish between distinct operations
+      }
       # NOTE: this field overrides `collect_usage_sampling_rate`
-      # pass an optional proc to `collect_usage_sampler` to assign custom sampling rates
-      collect_usage_sampler: proc { |context| context.operation_name.includes?('someQuery') 1 : 0.2 }
+      collect_usage_sampler: proc { |context| context.operation_name.includes?('someQuery') 1 : 0.2 } # assign custom sampling rates
 
       report_schema: true,  # publish schema to Hive
       # mandatory if `report_schema: true`
