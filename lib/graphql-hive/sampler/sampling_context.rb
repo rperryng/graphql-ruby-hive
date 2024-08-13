@@ -46,7 +46,11 @@ module GraphQL
         end
 
         def default_sample_key
-          proc { |sample_context| sample_context[:operation_name] + sample_context[:document].to_query_string }
+          proc { |sample_context|
+            md5 = Digest::MD5.new
+            md5.update sample_context[:document].to_query_string
+            return md5.hexdigest
+          }
         end
       end
     end
