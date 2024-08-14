@@ -11,32 +11,6 @@ require 'graphql-hive/sampler'
 require 'graphql-hive/sampling/basic_sampler'
 require 'graphql-hive/sampling/dynamic_sampler'
 
-# class MySchema < GraphQL::Schema
-#   use(
-#     GraphQL::Hive,
-#     {
-#       token: 'YOUR-TOKEN',
-#       collect_usage: true,
-#       report_schema: true,
-#       enabled: true, // Enable/Disable Hive Client
-#       debug: true, // Debugging mode
-#       logger: MyLogger.new,
-#       endpoint: 'app.graphql-hive.com',
-#       port: 80,
-#       reporting: {
-#         author: 'Author of the latest change',
-#         commit: 'git sha or any identifier',
-#         service_name: '',
-#         service_url: '',
-#       },
-#       client_info: Proc.new { |context| { name: context.client_name, version: context.client_version } }
-#     }
-#   )
-#
-#   # ...
-#
-# end
-
 module GraphQL
   # GraphQL Hive usage collector and schema reporter
   class Hive < GraphQL::Tracing::PlatformTracing
