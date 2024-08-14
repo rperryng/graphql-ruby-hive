@@ -3,8 +3,9 @@
 require 'spec_helper'
 
 RSpec.describe GraphQL::Hive::Sampler do
-  let(:sampler_instance) { described_class.new(options) }
-  let(:options) { {} }
+  let(:sampler_instance) { described_class.new(sampling_options, logger) }
+  let(:sampling_options) { nil }
+  let(:logger) { instance_double('Logger') }
 
   describe '#initialize' do
     it 'creates a basic sampler' do
@@ -12,20 +13,14 @@ RSpec.describe GraphQL::Hive::Sampler do
     end
 
     context 'when provided a sampling rate' do
-      let(:options) { { collect_usage_sampling_rate: 0.5 } }
+      let(:sampling_options) { { sample_rate: 0.5 } }
 
       it 'creates a basic sampler' do
         expect(sampler_instance.instance_variable_get(:@sampler)).to be_an_instance_of(GraphQL::Hive::Sampling::BasicSampler)
       end
 
       context 'using the deprecated field' do
-        let(:logger) { instance_double('Logger') }
-        let(:options) do
-          {
-            logger: logger,
-            collect_usage_sampling: 1
-          }
-        end
+        let(:sampling_options) { 1 }
 
         before do
           allow(logger).to receive(:warn)
@@ -43,7 +38,7 @@ RSpec.describe GraphQL::Hive::Sampler do
     end
 
     context 'when provided a sampler' do
-      let(:options) { { collect_usage_sampler: proc {} } }
+      let(:sampling_options) { { sampler: proc {} } }
 
       it 'creates a dynamic sampler' do
         expect(sampler_instance.instance_variable_get(:@sampler)).to be_an_instance_of(GraphQL::Hive::Sampling::DynamicSampler)
