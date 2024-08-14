@@ -160,7 +160,7 @@ class MySchema < GraphQL::Schema
       collect_usage: true, # report usage to Hive
       collect_usage_sampling: {
         # optional members of `collect_usage_sampling`  
-        sampling_rate: 0.5, # % of operations reported
+        sample_rate: 0.5, # % of operations reported
         sampler: proc { |context| context.operation_name.includes?('someQuery') 1 : 0.5 }, # assign custom sampling rates (overrides `sampling rate`)
         at_least_once: true, # sample every distinct operation at least once
         key_generator: proc { |context| context.operation_name } # assign custom keys to distinguish between distinct operations

@@ -13,7 +13,7 @@ RSpec.describe GraphQL::Hive::Sampler do
     end
 
     context 'when provided a sampling rate' do
-      let(:sampling_options) { { sampling_rate: 0.5 } }
+      let(:sampling_options) { { sample_rate: 0.5 } }
 
       it 'creates a basic sampler' do
         expect(sampler_instance.instance_variable_get(:@sampler)).to be_an_instance_of(GraphQL::Hive::Sampling::BasicSampler)

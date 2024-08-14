@@ -3,8 +3,8 @@
 require 'spec_helper'
 
 RSpec.describe GraphQL::Hive::Sampling::BasicSampler do
-  let(:sampler_instance) { described_class.new(sampling_rate, at_least_once, key_generator) }
-  let(:sampling_rate) { 0 }
+  let(:sampler_instance) { described_class.new(sample_rate, at_least_once, key_generator) }
+  let(:sample_rate) { 0 }
   let(:at_least_once) { false }
   let(:key_generator) { nil }
 
