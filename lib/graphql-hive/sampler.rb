@@ -4,19 +4,32 @@ module GraphQL
   class Hive < GraphQL::Tracing::PlatformTracing
     # Sampler instance for usage reporter
     class Sampler
-      def initialize(options)
-        if options[:collect_usage_sampler]
-          @sampler = Sampling::DynamicSampler.new(
-            options[:collect_usage_sampler],
-            options[:at_least_once_sampling]
+      def initialize(sampling_options, logger = nil)
+        # backwards compatibility with old `collect_usage_sampling` field
+        if sampling_options.is_a?(Numeric)
+          logger&.warn(
+            '`collect_usage_sampling` is deprecated for fixed sampling rates, ' \
+            'use `collect_usage_sampling: { sampling_rate: XX }` instead'
           )
-        else
-          options[:logger]&.warn('`collect_usage_sampling` is deprecated, use `collect_usage_sampling_rate` instead') if options&.[](:collect_usage_sampling) # rubocop:disable Layout/LineLength
-          @sampler = Sampling::BasicSampler.new(
-            options[:collect_usage_sampling_rate] || options[:collect_usage_sampling],
-            options[:at_least_once_sampling]
-          )
+          passed_sample_rate = sampling_options
+          sampling_options = { sample_rate: passed_sample_rate }
         end
+
+        sampling_options ||= {}
+
+        @sampler = if sampling_options[:sampler]
+                     Sampling::DynamicSampler.new(
+                       sampling_options[:sampler],
+                       sampling_options[:at_least_once],
+                       sampling_options[:key_generator]
+                     )
+                   else
+                     Sampling::BasicSampler.new(
+                       sampling_options[:sample_rate],
+                       sampling_options[:at_least_once],
+                       sampling_options[:key_generator]
+                     )
+                   end
       end
 
       def sample?(operation)

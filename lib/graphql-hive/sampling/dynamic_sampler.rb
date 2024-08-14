@@ -9,10 +9,10 @@ module GraphQL
       class DynamicSampler
         include GraphQL::Hive::Sampling::SamplingContext
 
-        def initialize(client_sampler, at_least_once_sampling)
+        def initialize(client_sampler, at_least_once, key_generator)
           @sampler = client_sampler
           @tracked_operations = {}
-          @key_generator = at_least_once_sampling&.[](:keygen) || DEFAULT_SAMPLE_KEY if at_least_once_sampling&.[](:enabled)
+          @key_generator = key_generator || DEFAULT_SAMPLE_KEY if at_least_once
         end
 
         def sample?(operation)
