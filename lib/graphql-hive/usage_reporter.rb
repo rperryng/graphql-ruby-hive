@@ -23,7 +23,7 @@ module GraphQL
         @options_mutex = Mutex.new
         @queue = Queue.new
 
-        @sampler = Sampler.new(options[:collect_usage_sampling], options[:logger])
+        @sampler = Sampler.new(options[:collect_usage_sampling], options[:logger]) # NOTE: logs for deprecated field
 
         start_thread
       end

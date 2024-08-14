@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
-require 'ostruct'
 
 RSpec.describe GraphQL::Hive::Sampling::DynamicSampler do
   let(:sampler_instance) { described_class.new(sampler, at_least_once, key_generator) }
