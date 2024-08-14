@@ -11,8 +11,8 @@ module GraphQL
             '`collect_usage_sampling` is deprecated for fixed sampling rates, ' \
             'use `collect_usage_sampling: { sampling_rate: XX }` instead'
           )
-          passed_sample_rate = sampling_options
-          sampling_options = { sample_rate: passed_sample_rate }
+          passed_sampling_rate = sampling_options
+          sampling_options = { sampling_rate: passed_sampling_rate }
         end
 
         sampling_options ||= {}
@@ -25,7 +25,7 @@ module GraphQL
                      )
                    else
                      Sampling::BasicSampler.new(
-                       sampling_options[:sample_rate],
+                       sampling_options[:sampling_rate],
                        sampling_options[:at_least_once],
                        sampling_options[:key_generator]
                      )
