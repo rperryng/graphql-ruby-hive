@@ -7,31 +7,9 @@ require 'graphql-hive/version'
 require 'graphql-hive/usage_reporter'
 require 'graphql-hive/client'
 
-# class MySchema < GraphQL::Schema
-#   use(
-#     GraphQL::Hive,
-#     {
-#       token: 'YOUR-TOKEN',
-#       collect_usage: true,
-#       report_schema: true,
-#       enabled: true, // Enable/Disable Hive Client
-#       debug: true, // Debugging mode
-#       logger: MyLogger.new,
-#       endpoint: 'app.graphql-hive.com',
-#       port: 80,
-#       reporting: {
-#         author: 'Author of the latest change',
-#         commit: 'git sha or any identifier',
-#         service_name: '',
-#         service_url: '',
-#       },
-#       client_info: Proc.new { |context| { name: context.client_name, version: context.client_version } }
-#     }
-#   )
-#
-#   # ...
-#
-# end
+require 'graphql-hive/sampler'
+require 'graphql-hive/sampling/basic_sampler'
+require 'graphql-hive/sampling/dynamic_sampler'
 
 module GraphQL
   # GraphQL Hive usage collector and schema reporter
@@ -116,10 +94,7 @@ module GraphQL
           elapsed = ending - starting
           duration = (elapsed.to_f * (10**9)).to_i
 
-          # rubocop:disable Layout/LineLength
-          report_usage(timestamp, queries, results, duration) if !queries.empty? && SecureRandom.random_number <= @options[:collect_usage_sampling]
-          # rubocop:enable Layout/LineLength
-
+          report_usage(timestamp, queries, results, duration) unless queries.empty?
           results
         else
           yield

@@ -10,11 +10,6 @@ module GraphQL
     class UsageReporter
       @@instance = nil
 
-      @queue = nil
-      @thread = nil
-      @operations_buffer = nil
-      @client = nil
-
       def self.instance
         @@instance
       end
@@ -27,6 +22,8 @@ module GraphQL
 
         @options_mutex = Mutex.new
         @queue = Queue.new
+
+        @sampler = Sampler.new(options[:collect_usage_sampling], options[:logger]) # NOTE: logs for deprecated field
 
         start_thread
       end
@@ -55,8 +52,9 @@ module GraphQL
         @thread = Thread.new do
           buffer = []
           while (operation = @queue.pop(false))
-            @options[:logger].debug("add operation to buffer: #{operation}")
-            buffer << operation
+            @options[:logger].debug("processing operation from queue: #{operation}")
+            buffer << operation if @sampler.sample?(operation)
+
             @options_mutex.synchronize do
               if buffer.size >= @options[:buffer_size]
                 @options[:logger].debug('buffer is full, sending!')
@@ -65,6 +63,7 @@ module GraphQL
               end
             end
           end
+
           unless buffer.empty?
             @options[:logger].debug('shuting down with buffer, sending!')
             process_operations(buffer)

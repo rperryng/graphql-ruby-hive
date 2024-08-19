@@ -146,26 +146,39 @@ class MySchema < GraphQL::Schema
   use(
     GraphQL::Hive,
     {
+      # mandatory
       token: 'YOUR-TOKEN',
-      collect_usage: true, # optional
-      report_schema: true,  # optional
-      enabled: true, # Enable/Disable Hive Client (optional)
+
+      # optional
+      enabled: true, # enable/disable Hive Client
       debug: false, # verbose logs
-      logger: MyLogger.new,  # optional
-      endpoint: 'app.graphql-hive.com',  # optional
-      port: 80,  # optional
+      logger: MyLogger.new,
+      endpoint: 'app.graphql-hive.com',
+      port: 80, 
       buffer_size: 50, # forward the operations data to Hive every 50 requests
-      collect_usage_sampling: 1.0,
-      reporting: {  # mandatory if `report_schema: true`
-        # mandatory member of `reporting`
+
+      collect_usage: true, # report usage to Hive
+      collect_usage_sampling: {
+        # optional members of `collect_usage_sampling`  
+        sample_rate: 0.5, # % of operations reported
+        sampler: proc { |context| context.operation_name.includes?('someQuery') 1 : 0.5 }, # assign custom sampling rates (overrides `sampling rate`)
+        at_least_once: true, # sample every distinct operation at least once
+        key_generator: proc { |context| context.operation_name } # assign custom keys to distinguish between distinct operations
+      }
+
+      report_schema: true,  # publish schema to Hive
+      # mandatory if `report_schema: true`
+      reporting: { 
+        # mandatory members of `reporting`
         author: 'Author of the latest change',
-        # mandatory member of `reporting`
         commit: 'git sha or any identifier',
-        service_name: '', # optional
-        service_url: '', # optional
+        # optional members of `reporting  
+        service_name: '',
+        service_url: '',
       },
-      # you can pass an optional proc that will help identify the client (ex: Apollo web app) that performed the query
-      client_info: Proc.new { |context| { name: context.client_name, version: context.client_version } }
+
+       # pass an optional proc to client_info to help identify the client (ex: Apollo web app) that performed the query
+      client_info: proc { |context| { name: context.client_name, version: context.client_version } }
     }
   )
 
@@ -173,6 +186,8 @@ class MySchema < GraphQL::Schema
 
 end
 ```
+
+See default options for the optional parameters [here](https://github.com/charlypoly/graphql-ruby-hive/blob/01407d8fed80912a7006fee503bf2967fa20a79c/lib/graphql-hive.rb#L53).
 
 <br/>
 
