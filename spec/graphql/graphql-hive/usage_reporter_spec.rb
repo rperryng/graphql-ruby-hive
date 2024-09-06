@@ -131,7 +131,7 @@ RSpec.describe GraphQL::Hive::UsageReporter do
             } },
           operations: [
             {
-              execution: { duration: 100_000, errors: [], errorsTotal: 0, ok: true },
+              execution: { duration: 100_000, errorsTotal: 0, ok: true },
               operationMapKey: '8b8412ce86f3ea7accb931b1a5de335d',
               timestamp: 1_720_705_946_333
             }
