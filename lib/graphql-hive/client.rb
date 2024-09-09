@@ -39,12 +39,8 @@ module GraphQL
 
       def build_request(uri, path, body)
         request = Net::HTTP::Post.new(uri.request_uri)
-        if path == '/usage'
-          request['Authorization'] = @options[:token]
-          request['X-Usage-API-Version'] = '2'
-        else
-          request['x-api-token'] = @options[:token]
-        end
+        request['Authorization'] = @options[:token]
+        request['X-Usage-API-Version'] = '2'
         request['content-type'] = 'application/json'
         request['User-Agent'] = "Hive@#{Graphql::Hive::VERSION}"
         request['graphql-client-name'] = 'Hive Ruby Client'
