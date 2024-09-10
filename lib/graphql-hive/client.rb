@@ -21,7 +21,7 @@ module GraphQL
           )
 
         http = setup_http(uri)
-        request = build_request(uri, body) 
+        request = build_request(uri, body)
         response = http.request(request)
 
         @options[:logger].debug(response.inspect)
@@ -52,4 +52,3 @@ module GraphQL
     end
   end
 end
-

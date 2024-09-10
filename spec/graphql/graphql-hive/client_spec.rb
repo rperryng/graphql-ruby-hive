@@ -18,7 +18,7 @@ RSpec.describe GraphQL::Hive::Client do
 
   describe '#initialize' do
     it 'sets the instance' do
-        expect(client.instance_variable_get(:@options)).to eq(options)
+      expect(client.instance_variable_get(:@options)).to eq(options)
     end
   end
 
