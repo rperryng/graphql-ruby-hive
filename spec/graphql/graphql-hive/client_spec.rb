@@ -22,7 +22,7 @@ RSpec.describe GraphQL::Hive::Client do
     end
   end
 
-  describe "#send" do
+  describe '#send' do
     let(:http) { instance_double(Net::HTTP) }
     let(:request) { instance_double(Net::HTTP::Post) }
     let(:response) { instance_double(Net::HTTPOK, body: '', code: '200') }
@@ -39,7 +39,7 @@ RSpec.describe GraphQL::Hive::Client do
       allow(request).to receive(:body=)
     end
 
-    it "sets up the HTTP session" do
+    it 'sets up the HTTP session' do
       expect(Net::HTTP).to receive(:new).with('app.graphql-hive.com', 443).and_return(http)
       expect(http).to receive(:use_ssl=).with(true)
       expect(http).to receive(:read_timeout=).with(2)
@@ -47,7 +47,7 @@ RSpec.describe GraphQL::Hive::Client do
       client.send('/usage', body, :usage)
     end
 
-    it "creates the request with the correct headers and body" do
+    it 'creates the request with the correct headers and body' do
       expect(Net::HTTP::Post).to receive(:new).with('/usage').and_return(request)
       expect(request).to receive(:[]=).with('Authorization', 'Bearer test-token')
       expect(request).to receive(:[]=).with('X-Usage-API-Version', '2')
@@ -60,15 +60,15 @@ RSpec.describe GraphQL::Hive::Client do
       client.send('/usage', body, :usage)
     end
 
-    it "executes the request" do
+    it 'executes the request' do
       expect(http).to receive(:request).with(request).and_return(response)
       client.send('/usage', body, :usage)
     end
 
-    it "logs a fatal error and raises an exception when an exception is raised" do
-      allow(http).to receive(:request).and_raise(StandardError.new("Network error"))
-      expect(options[:logger]).to receive(:fatal).with("Failed to send data: Network error")
-      expect { client.send('/usage', body, :usage) }.to raise_error(StandardError, "Network error")
+    it 'logs a fatal error and raises an exception when an exception is raised' do
+      allow(http).to receive(:request).and_raise(StandardError.new('Network error'))
+      expect(options[:logger]).to receive(:fatal).with('Failed to send data: Network error')
+      expect { client.send('/usage', body, :usage) }.to raise_error(StandardError, 'Network error')
     end
   end
 end

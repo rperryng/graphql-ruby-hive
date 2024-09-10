@@ -21,7 +21,7 @@ module GraphQL
           )
 
         http = setup_http(uri)
-        request = build_request(uri, path, body) 
+        request = build_request(uri, body) 
         response = http.request(request)
 
         @options[:logger].debug(response.inspect)
@@ -38,7 +38,7 @@ module GraphQL
         http
       end
 
-      def build_request(uri, path, body)
+      def build_request(uri, body)
         request = Net::HTTP::Post.new(uri.request_uri)
         request['Authorization'] = @options[:token]
         request['X-Usage-API-Version'] = '2'
