@@ -128,8 +128,7 @@ module GraphQL
           execution: {
             ok: errors[:errorsTotal].zero?,
             duration: duration,
-            errorsTotal: errors[:errorsTotal],
-            errors: errors[:errors]
+            errorsTotal: errors[:errorsTotal]
           }
         }
 
@@ -148,12 +147,11 @@ module GraphQL
       end
 
       def errors_from_results(results)
-        acc = { errorsTotal: 0, errors: [] }
+        acc = { errorsTotal: 0 }
         results.each do |result|
           errors = result.to_h.fetch('errors', [])
-          errors.each do |error|
+          errors.each do
             acc[:errorsTotal] += 1
-            acc[:errors] << { message: error['message'], path: error['path']&.join('.') }
           end
         end
         acc
