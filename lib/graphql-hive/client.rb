@@ -28,7 +28,6 @@ module GraphQL
         @options[:logger].debug(response.body.inspect)
       rescue StandardError => e
         @options[:logger].fatal("Failed to send data: #{e}")
-        raise e
       end
 
       def setup_http(uri)
