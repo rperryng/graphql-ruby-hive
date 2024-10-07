@@ -30,4 +30,6 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "rake", "~> 13"
   spec.add_development_dependency "rspec", "~> 3"
   spec.add_development_dependency "standard"
+  spec.add_development_dependency "timecop"
+  spec.add_development_dependency "super_diff"
 end

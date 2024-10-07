@@ -8,17 +8,23 @@ GEM
   remote: https://rubygems.org/
   specs:
     ast (2.4.2)
+    attr_extras (7.1.0)
     base64 (0.2.0)
     diff-lcs (1.5.1)
-    graphql (2.3.7)
+    fiber-storage (1.0.0)
+    graphql (2.3.18)
       base64
+      fiber-storage
     json (2.7.2)
     language_server-protocol (3.17.0.3)
     lint_roller (1.1.0)
+    optimist (3.1.0)
     parallel (1.26.3)
     parser (3.3.5.0)
       ast (~> 2.4.1)
       racc
+    patience_diff (1.2.0)
+      optimist (~> 3.0)
     racc (1.8.1)
     rainbow (3.1.1)
     rake (13.2.1)
@@ -28,12 +34,12 @@ GEM
       rspec-core (~> 3.13.0)
       rspec-expectations (~> 3.13.0)
       rspec-mocks (~> 3.13.0)
-    rspec-core (3.13.0)
+    rspec-core (3.13.1)
       rspec-support (~> 3.13.0)
-    rspec-expectations (3.13.1)
+    rspec-expectations (3.13.3)
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.13.0)
-    rspec-mocks (3.13.1)
+    rspec-mocks (3.13.2)
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.13.0)
     rspec-support (3.13.1)
@@ -66,6 +72,11 @@ GEM
     standard-performance (1.4.0)
       lint_roller (~> 1.1)
       rubocop-performance (~> 1.21.0)
+    super_diff (0.13.0)
+      attr_extras (>= 6.2.4)
+      diff-lcs
+      patience_diff
+    timecop (0.9.10)
     unicode-display_width (2.6.0)
 
 PLATFORMS
@@ -78,6 +89,8 @@ DEPENDENCIES
   rake (~> 13)
   rspec (~> 3)
   standard
+  super_diff
+  timecop
 
 BUNDLED WITH
    2.5.15
