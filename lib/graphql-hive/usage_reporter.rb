@@ -1,47 +1,12 @@
-# frozen_string_literal: true
-
-require 'digest'
-require 'graphql-hive/analyzer'
-require 'graphql-hive/printer'
-
 module GraphQL
   class Hive < GraphQL::Tracing::PlatformTracing
-    # Report usage to Hive API without impacting application performances
-    class UsageReporter
-      @@instance = nil
-
-      def self.instance
-        @@instance
-      end
-
-      def initialize(options, client)
-        @@instance = self
-
+    class ThreadManager
+      def initialize(options, queue, sampler)
         @options = options
-        @client = client
-
-        @options_mutex = Mutex.new
-        @queue = Queue.new
-
-        @sampler = Sampler.new(options[:collect_usage_sampling], options[:logger]) # NOTE: logs for deprecated field
-
-        start_thread
+        @queue = queue
+        @sampler = sampler
+        @mutex = Mutex.new
       end
-
-      def add_operation(operation)
-        @queue.push(operation)
-      end
-
-      def on_exit
-        @queue.close
-        @thread.join
-      end
-
-      def on_start
-        start_thread
-      end
-
-      private
 
       def start_thread
         if @thread&.alive?
@@ -55,10 +20,11 @@ module GraphQL
             @options[:logger].debug("processing operation from queue: #{operation}")
             buffer << operation if @sampler.sample?(operation)
 
-            @options_mutex.synchronize do
+            @mutex.synchronize do
               if buffer.size >= @options[:buffer_size]
                 @options[:logger].debug('buffer is full, sending!')
-                process_operations(buffer)
+                report = Report.new(@options, buffer).to_json
+                @client.send('/usage', report, :usage)
                 buffer = []
               end
             end
@@ -66,32 +32,38 @@ module GraphQL
 
           unless buffer.empty?
             @options[:logger].debug('shuting down with buffer, sending!')
-            process_operations(buffer)
+            Report.new(@options, @client).process_operations(buffer)
           end
         rescue StandardError => e
-          # ensure configured logger receives exception as well in setups where STDERR might not be
-          # monitored.
           @options[:logger].error(e)
         end
       end
 
-      def process_operations(operations)
-        report = {
+      def join_thread
+        @queue.close
+        @thread.join
+      end
+    end
+
+    class Report
+      def initialize(options, operations)
+        @options = options
+        @operations = operations
+        @report = {
           size: 0,
           map: {},
           operations: []
         }
-
-        operations.each do |operation|
-          add_operation_to_report(report, operation)
-        end
-
-        @options[:logger].debug("sending report: #{report}")
-
-        @client.send('/usage', report, :usage)
       end
 
-      def add_operation_to_report(report, operation)
+      def process_operations
+        @operations.each do |operation|
+          add_operation_to_report(operation)
+        end
+      end
+      alias to_json process_operations
+
+      def add_operation_to_report(operation)
         timestamp, queries, results, duration = operation
 
         errors = errors_from_results(results)
@@ -134,13 +106,13 @@ module GraphQL
           operation_record[:metadata] = { client: @options[:client_info].call(context) } if @options[:client_info]
         end
 
-        report[:map][operation_map_key] = {
+        @report[:map][operation_map_key] = {
           fields: fields.to_a,
           operationName: operation_name,
           operation: operation
         }
-        report[:operations] << operation_record
-        report[:size] += 1
+        @report[:operations] << operation_record
+        @report[:size] += 1
       end
 
       def errors_from_results(results)
@@ -152,6 +124,36 @@ module GraphQL
           end
         end
         acc
+      end
+    end
+
+    class UsageReporter
+      @@instance = nil
+
+      def self.instance
+        @@instance
+      end
+
+      def initialize(options, client)
+        @@instance = self
+        @options = options
+        @client = client
+        @queue = Queue.new
+        @sampler = Sampler.new(options[:collect_usage_sampling], options[:logger]) # NOTE: logs for deprecated field
+        @thread_manager = ThreadManager.new(options, @queue, @sampler)
+        @thread_manager.start_thread
+      end
+
+      def add_operation(operation)
+        @queue.push(operation)
+      end
+
+      def on_exit
+        @thread_manager.join_thread
+      end
+
+      def on_start
+        @thread_manager.start_thread
       end
     end
   end
