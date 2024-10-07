@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require 'spec_helper'
+require "spec_helper"
 
-RSpec.describe 'GraphQL::Hive::Printer' do
+RSpec.describe "GraphQL::Hive::Printer" do
   let(:schema) do
     GraphQL::Schema.from_definition(%|
     """
@@ -58,7 +58,7 @@ RSpec.describe 'GraphQL::Hive::Printer' do
     |
   end
 
-  it 'should print the operation with removed literals, removed aliases and sorted nodes and directives (files, arguments, variables)' do
+  it "should print the operation with removed literals, removed aliases and sorted nodes and directives (files, arguments, variables)" do
     query = GraphQL::Query.new(schema, query_string)
 
     expected_result = <<~GRAPHQL.chomp
@@ -73,7 +73,7 @@ RSpec.describe 'GraphQL::Hive::Printer' do
     expect(GraphQL::Hive::Printer.new.print(query.document)).to eq(expected_result)
   end
 
-  context 'with query containing inline and spread fragment selections' do
+  context "with query containing inline and spread fragment selections" do
     let(:query_string) do
       %|
       query GetPost {
@@ -98,7 +98,7 @@ RSpec.describe 'GraphQL::Hive::Printer' do
       |
     end
 
-    it 'sorts inline fragments and spread fragments by their type name' do
+    it "sorts inline fragments and spread fragments by their type name" do
       query = GraphQL::Query.new(schema, query_string)
 
       expected_result = <<~GRAPHQL.chomp

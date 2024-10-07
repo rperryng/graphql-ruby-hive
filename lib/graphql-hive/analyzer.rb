@@ -73,7 +73,7 @@ module GraphQL
       end
 
       def make_id(*tokens)
-        tokens.join('.')
+        tokens.join(".")
       end
     end
   end

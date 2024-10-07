@@ -10,7 +10,7 @@ module GraphQL
 
       def start_thread
         if @thread&.alive?
-          @options[:logger].warn('Tried to start operations flushing thread but it was already alive')
+          @options[:logger].warn("Tried to start operations flushing thread but it was already alive")
           return
         end
 
@@ -22,19 +22,19 @@ module GraphQL
 
             @mutex.synchronize do
               if buffer.size >= @options[:buffer_size]
-                @options[:logger].debug('buffer is full, sending!')
+                @options[:logger].debug("buffer is full, sending!")
                 report = Report.new(@options, buffer).to_json
-                @client.send('/usage', report, :usage)
+                @client.send(:"/usage", report, :usage)
                 buffer = []
               end
             end
           end
 
           unless buffer.empty?
-            @options[:logger].debug('shuting down with buffer, sending!')
+            @options[:logger].debug("shuting down with buffer, sending!")
             Report.new(@options, @client).process_operations(buffer)
           end
-        rescue StandardError => e
+        rescue => e
           @options[:logger].error(e)
         end
       end
@@ -61,15 +61,15 @@ module GraphQL
           add_operation_to_report(operation)
         end
       end
-      alias to_json process_operations
+      alias_method :to_json, :process_operations
 
       def add_operation_to_report(operation)
         timestamp, queries, results, duration = operation
 
         errors = errors_from_results(results)
 
-        operation_name = queries.map(&:operations).map(&:keys).flatten.compact.join(', ')
-        operation = ''
+        operation_name = queries.map(&:operations).map(&:keys).flatten.compact.join(", ")
+        operation = ""
         fields = Set.new
 
         queries.each do |query|
@@ -103,7 +103,7 @@ module GraphQL
 
         if results[0]
           context = results[0].query.context
-          operation_record[:metadata] = { client: @options[:client_info].call(context) } if @options[:client_info]
+          operation_record[:metadata] = {client: @options[:client_info].call(context)} if @options[:client_info]
         end
 
         @report[:map][operation_map_key] = {
@@ -116,9 +116,9 @@ module GraphQL
       end
 
       def errors_from_results(results)
-        acc = { errorsTotal: 0 }
+        acc = {errorsTotal: 0}
         results.each do |result|
-          errors = result.to_h.fetch('errors', [])
+          errors = result.to_h.fetch("errors", [])
           errors.each do
             acc[:errorsTotal] += 1
           end
