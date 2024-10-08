@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require 'digest'
-require 'graphql-hive/analyzer'
-require 'graphql-hive/printer'
+require "digest"
+require "graphql-hive/analyzer"
+require "graphql-hive/printer"
 
 module GraphQL
   class Hive < GraphQL::Tracing::PlatformTracing
@@ -45,7 +45,7 @@ module GraphQL
 
       def start_thread
         if @thread&.alive?
-          @options[:logger].warn('Tried to start operations flushing thread but it was already alive')
+          @options[:logger].warn("Tried to start operations flushing thread but it was already alive")
           return
         end
 
@@ -57,7 +57,7 @@ module GraphQL
 
             @options_mutex.synchronize do
               if buffer.size >= @options[:buffer_size]
-                @options[:logger].debug('buffer is full, sending!')
+                @options[:logger].debug("buffer is full, sending!")
                 process_operations(buffer)
                 buffer = []
               end
@@ -65,10 +65,10 @@ module GraphQL
           end
 
           unless buffer.empty?
-            @options[:logger].debug('shuting down with buffer, sending!')
+            @options[:logger].debug("shuting down with buffer, sending!")
             process_operations(buffer)
           end
-        rescue StandardError => e
+        rescue => e
           # ensure configured logger receives exception as well in setups where STDERR might not be
           # monitored.
           @options[:logger].error(e)
@@ -88,7 +88,7 @@ module GraphQL
 
         @options[:logger].debug("sending report: #{report}")
 
-        @client.send('/usage', report, :usage)
+        @client.send(:"/usage", report, :usage)
       end
 
       def add_operation_to_report(report, operation)
@@ -96,8 +96,8 @@ module GraphQL
 
         errors = errors_from_results(results)
 
-        operation_name = queries.map(&:operations).map(&:keys).flatten.compact.join(', ')
-        operation = ''
+        operation_name = queries.map(&:operations).map(&:keys).flatten.compact.join(", ")
+        operation = ""
         fields = Set.new
 
         queries.each do |query|
@@ -131,7 +131,7 @@ module GraphQL
 
         if results[0]
           context = results[0].query.context
-          operation_record[:metadata] = { client: @options[:client_info].call(context) } if @options[:client_info]
+          operation_record[:metadata] = {client: @options[:client_info].call(context)} if @options[:client_info]
         end
 
         report[:map][operation_map_key] = {
@@ -144,9 +144,9 @@ module GraphQL
       end
 
       def errors_from_results(results)
-        acc = { errorsTotal: 0 }
+        acc = {errorsTotal: 0}
         results.each do |result|
-          errors = result.to_h.fetch('errors', [])
+          errors = result.to_h.fetch("errors", [])
           errors.each do
             acc[:errorsTotal] += 1
           end

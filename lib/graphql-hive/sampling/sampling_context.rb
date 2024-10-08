@@ -16,7 +16,7 @@ module GraphQL
         def get_sample_context(operation)
           _, queries, results, = operation
 
-          operation_name = queries.map(&:operations).map(&:keys).flatten.compact.join(', ')
+          operation_name = queries.map(&:operations).map(&:keys).flatten.compact.join(", ")
 
           parsed_definitions = []
           queries.each do |query|

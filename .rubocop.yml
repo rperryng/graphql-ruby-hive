@@ -1,41 +1,10 @@
-AllCops:
-  TargetRubyVersion: 2.6
-  NewCops: enable
-  Exclude:
-    - 'examples/**/*'
-    - 'k6/**/*'
-    - 'gemfiles/**/*'
-    - 'tmp/**/*'
-    - 'vendor/**/*'
+require:
+  - standard
+  - standard-custom
+  - standard-performance
+  - rubocop-performance
 
-Metrics/BlockLength:
-  Exclude:
-    - 'spec/**/*'
-
-Layout/LineLength:
-  Exclude:
-    - 'spec/**/*'
-
-Naming/FileName:
-  Enabled: false
-
-Style/ClassVars:
-  Enabled: false
-
-Metrics/AbcSize:
-  Enabled: false
-
-Metrics/PerceivedComplexity:
-  Enabled: false
-
-Metrics/CyclomaticComplexity:
-  Enabled: false
-
-Metrics/MethodLength:
-  Enabled: false
-
-Metrics/ClassLength:
-  Enabled: false
-
-Gemspec/DevelopmentDependencies:
-  EnforcedStyle: 'gemspec'
+inherit_gem:
+  standard: config/base.yml
+  standard-custom: config/base.yml
+  standard-performance: config/base.yml
