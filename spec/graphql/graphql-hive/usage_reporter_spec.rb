@@ -121,7 +121,7 @@ RSpec.describe GraphQL::Hive::UsageReporter do
     it "processes and reports the operation to the client" do
       usage_reporter_instance.send(:process_operations, [operation])
       expect(client).to have_received(:send).with(
-        "/usage",
+        :"/usage",
         {
           map: {"8b8412ce86f3ea7accb931b1a5de335d" =>
             {

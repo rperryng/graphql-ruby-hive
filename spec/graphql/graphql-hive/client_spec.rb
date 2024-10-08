@@ -48,7 +48,7 @@ RSpec.describe GraphQL::Hive::Client do
     end
 
     it "creates the request with the correct headers and body" do
-      expect(Net::HTTP::Post).to receive(:new).with("/usage").and_return(request)
+      expect(Net::HTTP::Post).to receive(:new).with(:"/usage").and_return(request)
       expect(request).to receive(:[]=).with("Authorization", "Bearer test-token")
       expect(request).to receive(:[]=).with("X-Usage-API-Version", "2")
       expect(request).to receive(:[]=).with("content-type", "application/json")
