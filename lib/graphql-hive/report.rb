@@ -3,8 +3,7 @@
 module GraphQL
   class Hive < GraphQL::Tracing::PlatformTracing
     class Report
-      def initialize(options, operations)
-        @options = options
+      def initialize(operations:, client_info: nil)
         @operations = operations
         @report = {
           size: 0,
@@ -12,6 +11,7 @@ module GraphQL
           operations: []
         }
         @processed = false
+        @client_info = client_info
       end
 
       def process_operations
@@ -65,7 +65,7 @@ module GraphQL
 
         if results[0]
           context = results[0].query.context
-          operation_record[:metadata] = {client: @options[:client_info].call(context)} if @options[:client_info]
+          operation_record[:metadata] = {client: @client_info.call(context)} if @client_info
         end
 
         @report[:map][operation_map_key] = {

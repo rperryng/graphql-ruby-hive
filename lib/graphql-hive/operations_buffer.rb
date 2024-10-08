@@ -3,15 +3,15 @@
 module GraphQL
   class Hive < GraphQL::Tracing::PlatformTracing
     class OperationsBuffer
-      def initialize(options, queue, sampler)
-        @buffer = []
-        @max_buffer_size = options[:buffer_size]
-        @mutex = Mutex.new
-        @options = options
+      def initialize(queue:, sampler:, client:, logger:, options: {})
         @queue = queue
         @sampler = sampler
-        @client = GraphQL::Hive::Client.new(options)
-        @logger = GraphQL::Hive.instance.logger
+        @client = client
+        @logger = logger
+        @max_buffer_size = options[:buffer_size]
+        @mutex = Mutex.new
+        @buffer = []
+        @options = options
       end
 
       def run
@@ -32,7 +32,10 @@ module GraphQL
         @mutex.synchronize do
           @logger.debug("Buffer is full, sending report.")
           puts "Buffer is full, sending report."
-          report = GraphQL::Hive::Report.new(@options, @buffer).to_json
+          report = GraphQL::Hive::Report.new(
+            operations: @buffer,
+            client_info: @options[:client_info]
+          ).to_json
           @client.send(:"/usage", report, :usage)
           @buffer.clear
         end

@@ -7,42 +7,39 @@ RSpec.describe GraphQL::Hive::UsageReporter do
   let(:options) do
     {
       logger: logger,
-      collect_usage_sampling: 0.5,
+      collect_usage_sampling: {
+        sample_rate: 0.5
+      },
       buffer_size: 2,
       client_info: ->(_context) { {name: "test_client"} }
     }
   end
-  let(:client) { instance_double("GraphQL::Hive::Client") }
-  let(:reporting_thread) { instance_double("GraphQL::Hive::ReportingThread", start_thread: nil, join_thread: nil) }
-  let(:sampler) { instance_double("GraphQL::Hive::Sampler", sample?: true) }
-
-  before do
-    allow(GraphQL::Hive::Sampler).to receive(:new).and_return(sampler)
-    allow(GraphQL::Hive::ReportingThread).to receive(:new).and_return(reporting_thread)
-  end
+  let(:reporter) {
+    described_class.new(
+      options: options,
+      logger: logger
+    )
+  }
 
   describe ".instance" do
     it "returns the singleton instance" do
-      reporter = described_class.new(options, client)
-      expect(described_class.instance).to eq(reporter)
+      instance = described_class.new(
+        options: options,
+        logger: logger
+      )
+      expect(described_class.instance).to eq(instance)
     end
   end
 
   describe "#initialize" do
     it "initializes with the correct instance variables and starts the thread" do
-      reporter = described_class.new(options, client)
-      expect(reporter.instance_variable_get(:@options)).to eq(options)
-      expect(reporter.instance_variable_get(:@client)).to eq(client)
       expect(reporter.instance_variable_get(:@queue)).to be_a(Queue)
-      expect(reporter.instance_variable_get(:@sampler)).to eq(sampler)
-      expect(reporter.instance_variable_get(:@reporting_thread)).to eq(reporting_thread)
-      expect(reporting_thread).to have_received(:start_thread)
+      expect(reporter.instance_variable_get(:@reporting_thread)).to be_a(GraphQL::Hive::ReportingThread)
     end
   end
 
   describe "#add_operation" do
     it "adds an operation to the queue" do
-      reporter = described_class.new(options, client)
       operation = double("operation")
       queue = reporter.instance_variable_get(:@queue)
 
@@ -51,19 +48,23 @@ RSpec.describe GraphQL::Hive::UsageReporter do
     end
   end
 
-  describe "#on_exit" do
-    it "joins the thread" do
-      reporter = described_class.new(options, client)
-      expect(reporting_thread).to receive(:join_thread)
+  describe "#on_start" do
+    it "starts the thread" do
+      reporting_thread = reporter.instance_variable_get(:@reporting_thread)
+      allow(reporting_thread).to receive(:start_thread).and_call_original
+      reporter.on_start
+      expect(reporting_thread).to have_received(:start_thread)
       reporter.on_exit
     end
   end
 
-  describe "#on_start" do
-    it "starts the thread" do
-      reporter = described_class.new(options, client)
-      expect(reporting_thread).to receive(:start_thread)
+  describe "#on_exit" do
+    it "joins the thread" do
+      reporting_thread = reporter.instance_variable_get(:@reporting_thread)
+      allow(reporting_thread).to receive(:join_thread).and_call_original
       reporter.on_start
+      reporter.on_exit
+      expect(reporting_thread).to have_received(:join_thread)
     end
   end
 end

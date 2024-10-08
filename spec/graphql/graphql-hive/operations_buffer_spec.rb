@@ -9,7 +9,16 @@ RSpec.describe GraphQL::Hive::OperationsBuffer do
   end
   let(:queue) { Queue.new }
   let(:sampler) { double("Sampler", sample?: true) }
-  let(:buffer) { described_class.new(options, queue, sampler) }
+  let(:client) { instance_double("GraphQL::Hive::Client") }
+  let(:buffer) do
+    described_class.new(
+      queue: queue,
+      sampler: sampler,
+      client: client,
+      logger: logger,
+      options: options
+    )
+  end
   let(:schema) { GraphQL::Schema.from_definition("type Query { test: String }") }
   let(:query_string) { "query TestingHive { test }" }
   let(:queries) { [GraphQL::Query.new(schema, query_string, variables: {})] }
@@ -39,7 +48,7 @@ RSpec.describe GraphQL::Hive::OperationsBuffer do
       expect(buffer.instance_variable_get(:@options)).to eq(options)
       expect(buffer.instance_variable_get(:@queue)).to eq(queue)
       expect(buffer.instance_variable_get(:@sampler)).to eq(sampler)
-      expect(buffer.instance_variable_get(:@client)).to be_a(GraphQL::Hive::Client)
+      expect(buffer.instance_variable_get(:@client)).to be(client)
     end
   end
 

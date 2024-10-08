@@ -3,22 +3,22 @@
 module GraphQL
   class Hive < GraphQL::Tracing::PlatformTracing
     class ReportingThread
-      def initialize(options, queue, sampler)
-        @options = options
-        @buffer = Buffer.new(options, queue, sampler)
+      def initialize(queue:, buffer:, logger:)
         @queue = queue
+        @buffer = buffer
+        @logger = logger
       end
 
       def start_thread
         if @thread&.alive?
-          @options[:logger].warn("Tried to start operations flushing thread but it was already alive")
+          @logger.warn("Tried to start operations flushing thread but it was already alive")
           return
         end
 
         @thread = Thread.new do
           @buffer.run
         rescue => e
-          @options[:logger].error(e)
+          @logger.error(e)
         end
       end
 

@@ -63,8 +63,8 @@ module GraphQL
 
       @@instance = self
 
-      @client = GraphQL::Hive::Client.new(opts)
-      @usage_reporter = GraphQL::Hive::UsageReporter.new(opts, @client)
+      @client = GraphQL::Hive::Client.new(opts, @logger)
+      @usage_reporter = GraphQL::Hive::UsageReporter.new(opts, @client, @logger)
 
       # buffer
       @report = {
@@ -135,14 +135,8 @@ module GraphQL
     private
 
     def initialize_options!(options)
-      if options[:logger].nil?
-        options[:logger] = Logger.new($stderr)
-        original_formatter = Logger::Formatter.new
-        options[:logger].formatter = proc { |severity, datetime, progname, msg|
-          original_formatter.call(severity, datetime, progname, "[hive] #{msg.dump}")
-        }
-        options[:logger].level = options[:debug] ? Logger::DEBUG : Logger::INFO
-      end
+      @logger = options[:logger] || default_logger
+
       if !options.include?(:token) && (!options.include?(:enabled) || options.enabled)
         options[:logger].warn("`token` options is missing")
         options[:enabled] = false
@@ -161,6 +155,16 @@ module GraphQL
         false
       end
       true
+    end
+
+    def default_logger
+      logger = Logger.new($stderr)
+      original_formatter = Logger::Formatter.new
+      logger.formatter = proc { |severity, datetime, progname, msg|
+        original_formatter.call(severity, datetime, progname, "[hive] #{msg.dump}")
+      }
+      logger.level = options[:debug] ? Logger::DEBUG : Logger::INFO
+      logger
     end
 
     def report_usage(timestamp, queries, results, duration)

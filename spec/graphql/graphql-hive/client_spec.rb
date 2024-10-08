@@ -4,21 +4,21 @@ require "spec_helper"
 require "graphql-hive"
 
 RSpec.describe GraphQL::Hive::Client do
-  let(:options) do
-    {
-      endpoint: "app.graphql-hive.com",
-      port: 443,
-      token: "Bearer test-token",
-      logger: Logger.new(nil)
-    }
+  let(:logger) { instance_double(Logger, fatal: nil, debug: nil) }
+  let(:token) { "Bearer test-token" }
+  let(:client) do
+    described_class.new(token: token, logger: logger)
   end
-
-  let(:client) { described_class.new(options) }
   let(:body) { {size: 3, map: {}, operations: []} }
 
   describe "#initialize" do
     it "sets the instance" do
-      expect(client.instance_variable_get(:@options)).to eq(options)
+      expect(client.instance_variable_get(:@port)).to eq("443")
+      expect(client.instance_variable_get(:@use_ssl)).to eq(true)
+      expect(client.instance_variable_get(:@scheme)).to eq("https")
+      expect(client.instance_variable_get(:@endpoint)).to eq("app.graphql-hive.com")
+      expect(client.instance_variable_get(:@token)).to eq(token)
+      expect(client.instance_variable_get(:@logger)).to be(logger)
     end
   end
 
@@ -67,7 +67,7 @@ RSpec.describe GraphQL::Hive::Client do
 
     it "logs a fatal error when an exception is raised" do
       allow(http).to receive(:request).and_raise(StandardError.new("Network error"))
-      expect(options[:logger]).to receive(:fatal).with("Failed to send data: Network error")
+      expect(logger).to receive(:fatal).with("Failed to send data: Network error")
       expect { client.send(:"/usage", body, :usage) }.not_to raise_error(StandardError, "Network error")
     end
   end

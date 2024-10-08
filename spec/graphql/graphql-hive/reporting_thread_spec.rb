@@ -4,14 +4,31 @@ RSpec.describe GraphQL::Hive::ReportingThread do
   let(:logger) { instance_double("Logger", warn: nil, error: nil) }
   let(:options) { {logger: logger, buffer_size: 2} }
   let(:queue) { Queue.new }
-  let(:sampler) { GraphQL::Hive::Sampler.new(1) }
-  let(:reporting_thread) { described_class.new(options, queue, sampler) }
+  let(:sampler) { GraphQL::Hive::Sampler.new(1, logger) }
+  let(:client) {
+    GraphQL::Hive::Client.new(
+      token: "Bearer test-token",
+      logger: logger
+    )
+  }
+  let(:buffer) do
+    GraphQL::Hive::OperationsBuffer.new(
+      queue: queue,
+      sampler: sampler,
+      options: options,
+      logger: logger,
+      client: client
+    )
+  end
+  let(:reporting_thread) do
+    described_class.new(queue: queue, buffer: buffer, logger: logger)
+  end
 
   describe "#initialize" do
     it "initializes with the correct instance variables" do
-      expect(reporting_thread.instance_variable_get(:@options)).to eq(options)
       expect(reporting_thread.instance_variable_get(:@queue)).to eq(queue)
-      expect(reporting_thread.instance_variable_get(:@buffer)).to be_a(GraphQL::Hive::Buffer)
+      expect(reporting_thread.instance_variable_get(:@buffer)).to be(buffer)
+      expect(reporting_thread.instance_variable_get(:@logger)).to be(logger)
     end
   end
 

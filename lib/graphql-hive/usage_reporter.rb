@@ -9,21 +9,32 @@ module GraphQL
         @@instance
       end
 
-      def initialize(options, client)
+      def initialize(options:, logger:)
         @@instance = self
-        @options = options
-        @client = client
+        @logger = logger
         @queue = Queue.new
-        @sampler = Sampler.new(
+        sampler = GraphQL::Hive::Sampler.new(
           options[:collect_usage_sampling],
-          options[:logger]
+          logger
         )
-        @reporting_thread = ReportingThread.new(
-          options,
-          @queue,
-          @sampler
+        client = GraphQL::Hive::Client.new(
+          token: options[:token],
+          port: options[:port],
+          endpoint: options[:endpoint],
+          logger: logger
         )
-        @reporting_thread.start_thread
+        buffer = GraphQL::Hive::OperationsBuffer.new(
+          queue: @queue,
+          sampler: sampler,
+          client: client,
+          options: options,
+          logger: logger
+        )
+        @reporting_thread = GraphQL::Hive::ReportingThread.new(
+          queue: @queue,
+          buffer: buffer,
+          logger: logger
+        )
       end
 
       def add_operation(operation)
@@ -31,10 +42,12 @@ module GraphQL
       end
 
       def on_exit
+        @logger.debug("Shutting down usage reporter")
         @reporting_thread.join_thread
       end
 
       def on_start
+        @logger.debug("Starting usage reporter")
         @reporting_thread.start_thread
       end
     end

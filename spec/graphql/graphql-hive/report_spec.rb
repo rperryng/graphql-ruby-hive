@@ -3,7 +3,7 @@
 require "spec_helper"
 
 RSpec.describe GraphQL::Hive::Report do
-  let(:options) { {client_info: ->(_context) { {name: "test_client"} }} }
+  let(:client_info) { ->(_context) { {name: "test_client"} } }
   let(:schema) { GraphQL::Schema.from_definition("type Query { test: String }") }
   let(:query_string) { "query TestingHive { test }" }
   let(:queries) { [GraphQL::Query.new(schema, query_string, variables: {})] }
@@ -25,16 +25,19 @@ RSpec.describe GraphQL::Hive::Report do
       [Time.now, queries, error_results, 100]
     ]
   end
-  let(:report) { described_class.new(options, operations) }
+  let(:report) {
+    described_class.new(operations: operations, client_info: client_info)
+  }
 
   before { Timecop.freeze(Time.now) }
   after { Timecop.return }
 
   describe "#initialize" do
-    it "initializes with options and operations" do
-      expect(report.instance_variable_get(:@options)).to eq(options)
+    it "initializes correctly" do
       expect(report.instance_variable_get(:@operations)).to eq(operations)
       expect(report.instance_variable_get(:@report)).to eq({size: 0, map: {}, operations: []})
+      expect(report.instance_variable_get(:@processed)).to eq(false)
+      expect(report.instance_variable_get(:@client_info)).to eq(client_info)
     end
   end
 
