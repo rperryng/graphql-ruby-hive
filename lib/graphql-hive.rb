@@ -1,15 +1,15 @@
 # frozen_string_literal: true
 
-require 'logger'
-require 'securerandom'
+require "logger"
+require "securerandom"
 
-require 'graphql-hive/version'
-require 'graphql-hive/usage_reporter'
-require 'graphql-hive/client'
+require "graphql-hive/version"
+require "graphql-hive/usage_reporter"
+require "graphql-hive/client"
 
-require 'graphql-hive/sampler'
-require 'graphql-hive/sampling/basic_sampler'
-require 'graphql-hive/sampling/dynamic_sampler'
+require "graphql-hive/sampler"
+require "graphql-hive/sampling/basic_sampler"
+require "graphql-hive/sampling/dynamic_sampler"
 
 module GraphQL
   # GraphQL Hive usage collector and schema reporter
@@ -31,7 +31,7 @@ module GraphQL
     DEFAULT_OPTIONS = {
       enabled: true,
       debug: false,
-      port: '443',
+      port: "443",
       collect_usage: true,
       read_operations: true,
       report_schema: true,
@@ -41,14 +41,14 @@ module GraphQL
     }.freeze
 
     self.platform_keys = {
-      'lex' => 'lex',
-      'parse' => 'parse',
-      'validate' => 'validate',
-      'analyze_query' => 'analyze_query',
-      'analyze_multiplex' => 'analyze_multiplex',
-      'execute_multiplex' => 'execute_multiplex',
-      'execute_query' => 'execute_query',
-      'execute_query_lazy' => 'execute_query_lazy'
+      "lex" => "lex",
+      "parse" => "parse",
+      "validate" => "validate",
+      "analyze_query" => "analyze_query",
+      "analyze_multiplex" => "analyze_multiplex",
+      "execute_multiplex" => "execute_multiplex",
+      "execute_query" => "execute_query",
+      "execute_query_lazy" => "execute_query_lazy"
     }
 
     def initialize(options = {})
@@ -84,7 +84,7 @@ module GraphQL
     def platform_trace(platform_key, _key, data)
       return yield unless @options[:enabled] && @options[:collect_usage]
 
-      if platform_key == 'execute_multiplex'
+      if platform_key == "execute_multiplex"
         if data[:multiplex]
           queries = data[:multiplex].queries
           timestamp = (Time.now.utc.to_f * 1000).to_i
@@ -139,20 +139,20 @@ module GraphQL
         options[:logger].level = options[:debug] ? Logger::DEBUG : Logger::INFO
       end
       if !options.include?(:token) && (!options.include?(:enabled) || options.enabled)
-        options[:logger].warn('`token` options is missing')
+        options[:logger].warn("`token` options is missing")
         options[:enabled] = false
         false
       elsif options[:report_schema] &&
+          (
+            !options.include?(:reporting) ||
             (
-              !options.include?(:reporting) ||
-              (
-                options.include?(:reporting) && (
-                  !options[:reporting].include?(:author) || !options[:reporting].include?(:commit)
-                )
+              options.include?(:reporting) && (
+                !options[:reporting].include?(:author) || !options[:reporting].include?(:commit)
               )
             )
+          )
 
-        options[:logger].warn('`reporting.author` and `reporting.commit` options are required')
+        options[:logger].warn("`reporting.author` and `reporting.commit` options are required")
         false
       end
       true
@@ -167,7 +167,7 @@ module GraphQL
 
       body = {
         query: REPORT_SCHEMA_MUTATION,
-        operationName: 'schemaPublish',
+        operationName: "schemaPublish",
         variables: {
           input: {
             sdl: sdl,
@@ -180,7 +180,7 @@ module GraphQL
         }
       }
 
-      @client.send('/registry', body, :'report-schema')
+      @client.send(:"/registry", body, :"report-schema")
     end
   end
 end

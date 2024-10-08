@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'graphql-hive/sampling/sampling_context'
+require "graphql-hive/sampling/sampling_context"
 
 module GraphQL
   class Hive

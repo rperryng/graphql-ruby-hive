@@ -1,8 +1,8 @@
-source 'https://rubygems.org'
+source "https://rubygems.org"
 
-gem 'graphql'
-gem 'graphql-hive', path: '../../'
-gem 'puma'
-gem 'rack-contrib'
-gem 'sinatra'
-gem 'sinatra-contrib'
+gem "graphql"
+gem "graphql-hive", path: "../../"
+gem "puma"
+gem "rack-contrib"
+gem "sinatra"
+gem "sinatra-contrib"
