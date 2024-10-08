@@ -60,11 +60,35 @@ module GraphQL
       opts = DEFAULT_OPTIONS.merge(options)
       initialize_options!(opts)
       super(opts)
-
       @@instance = self
-
-      @client = GraphQL::Hive::Client.new(opts, @logger)
-      @usage_reporter = GraphQL::Hive::UsageReporter.new(opts, @client, @logger)
+      queue = Queue.new
+      @client = GraphQL::Hive::Client.new(
+        token: options[:token],
+        port: options[:port],
+        endpoint: options[:endpoint],
+        logger: logger
+      )
+      sampler = GraphQL::Hive::Sampler.new(
+        options[:collect_usage_sampling],
+        logger
+      )
+      buffer = GraphQL::Hive::OperationsBuffer.new(
+        queue: @queue,
+        sampler: sampler,
+        client: client,
+        options: options,
+        logger: logger
+      )
+      reporting_thread = GraphQL::Hive::ReportingThread.new(
+        queue: @queue,
+        buffer: buffer,
+        logger: logger
+      )
+      @usage_reporter = GraphQL::Hive::UsageReporter.new(
+        reporting_thread: reporting_thread,
+        queue: queue,
+        logger: @logger
+      )
 
       # buffer
       @report = {
@@ -151,7 +175,7 @@ module GraphQL
             )
           )
 
-        options[:logger].warn("`reporting.author` and `reporting.commit` options are required")
+        @logger.warn("`reporting.author` and `reporting.commit` options are required")
         false
       end
       true

@@ -4,19 +4,12 @@ require "spec_helper"
 
 RSpec.describe GraphQL::Hive::UsageReporter do
   let(:logger) { instance_double("Logger", debug: nil) }
-  let(:options) do
-    {
-      logger: logger,
-      collect_usage_sampling: {
-        sample_rate: 0.5
-      },
-      buffer_size: 2,
-      client_info: ->(_context) { {name: "test_client"} }
-    }
-  end
+  let(:reporting_thread) { instance_double("GraphQL::Hive::ReportingThread") }
+  let(:queue) { instance_double("Queue") }
   let(:reporter) {
     described_class.new(
-      options: options,
+      reporting_thread: reporting_thread,
+      queue: queue,
       logger: logger
     )
   }
@@ -24,7 +17,8 @@ RSpec.describe GraphQL::Hive::UsageReporter do
   describe ".instance" do
     it "returns the singleton instance" do
       instance = described_class.new(
-        options: options,
+        reporting_thread: reporting_thread,
+        queue: queue,
         logger: logger
       )
       expect(described_class.instance).to eq(instance)
@@ -33,8 +27,8 @@ RSpec.describe GraphQL::Hive::UsageReporter do
 
   describe "#initialize" do
     it "initializes with the correct instance variables and starts the thread" do
-      expect(reporter.instance_variable_get(:@queue)).to be_a(Queue)
-      expect(reporter.instance_variable_get(:@reporting_thread)).to be_a(GraphQL::Hive::ReportingThread)
+      expect(reporter.instance_variable_get(:@queue)).to be(queue)
+      expect(reporter.instance_variable_get(:@reporting_thread)).to be(reporting_thread)
     end
   end
 
@@ -51,18 +45,16 @@ RSpec.describe GraphQL::Hive::UsageReporter do
   describe "#on_start" do
     it "starts the thread" do
       reporting_thread = reporter.instance_variable_get(:@reporting_thread)
-      allow(reporting_thread).to receive(:start_thread).and_call_original
+      allow(reporting_thread).to receive(:start_thread)
       reporter.on_start
       expect(reporting_thread).to have_received(:start_thread)
-      reporter.on_exit
     end
   end
 
   describe "#on_exit" do
     it "joins the thread" do
       reporting_thread = reporter.instance_variable_get(:@reporting_thread)
-      allow(reporting_thread).to receive(:join_thread).and_call_original
-      reporter.on_start
+      allow(reporting_thread).to receive(:join_thread)
       reporter.on_exit
       expect(reporting_thread).to have_received(:join_thread)
     end
