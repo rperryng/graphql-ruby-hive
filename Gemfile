@@ -12,4 +12,6 @@ group :development do
   gem "rake", "~> 13"
   gem "rspec", "~> 3"
   gem "standardrb", "~> 1"
+  gem "timecop", "~> 0.9"
+  gem "super_diff", "~> 0.13"
 end
