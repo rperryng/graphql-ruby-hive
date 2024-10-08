@@ -22,9 +22,6 @@ module GraphQL
     @@schema = nil
     @@instance = nil
 
-    @usage_reporter = nil
-    @client = nil
-
     REPORT_SCHEMA_MUTATION = <<~MUTATION
       mutation schemaPublish($input: SchemaPublishInput!) {
         schemaPublish(input: $input) {
@@ -58,46 +55,42 @@ module GraphQL
 
     def initialize(options = {})
       opts = DEFAULT_OPTIONS.merge(options)
+      @enabled = opts[:enabled]
       initialize_options!(opts)
       super(opts)
       @@instance = self
-      queue = Queue.new
       @client = GraphQL::Hive::Client.new(
         token: options[:token],
         port: options[:port],
         endpoint: options[:endpoint],
-        logger: logger
+        logger: @logger
       )
       sampler = GraphQL::Hive::Sampler.new(
         options[:collect_usage_sampling],
-        logger
+        @logger
       )
       buffer = GraphQL::Hive::OperationsBuffer.new(
         queue: @queue,
         sampler: sampler,
-        client: client,
+        client: @client,
         options: options,
-        logger: logger
+        logger: @logger
       )
       reporting_thread = GraphQL::Hive::ReportingThread.new(
-        queue: @queue,
         buffer: buffer,
-        logger: logger
+        logger: @logger
       )
+      queue = Queue.new
       @usage_reporter = GraphQL::Hive::UsageReporter.new(
         reporting_thread: reporting_thread,
         queue: queue,
         logger: @logger
       )
-
-      # buffer
-      @report = {
-        size: 0,
-        map: {},
-        operations: []
-      }
-
-      send_report_schema(@@schema) if @@schema && opts[:report_schema] && @options[:enabled]
+      if @enabled
+        if opts[:report_schema] && @@schema
+          send_report_schema(@@schema)
+        end
+      end
     end
 
     def self.instance
@@ -111,7 +104,7 @@ module GraphQL
 
     # called on trace events
     def platform_trace(platform_key, _key, data)
-      return yield unless @options[:enabled] && @options[:collect_usage]
+      return yield unless @enabled && @options[:collect_usage]
 
       if platform_key == "execute_multiplex"
         if data[:multiplex]
@@ -159,35 +152,40 @@ module GraphQL
     private
 
     def initialize_options!(options)
-      @logger = options[:logger] || default_logger
+      @logger = options[:logger] || default_logger(debug: options[:debug])
 
-      if !options.include?(:token) && (!options.include?(:enabled) || options.enabled)
-        options[:logger].warn("`token` options is missing")
-        options[:enabled] = false
-        false
-      elsif options[:report_schema] &&
-          (
-            !options.include?(:reporting) ||
-            (
-              options.include?(:reporting) && (
-                !options[:reporting].include?(:author) || !options[:reporting].include?(:commit)
-              )
-            )
-          )
-
-        @logger.warn("`reporting.author` and `reporting.commit` options are required")
-        false
+      if missing_token?(options)
+        @logger.warn("`token` options is missing")
+        @enabled = false
+        return false
       end
+
+      if missing_reporting_info?(options)
+        @logger.warn("`reporting.author` and `reporting.commit` options are required")
+        return false
+      end
+
       true
     end
 
-    def default_logger
+    def missing_token?(options)
+      !options.include?(:token) && @enabled
+    end
+
+    def missing_reporting_info?(options)
+      options[:report_schema] &&
+        (
+          !options.dig(:reporting, :author) || !options.dig(:reporting, :commit)
+        )
+    end
+
+    def default_logger(debug: false)
       logger = Logger.new($stderr)
       original_formatter = Logger::Formatter.new
       logger.formatter = proc { |severity, datetime, progname, msg|
         original_formatter.call(severity, datetime, progname, "[hive] #{msg.dump}")
       }
-      logger.level = options[:debug] ? Logger::DEBUG : Logger::INFO
+      logger.level = debug ? Logger::DEBUG : Logger::INFO
       logger
     end
 

@@ -21,12 +21,11 @@ RSpec.describe GraphQL::Hive::ReportingThread do
     )
   end
   let(:reporting_thread) do
-    described_class.new(queue: queue, buffer: buffer, logger: logger)
+    described_class.new(buffer: buffer, logger: logger)
   end
 
   describe "#initialize" do
     it "initializes with the correct instance variables" do
-      expect(reporting_thread.instance_variable_get(:@queue)).to eq(queue)
       expect(reporting_thread.instance_variable_get(:@buffer)).to be(buffer)
       expect(reporting_thread.instance_variable_get(:@logger)).to be(logger)
     end
@@ -69,9 +68,8 @@ RSpec.describe GraphQL::Hive::ReportingThread do
   end
 
   describe "#join_thread" do
-    it "closes the queue and joins the thread" do
+    it "joins the thread" do
       reporting_thread.start_thread
-      expect(queue).to receive(:close)
       expect(reporting_thread.instance_variable_get(:@thread)).to receive(:join)
       reporting_thread.join_thread
     end

@@ -54,9 +54,12 @@ RSpec.describe GraphQL::Hive::UsageReporter do
   describe "#on_exit" do
     it "joins the thread" do
       reporting_thread = reporter.instance_variable_get(:@reporting_thread)
+      queue = reporter.instance_variable_get(:@queue)
       allow(reporting_thread).to receive(:join_thread)
+      allow(queue).to receive(:close)
       reporter.on_exit
       expect(reporting_thread).to have_received(:join_thread)
+      expect(queue).to have_received(:close)
     end
   end
 end

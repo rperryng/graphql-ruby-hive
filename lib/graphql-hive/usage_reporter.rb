@@ -22,6 +22,7 @@ module GraphQL
 
       def on_exit
         @logger.debug("Shutting down usage reporter")
+        @queue.close
         @reporting_thread.join_thread
       end
 

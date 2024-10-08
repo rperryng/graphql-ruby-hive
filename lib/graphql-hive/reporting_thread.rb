@@ -3,8 +3,7 @@
 module GraphQL
   class Hive < GraphQL::Tracing::PlatformTracing
     class ReportingThread
-      def initialize(queue:, buffer:, logger:)
-        @queue = queue
+      def initialize(buffer:, logger:)
         @buffer = buffer
         @logger = logger
       end
@@ -23,7 +22,6 @@ module GraphQL
       end
 
       def join_thread
-        @queue.close
         @thread&.join
       end
     end
