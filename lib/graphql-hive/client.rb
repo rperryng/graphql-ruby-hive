@@ -17,7 +17,7 @@ module GraphQL
       end
 
       def send(path, body, _log_type)
-        response = @connection.post(path) do |req|
+        @connection.post(path) do |req|
           req.body = JSON.generate(body)
         end
       rescue Faraday::Error => e
