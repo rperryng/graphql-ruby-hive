@@ -1,8 +1,14 @@
 # frozen_string_literal: true
 
+require "forwardable"
+
 module GraphQL
   class Hive < GraphQL::Tracing::PlatformTracing
     class ReportingThread
+      extend Forwardable
+
+      def_delegators :@buffer, :push
+
       def initialize(buffer:, logger:)
         @buffer = buffer
         @logger = logger
@@ -22,6 +28,7 @@ module GraphQL
       end
 
       def join_thread
+        @buffer.close
         @thread&.join
       end
     end

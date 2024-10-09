@@ -70,20 +70,19 @@ module GraphQL
         @logger
       )
       buffer = GraphQL::Hive::OperationsBuffer.new(
-        queue: @queue,
+        queue: Queue.new,
         sampler: sampler,
         client: @client,
-        options: options,
-        logger: @logger
+        logger: @logger,
+        size: opts[:buffer_size],
+        client_info: options[:client_info]
       )
       reporting_thread = GraphQL::Hive::ReportingThread.new(
         buffer: buffer,
         logger: @logger
       )
-      queue = Queue.new
       @usage_reporter = GraphQL::Hive::UsageReporter.new(
         reporting_thread: reporting_thread,
-        queue: queue,
         logger: @logger
       )
       if @enabled

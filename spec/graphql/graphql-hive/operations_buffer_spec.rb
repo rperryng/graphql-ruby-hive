@@ -2,11 +2,6 @@ require "spec_helper"
 
 RSpec.describe GraphQL::Hive::OperationsBuffer do
   let(:logger) { instance_double("Logger", debug: nil) }
-  let(:options) do
-    {logger: logger,
-     buffer_size: 2,
-     client_info: ->(_context) { {name: "test_client"} }}
-  end
   let(:queue) { Queue.new }
   let(:sampler) { double("Sampler", sample?: true) }
   let(:client) { instance_double("GraphQL::Hive::Client") }
@@ -16,7 +11,8 @@ RSpec.describe GraphQL::Hive::OperationsBuffer do
       sampler: sampler,
       client: client,
       logger: logger,
-      options: options
+      size: 2,
+      client_info: ->(_context) { {name: "test_client"} }
     )
   end
   let(:schema) { GraphQL::Schema.from_definition("type Query { test: String }") }
@@ -45,7 +41,6 @@ RSpec.describe GraphQL::Hive::OperationsBuffer do
     it "initializes with the correct instance variables" do
       expect(buffer.instance_variable_get(:@buffer)).to be_a(Array).and be_empty
       expect(buffer.instance_variable_get(:@mutex)).to be_a(Mutex)
-      expect(buffer.instance_variable_get(:@options)).to eq(options)
       expect(buffer.instance_variable_get(:@queue)).to eq(queue)
       expect(buffer.instance_variable_get(:@sampler)).to eq(sampler)
       expect(buffer.instance_variable_get(:@client)).to be(client)

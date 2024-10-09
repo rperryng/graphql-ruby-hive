@@ -2,7 +2,6 @@ require "spec_helper"
 
 RSpec.describe GraphQL::Hive::ReportingThread do
   let(:logger) { instance_double("Logger", warn: nil, error: nil) }
-  let(:options) { {logger: logger, buffer_size: 2} }
   let(:queue) { Queue.new }
   let(:sampler) { GraphQL::Hive::Sampler.new(1, logger) }
   let(:client) {
@@ -15,9 +14,9 @@ RSpec.describe GraphQL::Hive::ReportingThread do
     GraphQL::Hive::OperationsBuffer.new(
       queue: queue,
       sampler: sampler,
-      options: options,
       logger: logger,
-      client: client
+      client: client,
+      size: 2
     )
   end
   let(:reporting_thread) do
@@ -62,7 +61,9 @@ RSpec.describe GraphQL::Hive::ReportingThread do
           reporting_thread.start_thread
           condition.wait(mutex)
         end
-        expect(logger).to have_received(:error).with(instance_of(StandardError))
+        expect(logger).to have_received(:error).with(
+          instance_of(StandardError)
+        )
       end
     end
   end

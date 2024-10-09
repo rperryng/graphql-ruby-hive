@@ -9,20 +9,18 @@ module GraphQL
         @@instance
       end
 
-      def initialize(reporting_thread:, queue:, logger:)
+      def initialize(reporting_thread:, logger:)
         @@instance = self
         @reporting_thread = reporting_thread
-        @queue = queue
         @logger = logger
       end
 
       def add_operation(operation)
-        @queue.push(operation)
+        @reporting_thread.push(operation)
       end
 
       def on_exit
         @logger.debug("Shutting down usage reporter")
-        @queue.close
         @reporting_thread.join_thread
       end
 

@@ -14,4 +14,5 @@ group :development do
   gem "standardrb", "~> 1"
   gem "timecop", "~> 0.9"
   gem "super_diff", "~> 0.13"
+  gem "webmock", "~> 3"
 end

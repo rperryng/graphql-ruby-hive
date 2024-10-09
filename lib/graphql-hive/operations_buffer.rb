@@ -1,17 +1,22 @@
 # frozen_string_literal: true
 
+require "forwardable"
+
 module GraphQL
   class Hive < GraphQL::Tracing::PlatformTracing
     class OperationsBuffer
-      def initialize(queue:, sampler:, client:, logger:, options: {})
+      extend Forwardable
+      def_delegators :@queue, :push, :close
+
+      def initialize(queue:, sampler:, client:, logger:, size:, client_info: nil)
         @queue = queue
         @sampler = sampler
         @client = client
         @logger = logger
-        @max_buffer_size = options[:buffer_size]
+        @max_buffer_size = size
+        @client_info = client_info
         @mutex = Mutex.new
         @buffer = []
-        @options = options
       end
 
       def run
@@ -34,7 +39,7 @@ module GraphQL
           puts "Buffer is full, sending report."
           report = GraphQL::Hive::Report.new(
             operations: @buffer,
-            client_info: @options[:client_info]
+            client_info: @client_info
           ).to_json
           @client.send(:"/usage", report, :usage)
           @buffer.clear
