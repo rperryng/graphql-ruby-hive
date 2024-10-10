@@ -1,0 +1,49 @@
+name: Benchmark
+on:
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  benchmarks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Use Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "yarn"
+          cache-dependency-path: "k6/yarn.lock"
+
+      - name: Use Ruby
+        uses: ruby/setup-ruby@2a9a743e19810b9f3c38060637daf594dbd7b37f
+        with:
+          working-directory: ./k6/graphql-api
+          ruby-version: "3.3"
+          bundler-cache: true
+
+      - name: Install k6
+        working-directory: ./k6
+        env:
+          K6_RELEASE_ARTIFACT_URL: https://github.com/grafana/k6/releases/download/v0.37.0/k6-v0.37.0-linux-amd64.tar.gz
+
+        run: curl "${K6_RELEASE_ARTIFACT_URL}" -L | tar xvz --strip-components 1
+      - name: Start Servers
+        working-directory: ./k6/graphql-api
+        run: |
+          ./boot-servers.sh &
+          npx wait-on http://localhost:9292 --timeout 5s
+          npx wait-on http://localhost:9291 --timeout 5s
+          npx wait-on http://localhost:8888 --timeout 5s
+
+      - name: Run Integration Test
+        working-directory: ./k6
+        run: |
+          ./k6 \
+            -e GITHUB_PR=${{ github.event.number }} \
+            -e GITHUB_SHA=${{ github.sha }} \
+            -e GITHUB_TOKEN=${{secrets.GH_PA_TOKEN}} \
+            run integration-test.js
