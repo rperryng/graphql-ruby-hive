@@ -9,7 +9,7 @@ class DemoApp < Sinatra::Base
   use Rack::JSONBodyParser
 
   configure do
-    set :logger, Logger.new(STDOUT)
+    set :logger, Logger.new($stdout)
     log_level = ENV.fetch("LOG_LEVEL", "INFO").upcase
     logger.level = begin
       Logger.const_get(log_level)

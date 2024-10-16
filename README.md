@@ -167,12 +167,15 @@ bundle exec rake test
 
 5. **Run Integration Tests**:
 
+In one terminal, start the servers:
+
 ```sh
 cd k6
-yarn install
-cd graphql-api
-bundle install
-cd ../
 ./boot-servers.sh
+```
+
+In another terminal, run the tests:
+
+```sh
 k6 run integration-tests.js
 ```
