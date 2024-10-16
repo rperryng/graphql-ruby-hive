@@ -1,5 +1,6 @@
 name: Benchmark
 on:
+  push:
   pull_request:
     branches:
       - master
@@ -32,8 +33,12 @@ jobs:
 
         run: curl "${K6_RELEASE_ARTIFACT_URL}" -L | tar xvz --strip-components 1
       - name: Start Servers
-        working-directory: ./k6/graphql-api
+        working-directory: ./k6
         run: |
+          yarn install
+          cd graphql-api
+          bundle install
+          cd ..
           ./boot-servers.sh &
           npx wait-on http://localhost:9292 --timeout 5s
           npx wait-on http://localhost:9291 --timeout 5s
