@@ -133,3 +133,46 @@ Stay on top of your GraphQL Schema changes by installing the Hive GitHub Applica
 > memory consumption of your application. A smaller buffer will result in more
 > frequent requests to Hive. Usage reporting is handled in a background thread
 > to avoid impacting the performance of your GraphQL API.
+
+## Contributing
+
+We welcome contributions to this project and are grateful for your interest in
+improving it. To ensure a smooth process, please follow these guidelines:
+
+### Getting Started
+
+1. **Fork the Repository**: Click the "Fork" button at the top right of this
+   repository to create a copy of the repository under your GitHub account.
+
+2. **Clone the Forked Repository**:
+
+```sh
+git clone https://github.com/your-username/your-repo-name.git
+cd your-repo-name
+```
+
+3. **Install Dependencies**:
+   Ensure you have [Bundler](https://bundler.io/) installed, then run:
+
+```sh
+bundle install
+```
+
+4. **Run Tests**:
+   Make sure everything is working by running the test suite:
+
+```sh
+bundle exec rake test
+```
+
+5. **Run Integration Tests**:
+
+```sh
+cd k6
+yarn install
+cd graphql-api
+bundle install
+cd ../
+./boot-servers.sh
+k6 run integration-tests.js
+```
