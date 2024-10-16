@@ -1,32 +1,32 @@
-import { check } from "k6";
+import { check, fail } from "k6";
 import http from "k6/http";
 import { textSummary } from "https://jslib.k6.io/k6-summary/0.0.1/index.js";
 import { githubComment } from "https://raw.githubusercontent.com/dotansimha/k6-github-pr-comment/master/lib.js";
 
 const REGRESSION_THRESHOLD = 1;
-const REQUEST_COUNT = 200;
+const REQUEST_COUNT = 1000;
 
 export const options = {
   scenarios: {
     hiveEnabled: {
       executor: "shared-iterations",
-      vus: 60,
-      iterations: 200,
-      maxDuration: "5s",
+      vus: 5,
+      iterations: 1000,
+      maxDuration: "1s",
       env: { GQL_API_PORT: "9291", HIVE_ENABLED: "true" },
     },
     hiveDisabled: {
       executor: "shared-iterations",
-      vus: 60,
-      iterations: 200,
-      maxDuration: "5s",
-      startTime: "5s",
+      vus: 5,
+      iterations: 1000,
+      maxDuration: "1s",
+      startTime: "1s",
       env: { GQL_API_PORT: "9292", HIVE_ENABLED: "false" },
     },
   },
   thresholds: {
-    "http_req_duration{hive:enabled}": ["avg<4500"],
-    "http_req_duration{hive:disabled}": ["avg<4500"],
+    "http_req_duration{hive:enabled}": ["p(95)<15"],
+    "http_req_duration{hive:disabled}": ["p(95)<15"],
   },
 };
 
@@ -38,6 +38,15 @@ const QUERY = /* GraphQL */ `
     }
   }
 `;
+export function setup() {
+  // Ensure usage counter is at 0
+  const response = http.post("http://localhost:8888/reset");
+  const { count } = JSON.parse(response.body);
+  check(count, {
+    "usage-api starts with 0 operations": (count) => count === 0,
+  });
+  return { count };
+}
 
 export default function () {
   const payload = JSON.stringify({
@@ -65,25 +74,13 @@ export default function () {
   });
 }
 
-function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-export function teardown() {
-  // Retry count after 1 second to avoid race condition with the last request
-  let count = 0;
-  for (let attempts = 0; attempts < 2; attempts++) {
-    const res = http.get("http://localhost:8888/count");
-    count = JSON.parse(res.body).count;
-    if (count === REQUEST_COUNT) {
-      break;
-    }
-    sleep(1);
-  }
+export function teardown(_data) {
+  const res = http.get("http://localhost:8888/count");
+  const count = JSON.parse(res.body).count;
+  console.log(`📊 Total operations: ${count}`);
   check(count, {
     "usage-api received 200 operations": (count) => count === REQUEST_COUNT,
   });
-  http.post("http://localhost:8888/reset");
 }
 
 export function handleSummary(data) {
@@ -97,7 +94,7 @@ export function handleSummary(data) {
   console.log(`⏰ Overhead percentage: ${overhead.toFixed(2)}%`);
 
   if (!didPass) {
-    throw new Error("❌❌ Performance regression detected ❌❌");
+    fail("❌❌ Performance regression detected ❌❌");
   }
 
   return {
