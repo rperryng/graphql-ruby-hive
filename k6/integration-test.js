@@ -79,7 +79,7 @@ export function teardown(_data) {
   const count = JSON.parse(res.body).count;
   console.log(`📊 Total operations: ${count}`);
   check(count, {
-    "usage-api received 200 operations": (count) => count === REQUEST_COUNT,
+    "usage-api received 1000 operations": (count) => count === REQUEST_COUNT,
   });
 }
 
