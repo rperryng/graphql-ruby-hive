@@ -25,8 +25,24 @@ export const options = {
     },
   },
   thresholds: {
-    "http_req_duration{hive:enabled}": ["p(95)<15"],
-    "http_req_duration{hive:disabled}": ["p(95)<15"],
+    "http_req_duration{hive:enabled}": [
+      {
+        threshold: "p(95)<15",
+        abortOnFail: true,
+      },
+    ],
+    "http_req_duration{hive:disabled}": [
+      {
+        threshold: "p(95)<15",
+        abortOnFail: true,
+      },
+    ],
+    checks: [
+      {
+        threshold: "rate===1",
+        abortOnFail: true,
+      },
+    ],
   },
 };
 
@@ -77,7 +93,6 @@ function sleep(seconds) {
   return new Promise((resolve) => setTimeout(resolve, seconds * 1000));
 }
 
-function checkCount(count) {}
 export function teardown(data) {
   let count;
   const res = http.get("http://localhost:8888/count");
@@ -95,26 +110,24 @@ export function teardown(data) {
 }
 
 export function handleSummary(data) {
-  postGithubComment(data);
+  const checks = data.metrics.checks;
+  const didPass = checks.failed === 0;
+  postGithubComment(data, didPass);
 
   return {
     stdout: textSummary(data, { indent: " ", enableColors: true }),
   };
 }
 
-function postGithubComment(data) {
+function postGithubComment(data, didPass) {
   if (!__ENV.GITHUB_TOKEN) {
     return;
   }
-
-  const checks = data.metrics.checks;
-  const didPass = checks.failed === 0;
-
   githubComment(data, {
     token: __ENV.GITHUB_TOKEN,
     commit: __ENV.GITHUB_SHA,
     pr: __ENV.GITHUB_PR,
-    org: "charlypoly",
+    org: "rperryng",
     repo: "graphql-ruby-hive",
     renderTitle: () =>
       didPass ? "✅ Integration Test Passed" : "❌ Integration Test Failed",
