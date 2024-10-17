@@ -1,0 +1,45 @@
+name: Integration
+on:
+  push:
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  benchmarks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Use Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "yarn"
+          cache-dependency-path: "k6/yarn.lock"
+
+      - name: Use Ruby
+        uses: ruby/setup-ruby@2a9a743e19810b9f3c38060637daf594dbd7b37f
+        with:
+          working-directory: ./k6/graphql-api
+          ruby-version: "3.3"
+          bundler-cache: true
+
+      - name: Start Servers
+        working-directory: ./k6
+        run: |
+          ./boot-servers.sh &
+          npx wait-on http://localhost:9292 --timeout 5s
+          npx wait-on http://localhost:9291 --timeout 5s
+          npx wait-on http://localhost:8888 --timeout 5s
+
+      - uses: grafana/setup-k6-action@v1
+      - uses: grafana/run-k6-action@v1
+        env:
+          GITHUB_PR: ${{ github.event.number }}
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_TOKEN: ${{secrets.GH_PA_TOKEN}}
+        with:
+          path: |
+            ./k6/integration-test.js
