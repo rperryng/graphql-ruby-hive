@@ -29,10 +29,6 @@ jobs:
       - name: Start Servers
         working-directory: ./k6
         run: |
-          yarn install
-          cd graphql-api
-          bundle install
-          cd ..
           ./boot-servers.sh &
           npx wait-on http://localhost:9292 --timeout 5s
           npx wait-on http://localhost:9291 --timeout 5s

@@ -19,6 +19,11 @@ start_puma_server() {
     bundle exec puma -C puma.rb | log_with_prefix "$prefix" &
 }
 
+echo "Installing dependencies..."
+yarn install
+cd graphql-api
+bundle install
+cd ..
 # Start Node.js server
 echo "Starting usage-api server..."
 LOG_LEVEL=$LOG_LEVEL node usage-api.js | log_with_prefix "usage-api" &
