@@ -1,4 +1,4 @@
-name: Benchmark
+name: Integration
 on:
   push:
   pull_request:
