@@ -77,7 +77,11 @@ function sleep(seconds) {
   return new Promise((resolve) => setTimeout(resolve, seconds * 1000));
 }
 
-function checkCount(count) {
+function checkCount(count) {}
+export function teardown(data) {
+  let count;
+  const res = http.get("http://localhost:8888/count");
+  count = JSON.parse(res.body).count;
   console.log(`📊 Total operations: ${count}`);
   check(count, {
     "usage-api received 1000 operations": (count) => count === REQUEST_COUNT,
@@ -87,23 +91,7 @@ function checkCount(count) {
   check(newCount, {
     "usage-api is reset": (c) => c === 0,
   });
-}
-export function teardown(data) {
-  let count;
-  const res = http.get("http://localhost:8888/count");
-  count = JSON.parse(res.body).count;
-  if (count !== REQUEST_COUNT) {
-    sleep(1).then(() => {
-      console.log(`⁉️ Count was ${count}, retrying...`);
-      const res = http.get("http://localhost:8888/count");
-      count = JSON.parse(res.body).count;
-      checkCount(count);
-      return data;
-    });
-  } else {
-    checkCount(count);
-    return data;
-  }
+  return data;
 }
 
 export function handleSummary(data) {
