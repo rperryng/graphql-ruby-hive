@@ -1,10 +1,10 @@
 #!/bin/bash
 
 log_with_prefix() {
-    local prefix="$1"
-    while IFS= read -r line; do
-        echo "[$prefix] $line"
-    done
+  local prefix="$1"
+  while IFS= read -r line; do
+    echo "[$prefix] $line"
+  done
 }
 
 start_puma_server() {
@@ -14,9 +14,9 @@ start_puma_server() {
 
   echo "Starting Puma server with Hive ${hive_enabled}..."
   HIVE_ENABLED=$hive_enabled \
-  PORT=$port \
-  LOG_LEVEL=$LOG_LEVEL \
-  bundle exec puma -C puma.rb | log_with_prefix "$prefix" &
+    PORT=$port \
+    LOG_LEVEL=$LOG_LEVEL \
+    bundle exec puma -C puma.rb | log_with_prefix "$prefix" &
 }
 
 # Start Node.js server
@@ -31,13 +31,13 @@ start_puma_server false 9292 "hive-disabled"
 
 # Function to handle shutdown
 shutdown_servers() {
-    echo "Received shutdown signal. Shutting down servers..."
-    kill $(lsof -t -i:9291)
-    kill $(lsof -t -i:9292)
-    kill $(lsof -t -i:8888)
-    wait
-    echo "Servers shut down gracefully."
-    exit 0
+  echo "Received shutdown signal. Shutting down servers..."
+  kill $(lsof -t -i:9291)
+  kill $(lsof -t -i:9292)
+  kill $(lsof -t -i:8888)
+  wait
+  echo "Servers shut down gracefully."
+  exit 0
 }
 
 # Listen for kill signals

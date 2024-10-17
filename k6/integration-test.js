@@ -39,13 +39,11 @@ const QUERY = /* GraphQL */ `
   }
 `;
 export function setup() {
-  // Ensure usage counter is at 0
   const response = http.post("http://localhost:8888/reset");
   const { count } = JSON.parse(response.body);
   check(count, {
     "usage-api starts with 0 operations": (count) => count === 0,
   });
-  return { count };
 }
 
 export default function () {
@@ -72,40 +70,57 @@ export default function () {
     "response body is not a GraphQL error": (res) =>
       !res.body.includes("errors"),
   });
+  return res;
 }
 
-export function teardown(_data) {
-  const res = http.get("http://localhost:8888/count");
-  const count = JSON.parse(res.body).count;
+function sleep(seconds) {
+  return new Promise((resolve) => setTimeout(resolve, seconds * 1000));
+}
+
+function checkCount(count) {
   console.log(`📊 Total operations: ${count}`);
   check(count, {
     "usage-api received 1000 operations": (count) => count === REQUEST_COUNT,
   });
+  const response = http.post("http://localhost:8888/reset");
+  const { count: newCount } = JSON.parse(response.body);
+  check(newCount, {
+    "usage-api is reset": (c) => c === 0,
+  });
+}
+export function teardown(data) {
+  let count;
+  const res = http.get("http://localhost:8888/count");
+  count = JSON.parse(res.body).count;
+  if (count !== REQUEST_COUNT) {
+    sleep(1).then(() => {
+      console.log(`⁉️ Count was ${count}, retrying...`);
+      const res = http.get("http://localhost:8888/count");
+      count = JSON.parse(res.body).count;
+      checkCount(count);
+      return data;
+    });
+  } else {
+    checkCount(count);
+    return data;
+  }
 }
 
 export function handleSummary(data) {
-  const overhead = getOverheadPercentage(data);
-  const didPass = check(overhead, {
-    "overhead is less than 1%": (p) => p >= REGRESSION_THRESHOLD,
-  });
-
-  postGithubComment(didPass);
-
-  console.log(`⏰ Overhead percentage: ${overhead.toFixed(2)}%`);
-
-  if (!didPass) {
-    fail("❌❌ Performance regression detected ❌❌");
-  }
+  postGithubComment(data);
 
   return {
     stdout: textSummary(data, { indent: " ", enableColors: true }),
   };
 }
 
-function postGithubComment(didPass) {
+function postGithubComment(data) {
   if (!__ENV.GITHUB_TOKEN) {
     return;
   }
+
+  const checks = data.metrics.checks;
+  const didPass = checks.failed === 0;
 
   githubComment(data, {
     token: __ENV.GITHUB_TOKEN,
@@ -113,32 +128,11 @@ function postGithubComment(didPass) {
     pr: __ENV.GITHUB_PR,
     org: "charlypoly",
     repo: "graphql-ruby-hive",
-    renderTitle: () => {
-      return didPass ? "✅ Benchmark Results" : "❌ Benchmark Failed";
-    },
-    renderMessage: () => {
-      const result = [];
-      if (didPass) {
-        result.push(
-          "**Performance regression detected**: it seems like your Pull Request adds some extra latency to GraphQL Hive operations processing",
-        );
-      } else {
-        result.push("Overhead < 5%");
-      }
-      return result.join("\n");
-    },
+    renderTitle: () =>
+      didPass ? "✅ Integration Test Passed" : "❌ Integration Test Failed",
+    renderMessage: () =>
+      didPass
+        ? ""
+        : "The integration test failed. Please check the action logs for more information.",
   });
-}
-
-function getOverheadPercentage(data) {
-  const enabledMetric = data.metrics["http_req_duration{hive:enabled}"];
-  const disabledMetric = data.metrics["http_req_duration{hive:disabled}"];
-
-  if (enabledMetric && disabledMetric) {
-    const withHive = enabledMetric.values["avg"];
-    const withoutHive = disabledMetric.values["avg"];
-    return 100 - (withHive * 100.0) / withoutHive;
-  } else {
-    throw new Error("Could not calculate overhead. Missing metrics.");
-  }
 }
