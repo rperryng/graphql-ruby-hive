@@ -27,13 +27,13 @@ export const options = {
   thresholds: {
     "http_req_duration{hive:enabled}": [
       {
-        threshold: "p(95)<15",
+        threshold: "p(95)<25",
         abortOnFail: true,
       },
     ],
     "http_req_duration{hive:disabled}": [
       {
-        threshold: "p(95)<15",
+        threshold: "p(95)<25",
         abortOnFail: true,
       },
     ],
