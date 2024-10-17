@@ -93,13 +93,20 @@ function sleep(seconds) {
   return new Promise((resolve) => setTimeout(resolve, seconds * 1000));
 }
 
-export function teardown(data) {
-  let count;
-  const res = http.get("http://localhost:8888/count");
-  count = JSON.parse(res.body).count;
-  console.log(`📊 Total operations: ${count}`);
+export async function teardown(data) {
+  let count = 0;
+  for (let i = 0; i < 10; i++) {
+    const res = http.get("http://localhost:8888/count");
+    count = JSON.parse(res.body).count;
+    console.log(`📊 Total operations: ${count}`);
+    if (count === REQUEST_COUNT) {
+      break;
+    }
+    await sleep(1);
+  }
   check(count, {
-    "usage-api received 1000 operations": (count) => count === REQUEST_COUNT,
+    "usage-api received correct number of operations": (count) =>
+      count === REQUEST_COUNT,
   });
   const response = http.post("http://localhost:8888/reset");
   const { count: newCount } = JSON.parse(response.body);
