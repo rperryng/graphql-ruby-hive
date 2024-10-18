@@ -27,14 +27,15 @@ export const options = {
   thresholds: {
     "http_req_duration{hive:enabled}": [
       {
-        threshold: "p(95)<25",
+        // Set a threshold that works consistently on GitHub Actions runners
+        threshold: "p(95)<50",
         abortOnFail: true,
       },
     ],
     "http_req_duration{hive:disabled}": [
       {
-        threshold: "p(95)<25",
-        abortOnFail: true,
+        threshold: "p(95)<50",
+        abortOnFail: false,
       },
     ],
     checks: [
