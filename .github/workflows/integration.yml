@@ -35,10 +35,6 @@ jobs:
 
       - uses: grafana/setup-k6-action@v1
       - uses: grafana/run-k6-action@v1
-        env:
-          GITHUB_PR: ${{ github.event.number }}
-          GITHUB_SHA: ${{ github.sha }}
-          GITHUB_TOKEN: ${{secrets.GH_PA_TOKEN}}
         with:
           path: |
             ./k6/integration-test.js

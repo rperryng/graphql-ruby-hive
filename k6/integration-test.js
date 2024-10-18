@@ -115,33 +115,3 @@ export async function teardown(data) {
   });
   return data;
 }
-
-export function handleSummary(data) {
-  const checks = data.metrics.checks;
-  const didPass = checks.values.fails === 0;
-  console.log(didPass);
-  postGithubComment(data, didPass);
-
-  return {
-    stdout: textSummary(data, { indent: " ", enableColors: true }),
-  };
-}
-
-function postGithubComment(data, didPass) {
-  if (!__ENV.GITHUB_TOKEN) {
-    return;
-  }
-  githubComment(data, {
-    token: __ENV.GITHUB_TOKEN,
-    commit: __ENV.GITHUB_SHA,
-    pr: __ENV.GITHUB_PR,
-    org: "rperryng",
-    repo: "graphql-ruby-hive",
-    renderTitle: () =>
-      didPass ? "✅ Integration Test Passed" : "❌ Integration Test Failed",
-    renderMessage: () =>
-      didPass
-        ? ""
-        : "The integration test failed. Please check the action logs for more information.",
-  });
-}
