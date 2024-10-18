@@ -7,10 +7,15 @@ app.use(express.json());
 let count = 0;
 
 app.get("/", (req, res) => {
-  res.status(200).send({ status: 'ok' })
+  res.status(200).send({ status: "ok" });
 });
 
 app.get("/count", (req, res) => {
+  res.status(200).json({ count });
+});
+
+app.post("/reset", (req, res) => {
+  count = 0;
   res.status(200).send({ count });
 });
 
