@@ -144,12 +144,7 @@ improving it. To ensure a smooth process, please follow these guidelines:
 1. **Fork the Repository**: Click the "Fork" button at the top right of this
    repository to create a copy of the repository under your GitHub account.
 
-2. **Clone the Forked Repository**:
-
-```sh
-git clone https://github.com/your-username/your-repo-name.git
-cd your-repo-name
-```
+2. **Clone the Forked Repository**: [Forking a Repository](docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo#forking-a-repository)
 
 3. **Install Dependencies**:
    Ensure you have [Bundler](https://bundler.io/) installed, then run:
