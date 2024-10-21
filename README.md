@@ -177,5 +177,6 @@ cd k6
 In another terminal, run the tests:
 
 ```sh
+cd k6
 k6 run integration-tests.js
 ```
