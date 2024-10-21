@@ -21,7 +21,7 @@ composed schemas (Federation, Stitching):
 
 ### Get your Hive token
 
-Please refer to the Hive documentation: <https://docs.graphql-hive.com/features/tokens>.
+Please refer to the GraphQL Hive documentation: <https://docs.graphql-hive.com/features/tokens>.
 
 ### Install the `grahql-hive` gem
 
