@@ -27,9 +27,9 @@ jobs:
         working-directory: ./k6
         run: |
           ./boot-servers.sh &
-          npx wait-on http://localhost:9292 --timeout 5s
-          npx wait-on http://localhost:9291 --timeout 5s
-          npx wait-on http://localhost:8888 --timeout 5s
+          yarn wait-on http://localhost:9292 --timeout 5s
+          yarn wait-on http://localhost:9291 --timeout 5s
+          yarn wait-on http://localhost:8888 --timeout 5s
 
       - uses: grafana/setup-k6-action@v1
       - uses: grafana/run-k6-action@v1
