@@ -1,0 +1,38 @@
+name: Integration
+on:
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  run-k6-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Use Node
+        uses: actions/setup-node@v4
+        with:
+          cache: "yarn"
+          cache-dependency-path: "k6/yarn.lock"
+
+      - name: Use Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          working-directory: ./k6/graphql-api
+          bundler-cache: true
+
+      - name: Start Servers
+        working-directory: ./k6
+        run: |
+          ./boot-servers.sh &
+          yarn wait-on http://localhost:9292 --timeout 5s
+          yarn wait-on http://localhost:9291 --timeout 5s
+          yarn wait-on http://localhost:8888 --timeout 5s
+
+      - uses: grafana/setup-k6-action@v1
+      - uses: grafana/run-k6-action@v1
+        with:
+          path: |
+            ./k6/integration-test.js
