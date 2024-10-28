@@ -23,7 +23,7 @@ module GraphQL
         @sampler = Sampler.new(options[:collect_usage_sampling], options[:logger]) # NOTE: logs for deprecated field
 
         queue_bound = (options[:buffer_size] * options[:bounded_queue_multiple]).to_int
-        @queue = BoundedQueue.new(size: queue_bound, logger: options[:logger])
+        @queue = BoundedQueue.new(bound: queue_bound, logger: options[:logger])
 
         start_thread
       end
