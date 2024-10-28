@@ -32,4 +32,16 @@ RSpec.describe GraphQL::Hive::BoundedQueue do
     expect(queue.size).to eq(2)
     expect(logger).to have_received(:error).with("BoundedQueue is full, discarding operation").twice
   end
+
+  it "allows pushes after pops" do
+    queue.push("one")
+    queue.push("two")
+
+    queue.push("invalid")
+    expect(queue.size).to eq(2)
+
+    queue.pop
+    queue.push("three")
+    expect(queue.size).to eq(2)
+  end
 end
