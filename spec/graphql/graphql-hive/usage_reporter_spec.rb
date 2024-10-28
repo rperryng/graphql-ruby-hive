@@ -77,7 +77,7 @@ RSpec.describe GraphQL::Hive::UsageReporter do
         {
           logger: logger,
           buffer_size: 1,
-          bounded_queue_multiple: 1,
+          bounded_queue_multiple: 1
         }
       end
 

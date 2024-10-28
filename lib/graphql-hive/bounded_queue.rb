@@ -15,7 +15,7 @@ module GraphQL
           return
         end
 
-        super(item)
+        super
       end
     end
   end
