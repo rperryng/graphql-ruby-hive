@@ -4,7 +4,7 @@ require "spec_helper"
 
 RSpec.describe GraphQL::Hive::UsageReporter do
   let(:usage_reporter_instance) { described_class.new(options, client) }
-  let(:options) { {logger: logger} }
+  let(:options) { {logger: logger, buffer_size: 1, bounded_queue_multiple: 1} }
   let(:logger) { instance_double("Logger") }
   let(:client) { instance_double("Hive::Client") }
 
@@ -32,7 +32,7 @@ RSpec.describe GraphQL::Hive::UsageReporter do
       expect(usage_reporter_instance.instance_variable_get(:@client)).to eq(client)
 
       expect(usage_reporter_instance.instance_variable_get(:@options_mutex)).to be_an_instance_of(Mutex)
-      expect(usage_reporter_instance.instance_variable_get(:@queue)).to be_an_instance_of(Queue)
+      expect(usage_reporter_instance.instance_variable_get(:@queue)).to be_an_instance_of(GraphQL::Hive::BoundedQueue)
       expect(usage_reporter_instance.instance_variable_get(:@sampler)).to be_an_instance_of(GraphQL::Hive::Sampler)
     end
   end
@@ -76,7 +76,8 @@ RSpec.describe GraphQL::Hive::UsageReporter do
       let(:options) do
         {
           logger: logger,
-          buffer_size: 1
+          buffer_size: 1,
+          bounded_queue_multiple: 1,
         }
       end
 
