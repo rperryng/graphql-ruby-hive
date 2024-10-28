@@ -18,13 +18,12 @@ summary, this folder does the following:
 Start the ruby server with HIVE_ENABLED=true
 ```bash
 cd graphql-api
-HIVE_ENABLED=true bundle exec puma -t 0:1 -p 9291 
+HIVE_ENABLED=true bundle exec puma -t 0:1 -p 9292
 ```
 
 Start the ruby server with HIVE_ENABLED=false
 ```bash
-cd graphql-api
-bundle exec puma -t 0:1 -p 9291 
+HIVE_ENABLED=false bundle exec puma -t 0:1 -p 9291
 ```
 
 Start the usage mock server
