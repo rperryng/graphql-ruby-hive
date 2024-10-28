@@ -25,6 +25,7 @@ module GraphQL
         queue_bound = (options[:buffer_size] * options[:bounded_queue_multiple]).to_int
         @queue = BoundedQueue.new(bound: queue_bound, logger: options[:logger])
 
+        @running = true
         start_thread
       end
 
@@ -34,6 +35,7 @@ module GraphQL
 
       def on_exit
         @queue.close
+        @running = false
         @thread.join
       end
 
@@ -51,8 +53,13 @@ module GraphQL
 
         @thread = Thread.new do
           buffer = []
+          loop do
+            break unless @running
 
           while (operation = @queue.pop(false))
+            operation = @queue.pop(false)
+            next if operation.nil?
+
             @options[:logger].debug("processing operation from queue: #{operation}")
             buffer << operation if @sampler.sample?(operation)
 
@@ -63,16 +70,15 @@ module GraphQL
                 buffer = []
               end
             end
+          rescue => e
+            buffer = []
+            @options[:logger].error(e)
           end
 
           unless buffer.empty?
-            @options[:logger].debug("shuting down with buffer, sending!")
+            @options[:logger].debug("shutting down with buffer, sending!")
             process_operations(buffer)
           end
-        rescue => e
-          # ensure configured logger receives exception as well in setups where STDERR might not be
-          # monitored.
-          @options[:logger].error(e)
         end
       end
 

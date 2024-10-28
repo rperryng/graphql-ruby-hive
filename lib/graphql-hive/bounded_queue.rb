@@ -4,18 +4,20 @@ module GraphQL
       def initialize(bound:, logger:)
         @bound = bound
         @logger = logger
+        @lock = Mutex.new
 
         super()
       end
 
       def push(item)
         # call size on the instance of this queue
-        if size >= @bound
-          @logger.error("BoundedQueue is full, discarding operation")
-          return
+        @lock.synchronize do
+          if size >= @bound
+            @logger.error("BoundedQueue is full, discarding operation")
+            return
+          end
+          super
         end
-
-        super
       end
     end
   end
