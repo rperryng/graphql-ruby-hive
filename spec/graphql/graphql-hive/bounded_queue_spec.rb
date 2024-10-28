@@ -4,7 +4,7 @@ require "spec_helper"
 require "graphql-hive"
 
 RSpec.describe GraphQL::Hive::BoundedQueue do
-  subject(:queue) { GraphQL::Hive::BoundedQueue.new(size: 2, logger: logger) }
+  subject(:queue) { GraphQL::Hive::BoundedQueue.new(bound: 2, logger: logger) }
 
   let(:logger) { instance_double("Logger") }
 

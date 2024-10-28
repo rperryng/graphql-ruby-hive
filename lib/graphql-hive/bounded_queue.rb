@@ -1,8 +1,8 @@
 module GraphQL
   class Hive < GraphQL::Tracing::PlatformTracing
     class BoundedQueue < Thread::Queue
-      def initialize(size:, logger:)
-        @size = size
+      def initialize(bound:, logger:)
+        @bound = bound
         @logger = logger
 
         super()
@@ -10,7 +10,7 @@ module GraphQL
 
       def push(item)
         # call size on the instance of this queue
-        if size >= @size
+        if size >= @bound
           @logger.error("BoundedQueue is full, discarding operation")
           return
         end
