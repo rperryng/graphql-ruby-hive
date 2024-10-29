@@ -93,7 +93,6 @@ module GraphQL
 
         @options[:logger].debug("sending report: #{report}")
 
-        p "sending report size: #{report[:size]}"
         @client.send(:"/usage", report, :usage)
       end
 
