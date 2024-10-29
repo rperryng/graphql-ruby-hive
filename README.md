@@ -155,8 +155,9 @@ class MySchema < GraphQL::Schema
       logger: MyLogger.new,
       endpoint: 'app.graphql-hive.com',
       port: 80, 
-      buffer_size: 50, # forward the operations data to Hive every 50 requests
-
+      buffer_size: 50, # how many operations can be sent to hive in a single batch (AFTER sampling)
+      bounded_queue_multiple: 5, # how many operations can be added to the queue, before we start dropping them
+      
       collect_usage: true, # report usage to Hive
       collect_usage_sampling: {
         # optional members of `collect_usage_sampling`  
@@ -164,8 +165,7 @@ class MySchema < GraphQL::Schema
         sampler: proc { |context| context.operation_name.includes?('someQuery') 1 : 0.5 }, # assign custom sampling rates (overrides `sampling rate`)
         at_least_once: true, # sample every distinct operation at least once
         key_generator: proc { |context| context.operation_name } # assign custom keys to distinguish between distinct operations
-      }
-
+      },
       report_schema: true,  # publish schema to Hive
       # mandatory if `report_schema: true`
       reporting: { 
