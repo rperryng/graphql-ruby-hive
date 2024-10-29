@@ -154,10 +154,8 @@ class MySchema < GraphQL::Schema
       debug: false, # verbose logs
       logger: MyLogger.new,
       endpoint: 'app.graphql-hive.com',
-      port: 80, 
-
+      port: 80,
       buffer_size: 50, # how many operations can be sent to hive in a single batch (AFTER sampling)
-      bounded_queue_multiple: 5, # how many operations can be added to the queue, before we start dropping them, (buffer_size * bounded_queue_multiple)
       
       collect_usage: true, # report usage to Hive
       collect_usage_sampling: {

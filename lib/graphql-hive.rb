@@ -36,7 +36,6 @@ module GraphQL
       read_operations: true,
       report_schema: true,
       buffer_size: 50,
-      bounded_queue_multiple: 5,
       logger: nil,
       collect_usage_sampling: 1.0
     }.freeze

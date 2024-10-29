@@ -21,9 +21,7 @@ module GraphQL
         @client = client
         @options_mutex = Mutex.new
         @sampler = Sampler.new(options[:collect_usage_sampling], options[:logger]) # NOTE: logs for deprecated field
-
-        queue_bound = (options[:buffer_size].to_i * 5)
-        @queue = BoundedQueue.new(bound: queue_bound, logger: options[:logger])
+        @queue = BoundedQueue.new(bound: options[:buffer_size], logger: options[:logger])
 
         start_thread
       end
