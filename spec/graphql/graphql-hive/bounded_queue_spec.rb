@@ -44,4 +44,18 @@ RSpec.describe GraphQL::Hive::BoundedQueue do
     queue.push("three")
     expect(queue.size).to eq(2)
   end
+
+  it "should be thsead-safe and discard items when full" do
+    threads = []
+    10.times do |i|
+      threads << Thread.new do
+        queue.push(i)
+      end
+    end
+
+    threads.each(&:join)
+
+    expect(queue.size).to eq(2)
+    expect(logger).to have_received(:error).with("BoundedQueue is full, discarding operation").exactly(8).times
+  end
 end

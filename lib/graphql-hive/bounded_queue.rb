@@ -10,7 +10,6 @@ module GraphQL
       end
 
       def push(item)
-        # call size on the instance of this queue
         @lock.synchronize do
           if size >= @bound
             @logger.error("BoundedQueue is full, discarding operation")
