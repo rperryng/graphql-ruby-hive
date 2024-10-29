@@ -56,7 +56,6 @@ module GraphQL
           loop do
             break unless @running
 
-          while (operation = @queue.pop(false))
             operation = @queue.pop(false)
             next if operation.nil?
 
@@ -138,7 +137,7 @@ module GraphQL
 
         if results[0]
           context = results[0].query.context
-          operation_record[:metadata] = {client: @options[:client_info].call(context)} if @options[:client_info]
+          operation_record[:metadata] = { client: @options[:client_info].call(context) } if @options[:client_info]
         end
 
         report[:map][operation_map_key] = {
@@ -151,7 +150,7 @@ module GraphQL
       end
 
       def errors_from_results(results)
-        acc = {errorsTotal: 0}
+        acc = { errorsTotal: 0 }
         results.each do |result|
           errors = result.to_h.fetch("errors", [])
           errors.each do
