@@ -66,13 +66,14 @@ RSpec.describe GraphQL::Hive::UsageReporter do
 
   describe "#start_thread" do
     it "logs a warning if the thread is already alive" do
-      thread = Thread.new do
-        # do nothing
-      end
-      usage_reporter_instance.instance_variable_set(:@thread, thread)
+      usage_reporter_instance.instance_variable_set(
+        :@thread,
+        Thread.new do
+          # do nothing
+        end
+      )
       expect(logger).to receive(:warn)
       usage_reporter_instance.on_start
-      thread.join
     end
 
     context "when configured with sampling" do
