@@ -134,7 +134,8 @@ module GraphQL
         options[:logger] = Logger.new($stderr)
         original_formatter = Logger::Formatter.new
         options[:logger].formatter = proc { |severity, datetime, progname, msg|
-          original_formatter.call(severity, datetime, progname, "[hive] #{msg.dump}")
+          msg = msg.respond_to?(:dump) ? msg.dump : msg
+          original_formatter.call(severity, datetime, progname, "[hive] #{msg}")
         }
         options[:logger].level = options[:debug] ? Logger::DEBUG : Logger::INFO
       end

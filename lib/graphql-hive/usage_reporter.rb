@@ -3,6 +3,7 @@
 require "digest"
 require "graphql-hive/analyzer"
 require "graphql-hive/printer"
+require "graphql-hive/bounded_queue"
 
 module GraphQL
   class Hive < GraphQL::Tracing::PlatformTracing
@@ -16,14 +17,11 @@ module GraphQL
 
       def initialize(options, client)
         @@instance = self
-
         @options = options
         @client = client
-
         @options_mutex = Mutex.new
-        @queue = Queue.new
-
         @sampler = Sampler.new(options[:collect_usage_sampling], options[:logger]) # NOTE: logs for deprecated field
+        @queue = BoundedQueue.new(bound: options[:buffer_size], logger: options[:logger])
 
         start_thread
       end
@@ -52,15 +50,20 @@ module GraphQL
         @thread = Thread.new do
           buffer = []
           while (operation = @queue.pop(false))
-            @options[:logger].debug("processing operation from queue: #{operation}")
-            buffer << operation if @sampler.sample?(operation)
+            begin
+              @options[:logger].debug("processing operation from queue: #{operation}")
+              buffer << operation if @sampler.sample?(operation)
 
-            @options_mutex.synchronize do
-              if buffer.size >= @options[:buffer_size]
-                @options[:logger].debug("buffer is full, sending!")
-                process_operations(buffer)
-                buffer = []
+              @options_mutex.synchronize do
+                if buffer.size >= @options[:buffer_size]
+                  @options[:logger].debug("buffer is full, sending!")
+                  process_operations(buffer)
+                  buffer = []
+                end
               end
+            rescue => e
+              buffer = []
+              @options[:logger].error(e)
             end
           end
 

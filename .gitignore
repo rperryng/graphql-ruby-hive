@@ -11,3 +11,9 @@
 .rspec_status
 *.gem
 k6/node_modules/
+
+# IDEs
+.idea
+
+# k6
+node_modules

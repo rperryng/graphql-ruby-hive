@@ -4,9 +4,10 @@ require "spec_helper"
 
 RSpec.describe GraphQL::Hive::UsageReporter do
   let(:usage_reporter_instance) { described_class.new(options, client) }
-  let(:options) { {logger: logger} }
+  let(:options) { {logger: logger, buffer_size: buffer_size} }
   let(:logger) { instance_double("Logger") }
   let(:client) { instance_double("Hive::Client") }
+  let(:buffer_size) { 1 }
 
   let(:timestamp) { 1_720_705_946_333 }
   let(:queries) { [] }
@@ -32,7 +33,7 @@ RSpec.describe GraphQL::Hive::UsageReporter do
       expect(usage_reporter_instance.instance_variable_get(:@client)).to eq(client)
 
       expect(usage_reporter_instance.instance_variable_get(:@options_mutex)).to be_an_instance_of(Mutex)
-      expect(usage_reporter_instance.instance_variable_get(:@queue)).to be_an_instance_of(Queue)
+      expect(usage_reporter_instance.instance_variable_get(:@queue)).to be_an_instance_of(GraphQL::Hive::BoundedQueue)
       expect(usage_reporter_instance.instance_variable_get(:@sampler)).to be_an_instance_of(GraphQL::Hive::Sampler)
     end
   end
@@ -65,9 +66,12 @@ RSpec.describe GraphQL::Hive::UsageReporter do
 
   describe "#start_thread" do
     it "logs a warning if the thread is already alive" do
-      usage_reporter_instance.instance_variable_set(:@thread, Thread.new do
-        # do nothing
-      end)
+      usage_reporter_instance.instance_variable_set(
+        :@thread,
+        Thread.new do
+          # do nothing
+        end
+      )
       expect(logger).to receive(:warn)
       usage_reporter_instance.on_start
     end
@@ -104,6 +108,72 @@ RSpec.describe GraphQL::Hive::UsageReporter do
         expect(client).not_to receive(:send)
 
         usage_reporter_instance.add_operation(operation)
+      end
+    end
+
+    context "with erroneous operations" do
+      let(:sampler_class) { class_double(GraphQL::Hive::Sampler).as_stubbed_const }
+      let(:sampler_instance) { instance_double("GraphQL::Hive::Sampler") }
+      let(:schema) { GraphQL::Schema.from_definition("type Query { test: String }") }
+      let(:queries_valid) { [GraphQL::Query.new(schema, "query TestingHiveValid { test }", variables: {})] }
+      let(:queries_invalid) { [GraphQL::Query.new(schema, "query TestingHiveInvalid { test }", variables: {})] }
+      let(:results) { [GraphQL::Query::Result.new(query: queries_valid[0], values: {"data" => {"test" => "test"}})] }
+      let(:buffer_size) { 1 }
+
+      before do
+        allow(sampler_class).to receive(:new).and_return(sampler_instance)
+      end
+
+      it "can still process the operations after erroneous operation" do
+        raise_exception = true
+        operation_error = StandardError.new("First operation")
+        allow(sampler_instance).to receive(:sample?) do |_operation|
+          if raise_exception
+            raise_exception = false
+            raise operation_error
+          else
+            true
+          end
+        end
+
+        mutex = Mutex.new
+        logger_condition = ConditionVariable.new
+        client_condition = ConditionVariable.new
+        allow(logger).to receive(:error) do |_e|
+          mutex.synchronize { logger_condition.signal }
+        end
+
+        allow(client).to receive(:send) do |_endpoint|
+          mutex.synchronize { client_condition.signal }
+        end
+
+        mutex.synchronize do
+          usage_reporter_instance.add_operation([timestamp, queries_invalid, results, duration])
+          logger_condition.wait(mutex)
+
+          usage_reporter_instance.add_operation([timestamp, queries_valid, results, duration])
+          client_condition.wait(mutex)
+        end
+
+        expect(client).to have_received(:send).once.with(
+          :"/usage",
+          {
+            map: {"a69918853baf60d89b871e1fbe13915b" =>
+                     {
+                       fields: ["Query", "Query.test"],
+                       operation: "query TestingHiveValid {\n  test\n}",
+                       operationName: "TestingHiveValid"
+                     }},
+            operations: [{
+              execution: {duration: 100000, errorsTotal: 0, ok: true},
+              operationMapKey: "a69918853baf60d89b871e1fbe13915b",
+              timestamp: 1720705946333
+            }],
+            size: 1
+          },
+          :usage
+        )
+        expect(logger).to have_received(:error).with(operation_error).once
       end
     end
   end
