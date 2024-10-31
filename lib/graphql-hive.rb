@@ -10,6 +10,7 @@ require "graphql-hive/client"
 require "graphql-hive/sampler"
 require "graphql-hive/sampling/basic_sampler"
 require "graphql-hive/sampling/dynamic_sampler"
+require "graphql"
 
 module GraphQL
   # GraphQL Hive usage collector and schema reporter
@@ -36,6 +37,7 @@ module GraphQL
       read_operations: true,
       report_schema: true,
       buffer_size: 50,
+      queue_size: 1000,
       logger: nil,
       collect_usage_sampling: 1.0
     }.freeze

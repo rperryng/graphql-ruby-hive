@@ -1,4 +1,4 @@
-# GraphQL Hive: `graphql-ruby` integration 
+# GraphQL Hive: `graphql-ruby` integration
 [![CI Suite](https://github.com/charlypoly/graphql-ruby-hive/actions/workflows/ci.yml/badge.svg)](https://github.com/charlypoly/graphql-ruby-hive/actions)
 [![Gem Version](https://badge.fury.io/rb/graphql-hive.svg)](https://rubygems.org/gems/graphql-hive)
 
@@ -146,38 +146,53 @@ class MySchema < GraphQL::Schema
   use(
     GraphQL::Hive,
     {
-      # mandatory
-      token: 'YOUR-TOKEN',
-
-      # optional
-      enabled: true, # enable/disable Hive Client
-      debug: false, # verbose logs
+      # token is the only required configuration value
+      token: 'YOUR-REGISTRY-TOKEN',
+      #
+      # The following are optional configuration values
+      #
+      # enable/disable Hive Client
+      enabled: true,
+      # verbose logs
+      debug: false,
+      # A custom logger
       logger: MyLogger.new,
+      # endpoint and port of the Hive API. Change this if you are using a self-hosted Hive instance
       endpoint: 'app.graphql-hive.com',
       port: 80,
-      buffer_size: 50, # how many operations can be sent to hive in a single batch (AFTER sampling)
-      
-      collect_usage: true, # report usage to Hive
+      # number of operations sent to hive in a batch (AFTER sampling)
+      buffer_size: 50,
+      # size of the queue used to send operations to the buffer before sampling
+      queue_size: 1000,
+      # report usage to hive
+      collect_usage: true,
+      # Usage sampling configurations
       collect_usage_sampling: {
-        # optional members of `collect_usage_sampling`  
-        sample_rate: 0.5, # % of operations reported
-        sampler: proc { |context| context.operation_name.includes?('someQuery') 1 : 0.5 }, # assign custom sampling rates (overrides `sampling rate`)
-        at_least_once: true, # sample every distinct operation at least once
-        key_generator: proc { |context| context.operation_name } # assign custom keys to distinguish between distinct operations
+        # % of operations recorded
+        sample_rate: 0.5,
+        # custom sampler to assign custom sampling rates
+        sampler: proc { |context| context.operation_name.includes?('someQuery') 1 : 0.5 },
+        # sample every distinct operation at least once
+        at_least_once: true,
+        # assign custom keys to distinguish between distinct operations
+        key_generator: proc { |context| context.operation_name }
       },
-      report_schema: true,  # publish schema to Hive
+      # publish schema to Hive
+      report_schema: true,
       # mandatory if `report_schema: true`
-      reporting: { 
+      reporting: {
         # mandatory members of `reporting`
         author: 'Author of the latest change',
         commit: 'git sha or any identifier',
-        # optional members of `reporting  
+        # optional members of `reporting
         service_name: '',
         service_url: '',
       },
 
        # pass an optional proc to client_info to help identify the client (ex: Apollo web app) that performed the query
-      client_info: proc { |context| { name: context.client_name, version: context.client_version } }
+      client_info: proc { |context|
+        { name: context.client_name, version: context.client_version }
+      }
     }
   )
 
@@ -186,16 +201,14 @@ class MySchema < GraphQL::Schema
 end
 ```
 
-See default options for the optional parameters [here](https://github.com/charlypoly/graphql-ruby-hive/blob/01407d8fed80912a7006fee503bf2967fa20a79c/lib/graphql-hive.rb#L53).
+See default options for the optional parameters [here](https://github.com/rperryng/graphql-ruby-hive/blob/master/lib/graphql-hive.rb#L31-L41).
 
 <br/>
 
-**A note on `buffer_size` and performances**
-
-The `graphql-hive` usage reporter, responsible for sending the operations data to Hive, is running in a separate `Thread` to avoid any significant impact on your GraphQL API performances.
-
-The performance overhead (with the default `buffer_size` option) is around 1% and [is constantly evaluated for new PR](https://github.com/charlypoly/graphql-ruby-hive/actions/workflows/benchmark.yml).
-
-If your GraphQL API has a high RPM, we encourage you to increase the `buffer_size` value.
-
-However, please note that a higher `buffer_size` value will introduce some peak of increase in memory consumption.
+> [!Important]
+> `buffer_size` and `queue_size` will affect memory consumption.
+>
+> `buffer_size` is the number of operations sent to Hive in a batch after operations have been sampled.
+> `queue_size` is the size of the queue used to send operations to the buffer before sampling.
+> Adjust these values according to your application's memory constraints and throughput.
+> High throughput applications will need a larger `queue_size`.

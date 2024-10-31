@@ -4,7 +4,7 @@ require "spec_helper"
 
 RSpec.describe GraphQL::Hive::UsageReporter do
   let(:usage_reporter_instance) { described_class.new(options, client) }
-  let(:options) { {logger: logger, buffer_size: buffer_size} }
+  let(:options) { {logger: logger, buffer_size: buffer_size, queue_size: 1000} }
   let(:logger) { instance_double("Logger") }
   let(:client) { instance_double("Hive::Client") }
   let(:buffer_size) { 1 }
@@ -80,7 +80,8 @@ RSpec.describe GraphQL::Hive::UsageReporter do
       let(:options) do
         {
           logger: logger,
-          buffer_size: 1
+          buffer_size: 1,
+          queue_size: 1000
         }
       end
 
