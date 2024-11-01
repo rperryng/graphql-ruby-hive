@@ -33,7 +33,7 @@ RSpec.describe GraphQL::Hive::UsageReporter do
       expect(usage_reporter_instance.instance_variable_get(:@client)).to eq(client)
 
       expect(usage_reporter_instance.instance_variable_get(:@options_mutex)).to be_an_instance_of(Mutex)
-      expect(usage_reporter_instance.instance_variable_get(:@queue)).to be_an_instance_of(GraphQL::Hive::BoundedQueue)
+      expect(usage_reporter_instance.instance_variable_get(:@queue)).to be_an_instance_of(Thread::SizedQueue)
       expect(usage_reporter_instance.instance_variable_get(:@sampler)).to be_an_instance_of(GraphQL::Hive::Sampler)
     end
   end
@@ -43,6 +43,17 @@ RSpec.describe GraphQL::Hive::UsageReporter do
       operation = {operation: "test"}
       usage_reporter_instance.add_operation(operation)
       expect(usage_reporter_instance.instance_variable_get(:@queue).pop).to eq(operation)
+    end
+
+    describe "when the queue is full" do
+      let(:options) { {logger: logger, buffer_size: 1, queue_size: 1} }
+
+      it "logs an error" do
+        allow(logger).to receive(:error)
+        usage_reporter_instance.add_operation("operation 1")
+        usage_reporter_instance.add_operation("operation 2")
+        expect(logger).to have_received(:error)
+      end
     end
   end
 

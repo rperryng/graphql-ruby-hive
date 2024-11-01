@@ -3,7 +3,6 @@
 require "digest"
 require "graphql-hive/analyzer"
 require "graphql-hive/printer"
-require "graphql-hive/bounded_queue"
 
 module GraphQL
   class Hive < GraphQL::Tracing::PlatformTracing
@@ -21,16 +20,15 @@ module GraphQL
         @client = client
         @options_mutex = Mutex.new
         @sampler = Sampler.new(options[:collect_usage_sampling], options[:logger]) # NOTE: logs for deprecated field
-        @queue = BoundedQueue.new(
-          bound: options[:queue_size],
-          logger: options[:logger]
-        )
+        @queue = Thread::SizedQueue.new(options[:queue_size])
 
         start_thread
       end
 
       def add_operation(operation)
-        @queue.push(operation)
+        @queue.push(operation, true)
+      rescue ThreadError
+        @options[:logger].error("SizedQueue is full, discarding operation. Size: #{@queue.size}, Max: #{@queue.max}")
       end
 
       def on_exit
