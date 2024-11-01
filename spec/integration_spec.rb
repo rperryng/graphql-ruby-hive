@@ -42,6 +42,26 @@ RSpec.describe TestApp do
     }
   end
 
+  let(:expected_request_body) do
+    {
+      "size" => 5,
+      "map" => {
+        "92c5ca035dc4ee9a7347ffb368cd9ffb" => {
+          "fields" => ["Query", "Query.post", "ID", "Query.post.id", "Post", "Post.title", "Post.id"],
+          "operationName" => "GetPost",
+          "operation" => "query GetPost($id: ID!) {\n  post(id: $id) {\n    id\n    title\n  }\n}"
+        }
+      },
+      "operations" => Array.new(5) {
+        {
+          "operationMapKey" => "92c5ca035dc4ee9a7347ffb368cd9ffb",
+          "timestamp" => be_a(Integer),
+          "execution" => {"ok" => true, "duration" => be_a(Integer), "errorsTotal" => 0}
+        }
+      }
+    }
+  end
+
   after do
     GraphQL::Hive.instance.on_exit
   end
@@ -73,24 +93,7 @@ RSpec.describe TestApp do
 
     WebMock::RequestRegistry.instance.requested_signatures.each do |request_signature|
       request_body = JSON.parse(request_signature.body)
-      expected_body = {
-        "size" => 5,
-        "map" => {
-          "92c5ca035dc4ee9a7347ffb368cd9ffb" => {
-            "fields" => ["Query", "Query.post", "ID", "Query.post.id", "Post", "Post.title", "Post.id"],
-            "operationName" => "GetPost",
-            "operation" => "query GetPost($id: ID!) {\n  post(id: $id) {\n    id\n    title\n  }\n}"
-          }
-        },
-        "operations" => Array.new(5) {
-          {
-            "operationMapKey" => "92c5ca035dc4ee9a7347ffb368cd9ffb",
-            "timestamp" => be_a(Integer),
-            "execution" => {"ok" => true, "duration" => be_a(Integer), "errorsTotal" => 0}
-          }
-        }
-      }
-      expect(request_body).to include(expected_body)
+      expect(request_body).to include(expected_request_body)
     end
 
     expect(WebMock).to have_requested(:post, "https://app.graphql-hive.com/usage")
