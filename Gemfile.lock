@@ -29,7 +29,6 @@ GEM
     json (2.7.2)
     language_server-protocol (3.17.0.3)
     lint_roller (1.1.0)
-    multi_json (1.15.0)
     mustermann (2.0.2)
       ruby2_keywords (~> 0.0.1)
     parallel (1.26.3)
@@ -41,8 +40,6 @@ GEM
     public_suffix (6.0.1)
     racc (1.8.1)
     rack (2.2.10)
-    rack-contrib (2.5.0)
-      rack (< 4)
     rack-protection (2.2.4)
       rack
     rack-test (2.1.0)
@@ -91,12 +88,6 @@ GEM
       rack (~> 2.2)
       rack-protection (= 2.2.4)
       tilt (~> 2.0)
-    sinatra-contrib (2.2.4)
-      multi_json
-      mustermann (~> 2.0)
-      rack-protection (= 2.2.4)
-      sinatra (= 2.2.4)
-      tilt (~> 2.0)
     standard (1.40.1)
       language_server-protocol (~> 3.17.0.2)
       lint_roller (~> 1.0)
@@ -113,7 +104,6 @@ GEM
       standard
     stringio (3.1.1)
     tilt (2.4.0)
-    timecop (0.9.10)
     unicode-display_width (2.6.0)
     vcr (6.3.1)
       base64
@@ -130,14 +120,11 @@ DEPENDENCIES
   bundler (~> 2)
   debug (>= 1.0.0)
   graphql-hive!
-  rack-contrib (~> 2)
   rack-test (~> 2)
   rake (~> 13)
   rspec (~> 3)
   sinatra (~> 2)
-  sinatra-contrib
   standardrb (~> 1)
-  timecop (~> 0.9)
   vcr (~> 6)
   webmock (~> 3)
 

@@ -39,7 +39,7 @@ RSpec.describe TestApp do
       query: query,
       variables: {id: 1},
       operationName: "GetPost"
-    }
+    }.to_json
   end
 
   let(:expected_request_body) do
@@ -66,17 +66,13 @@ RSpec.describe TestApp do
     GraphQL::Hive.instance.on_exit
   end
 
-  it(
-    "posts data to hive",
-    :aggregate_failures,
-    :vcr
-  ) do
+  it("posts data to hive", :aggregate_failures, :vcr) do
     VCR.use_cassette(
       "graphql-hive-integration",
       allow_unused_http_interactions: false
     ) do
       20.times do
-        post "/graphql", request_body
+        post "/graphql", request_body, "CONTENT_TYPE" => "application/json"
 
         expect(last_response).to be_ok
         expect(JSON.parse(last_response.body)).to(

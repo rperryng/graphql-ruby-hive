@@ -4,7 +4,6 @@ require "bundler/setup"
 require "debug"
 require "graphql"
 require "graphql-hive"
-require "timecop"
 require "vcr"
 require "webmock/rspec"
 

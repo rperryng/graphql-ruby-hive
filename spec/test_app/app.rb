@@ -1,8 +1,6 @@
 require "graphql"
 require "graphql-hive"
-require "rack/contrib"
 require "sinatra"
-require "sinatra/json"
 
 module Types
   class PostType < GraphQL::Schema::Object
@@ -41,18 +39,19 @@ class Schema < GraphQL::Schema
 end
 
 class TestApp < Sinatra::Base
-  use Rack::JSONBodyParser
-
   post "/graphql" do
+    request.body.rewind
+    params = JSON.parse(request.body.read)
     result = Schema.execute(
       params["query"],
-      variables: params[:variables],
-      operation_name: params[:operationName],
+      variables: params["variables"],
+      operation_name: params["operationName"],
       context: {
         client_name: "GraphQL Client",
         client_version: "1.0"
       }
     )
-    json result
+    content_type :json
+    JSON.dump(result)
   end
 end

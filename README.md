@@ -146,50 +146,50 @@ class MySchema < GraphQL::Schema
   use(
     GraphQL::Hive,
     {
-      # token is the only required configuration value
+      # Token is the only required configuration value.
       token: 'YOUR-REGISTRY-TOKEN',
       #
-      # The following are optional configuration values
+      # The following are optional configuration values.
       #
-      # enable/disable Hive Client
+      # Enable/disable Hive Client.
       enabled: true,
-      # verbose logs
+      # Verbose logs.
       debug: false,
-      # A custom logger
+      # A custom logger.
       logger: MyLogger.new,
-      # endpoint and port of the Hive API. Change this if you are using a self-hosted Hive instance
+      # Endpoint and port of the Hive API. Change this if you are using a self-hosted Hive instance.
       endpoint: 'app.graphql-hive.com',
       port: 80,
-      # number of operations sent to hive in a batch (AFTER sampling)
+      # Number of operations sent to Hive in a batch (AFTER sampling).
       buffer_size: 50,
-      # size of the queue used to send operations to the buffer before sampling
+      # Size of the queue used to send operations to the buffer before sampling.
       queue_size: 1000,
-      # report usage to hive
+      # Report usage to Hive.
       collect_usage: true,
-      # Usage sampling configurations
+      # Usage sampling configurations.
       collect_usage_sampling: {
-        # % of operations recorded
+        # % of operations recorded.
         sample_rate: 0.5,
-        # custom sampler to assign custom sampling rates
+        # Custom sampler to assign custom sampling rates.
         sampler: proc { |context| context.operation_name.includes?('someQuery') 1 : 0.5 },
-        # sample every distinct operation at least once
+        # Sample every distinct operation at least once.
         at_least_once: true,
-        # assign custom keys to distinguish between distinct operations
+        # Assign custom keys to distinguish between distinct operations.
         key_generator: proc { |context| context.operation_name }
       },
-      # publish schema to Hive
+      # Publish schema to Hive.
       report_schema: true,
-      # mandatory if `report_schema: true`
+      # Mandatory if `report_schema: true`.
       reporting: {
-        # mandatory members of `reporting`
+        # Mandatory members of `reporting`.
         author: 'Author of the latest change',
         commit: 'git sha or any identifier',
-        # optional members of `reporting
+        # Optional members of `reporting`.
         service_name: '',
         service_url: '',
       },
 
-       # pass an optional proc to client_info to help identify the client (ex: Apollo web app) that performed the query
+      # Pass an optional proc to client_info to help identify the client (ex: Apollo web app) that performed the query.
       client_info: proc { |context|
         { name: context.client_name, version: context.client_version }
       }
