@@ -1,0 +1,251 @@
+---
+http_interactions:
+  - request:
+      method: post
+      uri: https://app.graphql-hive.com/usage
+      body:
+        encoding: UTF-8
+        string:
+          '{"size":5,"map":{"92c5ca035dc4ee9a7347ffb368cd9ffb":{"fields":["Query","Query.post","ID","Query.post.id","Post","Post.title","Post.id"],"operationName":"GetPost","operation":"query
+          GetPost($id: ID!) {\n  post(id: $id) {\n    id\n    title\n  }\n}"}},"operations":[{"operationMapKey":"92c5ca035dc4ee9a7347ffb368cd9ffb","timestamp":1730396177146,"execution":{"ok":true,"duration":675999,"errorsTotal":0}},{"operationMapKey":"92c5ca035dc4ee9a7347ffb368cd9ffb","timestamp":1730396177149,"execution":{"ok":true,"duration":256999,"errorsTotal":0}},{"operationMapKey":"92c5ca035dc4ee9a7347ffb368cd9ffb","timestamp":1730396177150,"execution":{"ok":true,"duration":200000,"errorsTotal":0}},{"operationMapKey":"92c5ca035dc4ee9a7347ffb368cd9ffb","timestamp":1730396177150,"execution":{"ok":true,"duration":2840000,"errorsTotal":0}},{"operationMapKey":"92c5ca035dc4ee9a7347ffb368cd9ffb","timestamp":1730396177153,"execution":{"ok":true,"duration":196999,"errorsTotal":0}}]}'
+      headers:
+        Accept-Encoding:
+          - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+        Accept:
+          - "*/*"
+        User-Agent:
+          - Hive@0.5.1
+        Authorization:
+          - fake-token
+        X-Usage-Api-Version:
+          - "2"
+        Content-Type:
+          - application/json
+        Graphql-Client-Name:
+          - Hive Ruby Client
+        Graphql-Client-Version:
+          - 0.5.1
+    response:
+      status:
+        code: 200
+        message: OK
+      headers:
+        Date:
+          - Thu, 31 Oct 2024 17:36:17 GMT
+        Content-Type:
+          - application/json; charset=utf-8
+        Transfer-Encoding:
+          - chunked
+        Connection:
+          - keep-alive
+        Access-Control-Allow-Origin:
+          - "*"
+        X-Envoy-Upstream-Service-Time:
+          - "5"
+        Set-Cookie:
+          - X-Contour-Session-Affinity="a0093bdb9ab204eb"; Path=/; HttpOnly
+        Vary:
+          - Accept-Encoding
+        Cf-Cache-Status:
+          - DYNAMIC
+        Report-To:
+          - '{"endpoints":[{"url":"https:\/\/a.nel.cloudflare.com\/report\/v4?s=eYLQ2q7Fd6xW%2FonL9EGivHwlZ%2FcYnFcm6o8dzMwMxaQNKDa2wJlkDKtF89jNmpgadjv1QK5vLi1TCAs7h6iUrtJ2Zc66tkmgt5bNn3WnTKCLkFTpkQunOR9JWFZ1im7upgK3TFQe"}],"group":"cf-nel","max_age":604800}'
+        Nel:
+          - '{"success_fraction":0,"report_to":"cf-nel","max_age":604800}'
+        Server:
+          - cloudflare
+        Cf-Ray:
+          - 8db5680bcb0ea27f-YUL
+        Server-Timing:
+          - cfL4;desc="?proto=TCP&rtt=11780&sent=4&recv=7&lost=0&retrans=0&sent_bytes=2345&recv_bytes=1939&delivery_rate=268732&cwnd=244&unsent_bytes=0&cid=7245de9051890998&ts=59&x=0"
+      body:
+        encoding: ASCII-8BIT
+        string: '{"id":"ffcb6fee-0350-4afc-b84e-94ad3899b592","operations":{"rejected":0,"accepted":5}}'
+    recorded_at: Thu, 31 Oct 2024 17:36:17 GMT
+  - request:
+      method: post
+      uri: https://app.graphql-hive.com/usage
+      body:
+        encoding: UTF-8
+        string:
+          '{"size":5,"map":{"92c5ca035dc4ee9a7347ffb368cd9ffb":{"fields":["Query","Query.post","ID","Query.post.id","Post","Post.title","Post.id"],"operationName":"GetPost","operation":"query
+          GetPost($id: ID!) {\n  post(id: $id) {\n    id\n    title\n  }\n}"}},"operations":[{"operationMapKey":"92c5ca035dc4ee9a7347ffb368cd9ffb","timestamp":1730396177155,"execution":{"ok":true,"duration":242000,"errorsTotal":0}},{"operationMapKey":"92c5ca035dc4ee9a7347ffb368cd9ffb","timestamp":1730396177156,"execution":{"ok":true,"duration":215000,"errorsTotal":0}},{"operationMapKey":"92c5ca035dc4ee9a7347ffb368cd9ffb","timestamp":1730396177156,"execution":{"ok":true,"duration":194999,"errorsTotal":0}},{"operationMapKey":"92c5ca035dc4ee9a7347ffb368cd9ffb","timestamp":1730396177157,"execution":{"ok":true,"duration":191999,"errorsTotal":0}},{"operationMapKey":"92c5ca035dc4ee9a7347ffb368cd9ffb","timestamp":1730396177158,"execution":{"ok":true,"duration":192000,"errorsTotal":0}}]}'
+      headers:
+        Accept-Encoding:
+          - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+        Accept:
+          - "*/*"
+        User-Agent:
+          - Hive@0.5.1
+        Authorization:
+          - fake-token
+        X-Usage-Api-Version:
+          - "2"
+        Content-Type:
+          - application/json
+        Graphql-Client-Name:
+          - Hive Ruby Client
+        Graphql-Client-Version:
+          - 0.5.1
+    response:
+      status:
+        code: 200
+        message: OK
+      headers:
+        Date:
+          - Thu, 31 Oct 2024 17:36:17 GMT
+        Content-Type:
+          - application/json; charset=utf-8
+        Transfer-Encoding:
+          - chunked
+        Connection:
+          - keep-alive
+        Access-Control-Allow-Origin:
+          - "*"
+        X-Envoy-Upstream-Service-Time:
+          - "0"
+        Set-Cookie:
+          - X-Contour-Session-Affinity="88adc31a49ef0838"; Path=/; HttpOnly
+        Vary:
+          - Accept-Encoding
+        Cf-Cache-Status:
+          - DYNAMIC
+        Report-To:
+          - '{"endpoints":[{"url":"https:\/\/a.nel.cloudflare.com\/report\/v4?s=MI0AAp%2FSjJHIUfwbfuOQ21IjJoaMg62v8KwS7VubKuw2O4YQr0MvQDwWxbXgasPJrn3tXtb838bjAmfbYJ9MITls2eDJb1upLSkckPMSN%2BTKOnToI9LWTHlWOmm3WoByrTubw5Hh"}],"group":"cf-nel","max_age":604800}'
+        Nel:
+          - '{"success_fraction":0,"report_to":"cf-nel","max_age":604800}'
+        Server:
+          - cloudflare
+        Cf-Ray:
+          - 8db5680c4bbb33ee-YUL
+        Server-Timing:
+          - cfL4;desc="?proto=TCP&rtt=11571&sent=5&recv=7&lost=0&retrans=0&sent_bytes=2347&recv_bytes=1938&delivery_rate=307792&cwnd=250&unsent_bytes=0&cid=0f827004a506bf18&ts=56&x=0"
+      body:
+        encoding: ASCII-8BIT
+        string: '{"id":"31000631-075a-48a6-a0b0-f324cd0e85f5","operations":{"rejected":0,"accepted":5}}'
+    recorded_at: Thu, 31 Oct 2024 17:36:17 GMT
+  - request:
+      method: post
+      uri: https://app.graphql-hive.com/usage
+      body:
+        encoding: UTF-8
+        string:
+          '{"size":5,"map":{"92c5ca035dc4ee9a7347ffb368cd9ffb":{"fields":["Query","Query.post","ID","Query.post.id","Post","Post.title","Post.id"],"operationName":"GetPost","operation":"query
+          GetPost($id: ID!) {\n  post(id: $id) {\n    id\n    title\n  }\n}"}},"operations":[{"operationMapKey":"92c5ca035dc4ee9a7347ffb368cd9ffb","timestamp":1730396177159,"execution":{"ok":true,"duration":184999,"errorsTotal":0}},{"operationMapKey":"92c5ca035dc4ee9a7347ffb368cd9ffb","timestamp":1730396177160,"execution":{"ok":true,"duration":190999,"errorsTotal":0}},{"operationMapKey":"92c5ca035dc4ee9a7347ffb368cd9ffb","timestamp":1730396177160,"execution":{"ok":true,"duration":191999,"errorsTotal":0}},{"operationMapKey":"92c5ca035dc4ee9a7347ffb368cd9ffb","timestamp":1730396177161,"execution":{"ok":true,"duration":2338999,"errorsTotal":0}},{"operationMapKey":"92c5ca035dc4ee9a7347ffb368cd9ffb","timestamp":1730396177164,"execution":{"ok":true,"duration":200000,"errorsTotal":0}}]}'
+      headers:
+        Accept-Encoding:
+          - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+        Accept:
+          - "*/*"
+        User-Agent:
+          - Hive@0.5.1
+        Authorization:
+          - fake-token
+        X-Usage-Api-Version:
+          - "2"
+        Content-Type:
+          - application/json
+        Graphql-Client-Name:
+          - Hive Ruby Client
+        Graphql-Client-Version:
+          - 0.5.1
+    response:
+      status:
+        code: 200
+        message: OK
+      headers:
+        Date:
+          - Thu, 31 Oct 2024 17:36:17 GMT
+        Content-Type:
+          - application/json; charset=utf-8
+        Transfer-Encoding:
+          - chunked
+        Connection:
+          - keep-alive
+        Access-Control-Allow-Origin:
+          - "*"
+        X-Envoy-Upstream-Service-Time:
+          - "1"
+        Set-Cookie:
+          - X-Contour-Session-Affinity="a3ca202a6b9f3a80"; Path=/; HttpOnly
+        Vary:
+          - Accept-Encoding
+        Cf-Cache-Status:
+          - DYNAMIC
+        Report-To:
+          - '{"endpoints":[{"url":"https:\/\/a.nel.cloudflare.com\/report\/v4?s=xoKZ0I9dT8l5I%2BfurUfVjTqTlr9u1b0H2NVKPkQqhBVYMWcSjPTvQXBLiiKhisA5r44%2BiVVV0B%2BC7bs3uMag8cYDdW8oQHIV%2B2HhfB%2BfVYtxmQ3kLQijRfsXpR9CFIAyHdwpEQ6f"}],"group":"cf-nel","max_age":604800}'
+        Nel:
+          - '{"success_fraction":0,"report_to":"cf-nel","max_age":604800}'
+        Server:
+          - cloudflare
+        Cf-Ray:
+          - 8db5680ccb82a2c4-YUL
+        Server-Timing:
+          - cfL4;desc="?proto=TCP&rtt=10641&sent=4&recv=7&lost=0&retrans=0&sent_bytes=2347&recv_bytes=1939&delivery_rate=235781&cwnd=241&unsent_bytes=0&cid=8daa35148ceb356e&ts=63&x=0"
+      body:
+        encoding: ASCII-8BIT
+        string: '{"id":"15d445a6-6e61-4c09-beaf-09d259c2be0f","operations":{"rejected":0,"accepted":5}}'
+    recorded_at: Thu, 31 Oct 2024 17:36:17 GMT
+  - request:
+      method: post
+      uri: https://app.graphql-hive.com/usage
+      body:
+        encoding: UTF-8
+        string:
+          '{"size":5,"map":{"92c5ca035dc4ee9a7347ffb368cd9ffb":{"fields":["Query","Query.post","ID","Query.post.id","Post","Post.title","Post.id"],"operationName":"GetPost","operation":"query
+          GetPost($id: ID!) {\n  post(id: $id) {\n    id\n    title\n  }\n}"}},"operations":[{"operationMapKey":"92c5ca035dc4ee9a7347ffb368cd9ffb","timestamp":1730396177165,"execution":{"ok":true,"duration":188999,"errorsTotal":0}},{"operationMapKey":"92c5ca035dc4ee9a7347ffb368cd9ffb","timestamp":1730396177167,"execution":{"ok":true,"duration":652999,"errorsTotal":0}},{"operationMapKey":"92c5ca035dc4ee9a7347ffb368cd9ffb","timestamp":1730396177172,"execution":{"ok":true,"duration":1209000,"errorsTotal":0}},{"operationMapKey":"92c5ca035dc4ee9a7347ffb368cd9ffb","timestamp":1730396177177,"execution":{"ok":true,"duration":303999,"errorsTotal":0}},{"operationMapKey":"92c5ca035dc4ee9a7347ffb368cd9ffb","timestamp":1730396177178,"execution":{"ok":true,"duration":211999,"errorsTotal":0}}]}'
+      headers:
+        Accept-Encoding:
+          - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+        Accept:
+          - "*/*"
+        User-Agent:
+          - Hive@0.5.1
+        Authorization:
+          - fake-token
+        X-Usage-Api-Version:
+          - "2"
+        Content-Type:
+          - application/json
+        Graphql-Client-Name:
+          - Hive Ruby Client
+        Graphql-Client-Version:
+          - 0.5.1
+    response:
+      status:
+        code: 200
+        message: OK
+      headers:
+        Date:
+          - Thu, 31 Oct 2024 17:36:17 GMT
+        Content-Type:
+          - application/json; charset=utf-8
+        Transfer-Encoding:
+          - chunked
+        Connection:
+          - keep-alive
+        Access-Control-Allow-Origin:
+          - "*"
+        X-Envoy-Upstream-Service-Time:
+          - "0"
+        Set-Cookie:
+          - X-Contour-Session-Affinity="0c971cf207daa737"; Path=/; HttpOnly
+        Vary:
+          - Accept-Encoding
+        Cf-Cache-Status:
+          - DYNAMIC
+        Report-To:
+          - '{"endpoints":[{"url":"https:\/\/a.nel.cloudflare.com\/report\/v4?s=V%2FZL5t59%2B8QLNifv%2F3db7%2BG81EgGZyraqNHunnSFSqsAA9qPlby2tuC2rvC1gT%2FUum3Mj2Gt8Zz7pgEuR%2BL9QDwvbXH3q%2BlGBCquIg2p2EaEQ%2BKjJZW8GvWqR8uYeTZkDnIyti13"}],"group":"cf-nel","max_age":604800}'
+        Nel:
+          - '{"success_fraction":0,"report_to":"cf-nel","max_age":604800}'
+        Server:
+          - cloudflare
+        Cf-Ray:
+          - 8db5680d5bc7a24e-YUL
+        Server-Timing:
+          - cfL4;desc="?proto=TCP&rtt=11326&sent=5&recv=7&lost=0&retrans=0&sent_bytes=2344&recv_bytes=1939&delivery_rate=246255&cwnd=243&unsent_bytes=0&cid=bcc97bddaede23fd&ts=53&x=0"
+      body:
+        encoding: ASCII-8BIT
+        string: '{"id":"26a8e735-e8c8-4d4c-9b63-b8afc1ca3b25","operations":{"rejected":0,"accepted":5}}'
+    recorded_at: Thu, 31 Oct 2024 17:36:17 GMT
+recorded_with: VCR 6.3.1
