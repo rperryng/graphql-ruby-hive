@@ -361,21 +361,21 @@ RSpec.describe "GraphQL::Hive::Analyzer" do
       }
       |
     end
-    
+
     it "collects all valid fields and excludes invalid fields" do
       expect(used_fields).to include(
         "Query",
         "Query.projectsByManyTypes",
         "ProjectType",
         "Query.projectsByManyTypes.type",
-        "ProjectType.STITCHING",
+        "ProjectType.STITCHING"
       )
       expect(used_fields).not_to include(
-        "Query.nonExistentField", 
+        "Query.nonExistentField",
         "nonExistentField.subField"
       )
     end
-  
+
     it "does not raise an error when encountering an invalid field" do
       expect { used_fields }.not_to raise_error
     end
