@@ -10,8 +10,11 @@ module GraphQL
       end
 
       def on_enter_field(node, _parent, visitor)
-        @used_fields.add(visitor.parent_type_definition.graphql_name)
-        @used_fields.add(make_id(visitor.parent_type_definition.graphql_name, node.name))
+        parent_type = visitor.parent_type_definition
+        if parent_type&.respond_to?(:graphql_name) && parent_type.fields[node.name]
+          @used_fields.add(parent_type.graphql_name)
+          @used_fields.add(make_id(parent_type.graphql_name, node.name))
+        end
       end
 
       # Visitor also calls 'on_enter_argument' when visiting input object fields in arguments
