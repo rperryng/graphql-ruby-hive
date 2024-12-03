@@ -24,6 +24,10 @@ module GraphQL
         request = build_request(uri, body)
         response = http.request(request)
 
+        if response.code.to_i != 200
+          @options[:logger].warn("Unsuccessful response: #{response.code} - #{response.body}")
+        end
+
         @options[:logger].debug(response.inspect)
         @options[:logger].debug(response.body.inspect)
       rescue => e
