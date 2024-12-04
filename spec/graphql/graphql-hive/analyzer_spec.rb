@@ -349,4 +349,27 @@ RSpec.describe "GraphQL::Hive::Analyzer" do
       )
     end
   end
+
+  context "with an invalid field" do
+    let(:query_string) do
+      <<~GQL
+        query getGatewayProjects {
+          projectsByManyTypes(type: [STITCHING]),
+          nonExistentField {
+            subField
+          }
+        }
+      GQL
+    end
+
+    it "collects all valid fields and excludes invalid fields" do
+      expect(used_fields).to contain_exactly(
+        "Query",
+        "Query.projectsByManyTypes",
+        "ProjectType",
+        "Query.projectsByManyTypes.type",
+        "ProjectType.STITCHING"
+      )
+    end
+  end
 end
