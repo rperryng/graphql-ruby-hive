@@ -57,8 +57,8 @@ module GraphQL
 
       def extract_error_details(response)
         parsed_body = JSON.parse(response.body)
-        return unless parsed_body.is_a?(Hash) && parsed_body['errors'].is_a?(Array)
-        parsed_body['errors'].map { |error| "path: #{error['path']}, message: #{error['message']}" }.join(", ")
+        return unless parsed_body.is_a?(Hash) && parsed_body["errors"].is_a?(Array)
+        parsed_body["errors"].map { |error| "path: #{error["path"]}, message: #{error["message"]}" }.join(", ")
       rescue JSON::ParserError
         nil
       end
