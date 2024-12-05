@@ -382,7 +382,7 @@ RSpec.describe "GraphQL::Hive::Analyzer" do
         "Query",
         "Query.searchResult",
         "Query.searchResult.query",
-        "SearchResult", 
+        "SearchResult",
         "SearchResult.nonExistentField",
         "Project",
         "Project.id",
