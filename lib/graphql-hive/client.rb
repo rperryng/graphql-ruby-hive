@@ -23,6 +23,12 @@ module GraphQL
         http = setup_http(uri)
         request = build_request(uri, body)
         response = http.request(request)
+        code = response.code.to_i
+        if code >= 400 && code < 500
+          error_message = "Unsuccessful response: #{response.code} - #{response.message}"
+          extract_error_details(response)&.then { |details| error_message += ": [#{details}]" }
+          @options[:logger].warn(error_message)
+        end
 
         @options[:logger].debug(response.inspect)
         @options[:logger].debug(response.body.inspect)
@@ -47,6 +53,14 @@ module GraphQL
         request["graphql-client-version"] = Graphql::Hive::VERSION
         request.body = JSON.generate(body)
         request
+      end
+
+      def extract_error_details(response)
+        parsed_body = JSON.parse(response.body)
+        return unless parsed_body.is_a?(Hash) && parsed_body["errors"].is_a?(Array)
+        parsed_body["errors"].map { |error| "path: #{error["path"]}, message: #{error["message"]}" }.join(", ")
+      rescue JSON::ParserError
+        nil
       end
     end
   end
