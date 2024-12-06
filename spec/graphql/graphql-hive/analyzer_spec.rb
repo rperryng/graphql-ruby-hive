@@ -16,70 +16,75 @@ RSpec.describe "GraphQL::Hive::Analyzer" do
   end
 
   let(:schema) do
-    GraphQL::Schema.from_definition(%|
-      type Query {
-        project(selector: ProjectSelectorInput!): Project
-        projectsByType(type: ProjectType!): [Project!]!
-        projectsByManyTypes(type: [ProjectType!]!): [Project!]!
-        projects(filter: FilterInput): [Project!]!
-      }
+    GraphQL::Schema.from_definition(
+      <<~GQL
+        type Query {
+          project(selector: ProjectSelectorInput!): Project
+          projectsByType(type: ProjectType!): [Project!]!
+          projectsByManyTypes(type: [ProjectType!]!): [Project!]!
+          projects(filter: FilterInput): [Project!]!
+          searchResult(query: String!): SearchResult
+        }
 
-      type Mutation {
-        deleteProject(selector: ProjectSelectorInput!): DeleteProjectPayload!
-      }
+        type Mutation {
+          deleteProject(selector: ProjectSelectorInput!): DeleteProjectPayload!
+        }
 
-      input ProjectSelectorInput {
-        organization: ID!
-        project: ID!
-      }
+        input ProjectSelectorInput {
+          organization: ID!
+          project: ID!
+        }
 
-      input FilterInput {
-        type: ProjectType
-        pagination: PaginationInput
-        order: [ProjectOrderByInput!]
-      }
+        input FilterInput {
+          type: ProjectType
+          pagination: PaginationInput
+          order: [ProjectOrderByInput!]
+        }
 
-      input PaginationInput {
-        limit: Int
-        offset: Int
-      }
+        input PaginationInput {
+          limit: Int
+          offset: Int
+        }
 
-      input ProjectOrderByInput {
-        field: String!
-        direction: OrderDirection
-      }
+        input ProjectOrderByInput {
+          field: String!
+          direction: OrderDirection
+        }
 
-      enum OrderDirection {
-        ASC
-        DESC
-      }
+        enum OrderDirection {
+          ASC
+          DESC
+        }
 
-      type ProjectSelector {
-        organization: ID!
-        project: ID!
-      }
+        type ProjectSelector {
+          organization: ID!
+          project: ID!
+        }
 
-      type DeleteProjectPayload {
-        selector: ProjectSelector!
-        deletedProject: Project!
-      }
+        type DeleteProjectPayload {
+          selector: ProjectSelector!
+          deletedProject: Project!
+        }
 
-      type Project {
-        id: ID!
-        cleanId: ID!
-        name: String!
-        type: ProjectType!
-        buildUrl: String
-        validationUrl: String
-      }
+        type Project {
+          id: ID!
+          cleanId: ID!
+          name: String!
+          type: ProjectType!
+          buildUrl: String
+          validationUrl: String
+        }
 
-      enum ProjectType {
-        FEDERATION
-        STITCHING
-        SINGLE
-        CUSTOM
-      }
-    |)
+        enum ProjectType {
+          FEDERATION
+          STITCHING
+          SINGLE
+          CUSTOM
+        }
+
+        union SearchResult = Project | ProjectSelector
+      GQL
+    )
   end
 
   let(:query_string) do
@@ -350,11 +355,51 @@ RSpec.describe "GraphQL::Hive::Analyzer" do
     end
   end
 
+  context "with a query containing a union type" do
+    let(:query_string) do
+      <<~GQL
+        query searchProjects {
+          searchResult(query: $query) {
+            __typename
+            ... on Project {
+              id
+            }
+            ... on ProjectSelector {
+              organization
+            }
+          }
+        }
+      GQL
+    end
+
+    it "collects all valid fields from union types" do
+      expect(used_fields).to contain_exactly(
+        "Query",
+        "Query.searchResult",
+        "Query.searchResult.query",
+        "SearchResult",
+        "SearchResult.__typename",
+        "Project",
+        "Project.id",
+        "ProjectSelector",
+        "ProjectSelector.organization",
+        "String"
+      )
+    end
+  end
+
   context "with an invalid field" do
     let(:query_string) do
       <<~GQL
         query getGatewayProjects {
-          projectsByManyTypes(type: [STITCHING]),
+          searchResult(query: $query) {
+            nonExistentField {
+              subField
+            }
+            ... on Project {
+              id
+            }
+          }
           nonExistentField {
             subField
           }
@@ -365,10 +410,14 @@ RSpec.describe "GraphQL::Hive::Analyzer" do
     it "collects all valid fields and excludes invalid fields" do
       expect(used_fields).to contain_exactly(
         "Query",
-        "Query.projectsByManyTypes",
-        "ProjectType",
-        "Query.projectsByManyTypes.type",
-        "ProjectType.STITCHING"
+        "Query.searchResult",
+        "Query.searchResult.query",
+        "SearchResult",
+        "SearchResult.nonExistentField",
+        "Project",
+        "Project.id",
+        "Query.nonExistentField",
+        "String"
       )
     end
   end
