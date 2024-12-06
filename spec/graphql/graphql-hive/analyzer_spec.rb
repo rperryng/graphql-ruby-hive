@@ -355,7 +355,40 @@ RSpec.describe "GraphQL::Hive::Analyzer" do
     end
   end
 
-  context "with invalid fields" do
+  context "with a query containing a union type" do
+    let(:query_string) do
+      <<~GQL
+        query searchProjects {
+          searchResult(query: $query) {
+            __typename
+            ... on Project {
+              id
+            }
+            ... on ProjectSelector {
+              organization
+            }
+          }
+        }
+      GQL
+    end
+
+    it "collects all valid fields from union types" do
+      expect(used_fields).to contain_exactly(
+        "Query",
+        "Query.searchResult",
+        "Query.searchResult.query",
+        "SearchResult", 
+        "SearchResult.__typename",
+        "Project",
+        "Project.id",
+        "ProjectSelector",
+        "ProjectSelector.organization",
+        "String"
+      )
+    end
+  end
+
+  context "with an invalid field" do
     let(:query_string) do
       <<~GQL
         query getGatewayProjects {
@@ -365,9 +398,6 @@ RSpec.describe "GraphQL::Hive::Analyzer" do
             }
             ... on Project {
               id
-            }
-            ... on ProjectSelector {
-              organization
             }
           }
           nonExistentField {
@@ -386,8 +416,6 @@ RSpec.describe "GraphQL::Hive::Analyzer" do
         "SearchResult.nonExistentField",
         "Project",
         "Project.id",
-        "ProjectSelector",
-        "ProjectSelector.organization",
         "Query.nonExistentField",
         "String"
       )
