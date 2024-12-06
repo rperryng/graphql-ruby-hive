@@ -23,8 +23,8 @@ module GraphQL
         http = setup_http(uri)
         request = build_request(uri, body)
         response = http.request(request)
-
-        if response.code.to_i >= 400 && response.code.to_i < 500
+        code = response.code.to_i
+        if code >= 400 && code < 500
           error_message = "Unsuccessful response: #{response.code} - #{response.message}"
           extract_error_details(response)&.then { |details| error_message += ": [#{details}]" }
           @options[:logger].warn(error_message)
