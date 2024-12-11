@@ -25,7 +25,7 @@ RSpec.describe GraphQL::Hive::Client do
   describe "#send" do
     let(:http) { instance_double(Net::HTTP) }
     let(:request) { instance_double(Net::HTTP::Post) }
-    let(:response) { instance_double(Net::HTTPOK, body: "", code: "200") }
+    let(:response) { instance_double(Net::HTTPOK, body: "", code: "200", message: "OK") }
 
     before do
       allow(Net::HTTP).to receive(:new).and_return(http)
