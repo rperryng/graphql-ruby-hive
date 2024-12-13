@@ -32,8 +32,8 @@ module GraphQL
           @options[:logger].warn(error_message)
         end
 
-        @options[:logger].info(response.inspect)
-        @options[:logger].info(response.body.inspect)
+        @options[:logger].debug(response.inspect)
+        @options[:logger].debug(response.body.inspect)
       rescue => e
         @options[:logger].fatal("Failed to send data: #{e}")
       end
