@@ -23,7 +23,6 @@ module GraphQL
         http = setup_http(uri)
         request = build_request(uri, body)
         response = http.request(request)
-        @options[:logger].info("Response: #{response.code} - #{response.message}")
 
         code = response.code.to_i
         if code >= 400 && code < 500
