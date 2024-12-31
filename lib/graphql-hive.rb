@@ -10,6 +10,7 @@ require "graphql-hive/client"
 require "graphql-hive/sampler"
 require "graphql-hive/sampling/basic_sampler"
 require "graphql-hive/sampling/dynamic_sampler"
+require "graphql-hive/schema_reporter"
 require "graphql"
 
 module GraphQL
@@ -17,14 +18,6 @@ module GraphQL
   class Hive < GraphQL::Tracing::PlatformTracing
     @@schema = nil
     @@instance = nil
-
-    REPORT_SCHEMA_MUTATION = <<~MUTATION
-      mutation schemaPublish($input: SchemaPublishInput!) {
-        schemaPublish(input: $input) {
-          __typename
-        }
-      }
-    MUTATION
 
     DEFAULT_OPTIONS = {
       enabled: true,
@@ -60,7 +53,7 @@ module GraphQL
       @client = GraphQL::Hive::Client.new(opts)
       @usage_reporter = GraphQL::Hive::UsageReporter.new(opts, @client)
 
-      send_report_schema(@@schema) if @@schema && opts[:report_schema] && @options[:enabled]
+      send_report_schema if @@schema && opts[:report_schema] && @options[:enabled]
     end
 
     def self.instance
@@ -169,25 +162,10 @@ module GraphQL
       @usage_reporter.add_operation([timestamp, queries, results, duration])
     end
 
-    def send_report_schema(schema)
-      sdl = GraphQL::Schema::Printer.new(schema).print_schema
-
-      body = {
-        query: REPORT_SCHEMA_MUTATION,
-        operationName: "schemaPublish",
-        variables: {
-          input: {
-            sdl: sdl,
-            author: @options[:reporting][:author],
-            commit: @options[:reporting][:commit],
-            service: @options[:reporting][:service_name],
-            url: @options[:reporting][:service_url],
-            force: true
-          }
-        }
-      }
-
-      @client.send(:"/registry", body, :"report-schema")
+    def send_report_schema
+      sdl = GraphQL::Schema::Printer.new(@sschema).print_schema
+      reporter = SchemaReporter.new(sdl, @client, @options[:reporting])
+      reporter.send_report
     end
   end
 end
