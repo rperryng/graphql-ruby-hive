@@ -67,26 +67,35 @@ module GraphQL
 
     # called on trace events
     def platform_trace(platform_key, _key, data)
-      return yield unless @options[:enabled] && @options[:collect_usage]
+      return yield unless should_collect_usage?
+      return yield unless platform_key == "execute_multiplex"
+      return yield unless data[:multiplex]
 
-      if platform_key == "execute_multiplex"
-        if data[:multiplex]
-          queries = data[:multiplex].queries
-          timestamp = (Time.now.utc.to_f * 1000).to_i
-          starting = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-          results = yield
-          ending = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-          elapsed = ending - starting
-          duration = (elapsed.to_f * (10**9)).to_i
+      queries = data[:multiplex].queries
+      return yield if queries.empty?
 
-          report_usage(timestamp, queries, results, duration) unless queries.empty?
-          results
-        else
-          yield
-        end
-      else
-        yield
-      end
+      timestamp = generate_timestamp
+      results, duration = measure_execution { yield }
+
+      report_usage(timestamp, queries, results, duration)
+      results
+    end
+
+    def should_collect_usage?
+      @options[:enabled] && @options[:collect_usage]
+    end
+
+    def generate_timestamp
+      (Time.now.utc.to_f * 1000).to_i
+    end
+
+    def measure_execution
+      starting = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+      results = yield
+      ending = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+      duration = ((ending - starting) * (10**9)).to_i
+
+      [results, duration]
     end
 
     # compat
