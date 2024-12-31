@@ -18,9 +18,6 @@ module GraphQL
     @@schema = nil
     @@instance = nil
 
-    @usage_reporter = nil
-    @client = nil
-
     REPORT_SCHEMA_MUTATION = <<~MUTATION
       mutation schemaPublish($input: SchemaPublishInput!) {
         schemaPublish(input: $input) {
@@ -62,13 +59,6 @@ module GraphQL
 
       @client = GraphQL::Hive::Client.new(opts)
       @usage_reporter = GraphQL::Hive::UsageReporter.new(opts, @client)
-
-      # buffer
-      @report = {
-        size: 0,
-        map: {},
-        operations: []
-      }
 
       send_report_schema(@@schema) if @@schema && opts[:report_schema] && @options[:enabled]
     end
@@ -132,33 +122,47 @@ module GraphQL
     private
 
     def initialize_options!(options)
-      if options[:logger].nil?
-        options[:logger] = Logger.new($stderr)
-        original_formatter = Logger::Formatter.new
-        options[:logger].formatter = proc { |severity, datetime, progname, msg|
-          msg = msg.respond_to?(:dump) ? msg.dump : msg
-          original_formatter.call(severity, datetime, progname, "[hive] #{msg}")
-        }
-        options[:logger].level = options[:debug] ? Logger::DEBUG : Logger::INFO
-      end
-      if !options.include?(:token) && (!options.include?(:enabled) || options.enabled)
+      setup_logger(options) if options[:logger].nil?
+      return false if missing_token?(options)
+      return false if missing_reporting_info?(options)
+      true
+    end
+
+    private
+
+    def setup_logger(options)
+      options[:logger] = Logger.new($stderr)
+      original_formatter = Logger::Formatter.new
+
+      options[:logger].formatter = proc { |severity, datetime, progname, msg|
+        msg = msg.respond_to?(:dump) ? msg.dump : msg
+        original_formatter.call(severity, datetime, progname, "[hive] #{msg}")
+      }
+
+      options[:logger].level = options[:debug] ? Logger::DEBUG : Logger::INFO
+    end
+
+    def missing_token?(options)
+      if !options.include?(:token) && options.dig(:enabled)
         options[:logger].warn("`token` options is missing")
         options[:enabled] = false
-        false
-      elsif options[:report_schema] &&
-          (
-            !options.include?(:reporting) ||
-            (
-              options.include?(:reporting) && (
-                !options[:reporting].include?(:author) || !options[:reporting].include?(:commit)
-              )
-            )
-          )
-
-        options[:logger].warn("`reporting.author` and `reporting.commit` options are required")
-        false
+        return true
       end
-      true
+      false
+    end
+
+    def missing_reporting_info?(options)
+      return false unless options[:report_schema]
+
+      missing_reporting = !options.include?(:reporting)
+      missing_author_or_commit = options[:reporting] &&
+        (!options[:reporting].include?(:author) || !options[:reporting].include?(:commit))
+
+      if missing_reporting || missing_author_or_commit
+        options[:logger].warn("`reporting.author` and `reporting.commit` options are required")
+        return true
+      end
+      false
     end
 
     def report_usage(timestamp, queries, results, duration)
@@ -186,8 +190,4 @@ module GraphQL
       @client.send(:"/registry", body, :"report-schema")
     end
   end
-end
-
-at_exit do
-  GraphQL::Hive.instance&.on_exit
 end
