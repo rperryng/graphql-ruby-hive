@@ -25,7 +25,7 @@ RSpec.describe GraphQL::Hive::Client do
   describe "#send" do
     let(:http) { instance_double(Net::HTTP) }
     let(:request) { instance_double(Net::HTTP::Post) }
-    let(:response) { instance_double(Net::HTTPOK, body: "", code: "200") }
+    let(:response) { instance_double(Net::HTTPOK, body: "", code: "200", message: "OK") }
 
     before do
       allow(Net::HTTP).to receive(:new).and_return(http)
@@ -69,6 +69,44 @@ RSpec.describe GraphQL::Hive::Client do
       allow(http).to receive(:request).and_raise(StandardError.new("Network error"))
       expect(options.logger).to receive(:fatal).with("Failed to send data: Network error")
       expect { client.send(:"/usage", body, :usage) }.not_to raise_error(StandardError, "Network error")
+    end
+
+    context "when the response status code is between 400 and 499" do
+      let(:response) do
+        instance_double(
+          Net::HTTPClientError,
+          body: '{"errors":[{"path":"test1","message":"Error message 1"},{"path":"test2","message":"Error message 2"}]}',
+          code: "400",
+          message: "Bad Request"
+        )
+      end
+
+      before do
+        allow(http).to receive(:request).and_return(response)
+      end
+
+      it "logs a warning with error details" do
+        expect(options.logger).to receive(:warn).with("Unsuccessful response: 400 - Bad Request { path: test1, message: Error message 1 }, { path: test2, message: Error message 2 }")
+        client.send(:"/usage", body, :usage)
+      end
+
+      context "when the response body is not valid JSON" do
+        let(:response) { instance_double(Net::HTTPClientError, body: "Invalid JSON", code: "400", message: "Bad Request") }
+
+        it "logs a warning without error details" do
+          expect(options.logger).to receive(:warn).with("Unsuccessful response: 400 - Bad Request Could not parse response from Hive")
+          client.send(:"/usage", body, :usage)
+        end
+      end
+
+      context "when the response body does not contain errors" do
+        let(:response) { instance_double(Net::HTTPClientError, body: "{}", code: "401", message: "Unauthorized") }
+
+        it "logs a warning without error details" do
+          expect(options.logger).to receive(:warn).with("Unsuccessful response: 401 - Unauthorized ")
+          client.send(:"/usage", body, :usage)
+        end
+      end
     end
   end
 end

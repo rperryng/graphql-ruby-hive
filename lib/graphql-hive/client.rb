@@ -24,6 +24,12 @@ module GraphQL
         request = build_request(uri, body)
         response = http.request(request)
 
+        code = response.code.to_i
+        if code >= 400 && code < 500
+          error_message = "Unsuccessful response: #{response.code} - #{response.message}"
+          @options.logger.warn("#{error_message} #{extract_error_details(response)}")
+        end
+
         @options.logger.debug(response.inspect)
         @options.logger.debug(response.body.inspect)
       rescue => e
@@ -47,6 +53,14 @@ module GraphQL
         request["graphql-client-version"] = Graphql::Hive::VERSION
         request.body = JSON.generate(body)
         request
+      end
+
+      def extract_error_details(response)
+        parsed_body = JSON.parse(response.body)
+        return unless parsed_body.is_a?(Hash) && parsed_body["errors"].is_a?(Array)
+        parsed_body["errors"].map { |error| "{ path: #{error["path"]}, message: #{error["message"]} }" }.join(", ")
+      rescue JSON::ParserError
+        "Could not parse response from Hive"
       end
     end
   end
