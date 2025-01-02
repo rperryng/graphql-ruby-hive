@@ -19,8 +19,8 @@ module GraphQL
         @options = options
         @client = client
         @options_mutex = Mutex.new
-        @sampler = Sampler.new(options[:collect_usage_sampling], options[:logger]) # NOTE: logs for deprecated field
-        @queue = Thread::SizedQueue.new(options[:queue_size])
+        @sampler = Sampler.new(options.collect_usage_sampling, options.logger) # NOTE: logs for deprecated field
+        @queue = Thread::SizedQueue.new(options.queue_size)
 
         start_thread
       end
@@ -28,7 +28,7 @@ module GraphQL
       def add_operation(operation)
         @queue.push(operation, true)
       rescue ThreadError
-        @options[:logger].error("SizedQueue is full, discarding operation. Size: #{@queue.size}, Max: #{@queue.max}")
+        @options.logger.error("SizedQueue is full, discarding operation. Size: #{@queue.size}, Max: #{@queue.max}")
       end
 
       def on_exit
@@ -44,7 +44,7 @@ module GraphQL
 
       def start_thread
         if @thread&.alive?
-          @options[:logger].warn("Tried to start operations flushing thread but it was already alive")
+          @options.logger.warn("Tried to start operations flushing thread but it was already alive")
           return
         end
 
@@ -52,30 +52,30 @@ module GraphQL
           buffer = []
           while (operation = @queue.pop(false))
             begin
-              @options[:logger].debug("processing operation from queue: #{operation}")
+              @options.logger.debug("processing operation from queue: #{operation}")
               buffer << operation if @sampler.sample?(operation)
 
               @options_mutex.synchronize do
-                if buffer.size >= @options[:buffer_size]
-                  @options[:logger].debug("buffer is full, sending!")
+                if buffer.size >= @options.buffer_size
+                  @options.logger.debug("buffer is full, sending!")
                   process_operations(buffer)
                   buffer = []
                 end
               end
             rescue => e
               buffer = []
-              @options[:logger].error(e)
+              @options.logger.error(e)
             end
           end
 
           unless buffer.empty?
-            @options[:logger].debug("shuting down with buffer, sending!")
+            @options.logger.debug("shuting down with buffer, sending!")
             process_operations(buffer)
           end
         rescue => e
           # ensure configured logger receives exception as well in setups where STDERR might not be
           # monitored.
-          @options[:logger].error(e)
+          @options.logger.error(e)
         end
       end
 
@@ -90,7 +90,7 @@ module GraphQL
           add_operation_to_report(report, operation)
         end
 
-        @options[:logger].debug("sending report: #{report}")
+        @options.logger.debug("sending report: #{report}")
 
         @client.send(:"/usage", report, :usage)
       end
@@ -135,7 +135,7 @@ module GraphQL
 
         if results[0]
           context = results[0].query.context
-          operation_record[:metadata] = {client: @options[:client_info].call(context)} if @options[:client_info]
+          operation_record[:metadata] = {client: @options.client_info.call(context)} if @options.client_info
         end
 
         report[:map][operation_map_key] = {
