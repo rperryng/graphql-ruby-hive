@@ -11,6 +11,7 @@ require "graphql-hive/sampler"
 require "graphql-hive/sampling/basic_sampler"
 require "graphql-hive/sampling/dynamic_sampler"
 require "graphql-hive/schema_reporter"
+require "graphql-hive/configuration"
 require "graphql"
 
 module GraphQL
@@ -18,19 +19,6 @@ module GraphQL
   class Hive < GraphQL::Tracing::PlatformTracing
     @@schema = nil
     @@instance = nil
-
-    DEFAULT_OPTIONS = {
-      enabled: true,
-      debug: false,
-      port: "443",
-      collect_usage: true,
-      read_operations: true,
-      report_schema: true,
-      buffer_size: 50,
-      queue_size: 1000,
-      logger: nil,
-      collect_usage_sampling: 1.0
-    }.freeze
 
     self.platform_keys = {
       "lex" => "lex",
@@ -44,16 +32,12 @@ module GraphQL
     }
 
     def initialize(options = {})
-      opts = DEFAULT_OPTIONS.merge(options)
-      initialize_options!(opts)
-      super(opts)
-
+      @configuration = GraphQL::Hive::Configuration.new(options)
+      super
       @@instance = self
-
-      @client = GraphQL::Hive::Client.new(opts)
-      @usage_reporter = GraphQL::Hive::UsageReporter.new(opts, @client)
-
-      send_report_schema if @@schema && opts[:report_schema] && @options[:enabled]
+      @client = GraphQL::Hive::Client.new(@configuration)
+      @usage_reporter = GraphQL::Hive::UsageReporter.new(@configuration, @client)
+      report_schema_to_hive if @@schema && @configuration.report_schema
     end
 
     def self.instance
@@ -82,7 +66,7 @@ module GraphQL
     end
 
     def should_collect_usage?
-      @options[:enabled] && @options[:collect_usage]
+      @configuration.enabled && @configuration.collect_usage
     end
 
     def generate_timestamp
@@ -123,57 +107,13 @@ module GraphQL
 
     private
 
-    def initialize_options!(options)
-      setup_logger(options) if options[:logger].nil?
-      return false if missing_token?(options)
-      return false if missing_reporting_info?(options)
-      true
-    end
-
-    private
-
-    def setup_logger(options)
-      options[:logger] = Logger.new($stderr)
-      original_formatter = Logger::Formatter.new
-
-      options[:logger].formatter = proc { |severity, datetime, progname, msg|
-        msg = msg.respond_to?(:dump) ? msg.dump : msg
-        original_formatter.call(severity, datetime, progname, "[hive] #{msg}")
-      }
-
-      options[:logger].level = options[:debug] ? Logger::DEBUG : Logger::INFO
-    end
-
-    def missing_token?(options)
-      if !options.include?(:token) && options.dig(:enabled)
-        options[:logger].warn("`token` options is missing")
-        options[:enabled] = false
-        return true
-      end
-      false
-    end
-
-    def missing_reporting_info?(options)
-      return false unless options[:report_schema]
-
-      missing_reporting = !options.include?(:reporting)
-      missing_author_or_commit = options[:reporting] &&
-        (!options[:reporting].include?(:author) || !options[:reporting].include?(:commit))
-
-      if missing_reporting || missing_author_or_commit
-        options[:logger].warn("`reporting.author` and `reporting.commit` options are required")
-        return true
-      end
-      false
-    end
-
     def report_usage(timestamp, queries, results, duration)
       @usage_reporter.add_operation([timestamp, queries, results, duration])
     end
 
-    def send_report_schema
+    def report_schema_to_hive
       sdl = GraphQL::Schema::Printer.new(@sschema).print_schema
-      reporter = SchemaReporter.new(sdl, @client, @options[:reporting])
+      reporter = SchemaReporter.new(sdl, @client, @options.reporting)
       reporter.send_report
     end
   end

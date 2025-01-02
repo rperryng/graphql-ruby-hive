@@ -4,7 +4,7 @@ require "spec_helper"
 
 RSpec.describe GraphQL::Hive::UsageReporter do
   let(:usage_reporter_instance) { described_class.new(options, client) }
-  let(:options) { {logger: logger, buffer_size: buffer_size, queue_size: 1000} }
+  let(:options) { GraphQL::Hive::Configuration.new({logger: logger, buffer_size: buffer_size, queue_size: 1000}) }
   let(:logger) { instance_double("Logger") }
   let(:client) { instance_double("Hive::Client") }
   let(:buffer_size) { 1 }
@@ -46,13 +46,19 @@ RSpec.describe GraphQL::Hive::UsageReporter do
     end
 
     describe "when the queue is full" do
-      let(:options) { {logger: logger, buffer_size: 1, queue_size: 1} }
+      let(:options) do
+        GraphQL::Hive::Configuration.new({
+          logger: logger,
+          buffer_size: 1,
+          queue_size: 1
+        })
+      end
 
       it "logs an error" do
         allow(logger).to receive(:error)
         usage_reporter_instance.add_operation("operation 1")
         usage_reporter_instance.add_operation("operation 2")
-        expect(logger).to have_received(:error)
+        expect(logger).to have_received(:error).with("SizedQueue is full, discarding operation. Size: 1, Max: 1")
       end
     end
   end
@@ -89,11 +95,11 @@ RSpec.describe GraphQL::Hive::UsageReporter do
 
     context "when configured with sampling" do
       let(:options) do
-        {
+        GraphQL::Hive::Configuration.new({
           logger: logger,
           buffer_size: 1,
           queue_size: 1000
-        }
+        })
       end
 
       let(:sampler_class) { class_double(GraphQL::Hive::Sampler).as_stubbed_const }
