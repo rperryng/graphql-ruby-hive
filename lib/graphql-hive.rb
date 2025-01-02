@@ -118,3 +118,7 @@ module GraphQL
     end
   end
 end
+
+at_exit do
+  GraphQL::Hive.instance&.on_exit
+end
