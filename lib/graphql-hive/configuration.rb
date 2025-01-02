@@ -31,8 +31,9 @@ module GraphQL
 
       def validate!
         if !@token && @enabled
-          @logger.warn("GraphQL Hive `token` is missing. Disabling Usage Reporting.")
+          @logger.warn("GraphQL Hive `token` is missing. Disabling Reporting.")
           @enabled = false
+          @report_schema = false
         end
         if @report_schema && (@reporting.dig(:author) || !@reporting.dig(:commit))
           @logger.warn("GraphQL Hive `author` and `commit` options are required. Disabling Schema Reporting.")

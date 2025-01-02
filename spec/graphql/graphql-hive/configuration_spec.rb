@@ -76,6 +76,7 @@ RSpec.describe GraphQL::Hive::Configuration do
       subject(:config) { described_class.new(logger: logger) }
       it "disables the service and logs a warning" do
         expect(config.enabled).to be false
+        expect(config.report_schema).to be false
         expect(logger).to have_received(:warn).with(/token.*missing/)
       end
     end
