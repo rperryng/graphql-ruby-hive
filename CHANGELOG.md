@@ -10,3 +10,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Refactored graphql-hive.rb to us a configuration class
 - Refactored graphql-hive.rb to use a separate class for sending the schema to the registry
+- Updated all dependencies to latest versions
