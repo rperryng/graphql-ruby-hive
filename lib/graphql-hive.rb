@@ -76,6 +76,9 @@ module GraphQL
 
       report_usage(timestamp, queries, results, duration)
       results
+    rescue => e
+      @configuration.logger.error(e)
+      yield
     end
 
     def should_collect_usage?
@@ -114,13 +117,14 @@ module GraphQL
       @usage_reporter.on_exit
     end
 
-    def on_start
-      @usage_reporter.on_start
+    def start
+      @usage_reporter.start
     end
 
     private
 
     def report_usage(timestamp, queries, results, duration)
+      @configuration.logger.debug("Reporting usage: #{timestamp}, #{queries}, #{results}, #{duration}")
       @usage_reporter.add_operation([timestamp, queries, results, duration])
     end
 

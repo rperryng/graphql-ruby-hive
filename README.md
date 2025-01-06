@@ -69,7 +69,7 @@ If you only want to use the operations monitoring, replace the `reporting` optio
 Calling these hooks are situational - it's likely that you may not need to call
 them at all!
 
-### `on_start`
+### `start`
 
 Call this hook if you are running `GraphQL::Hive` in a process that `fork`s
 itself.
@@ -82,7 +82,7 @@ mode"](https://github.com/puma/puma/tree/6d8b728b42a61bcf3c1e4c698c9165a45e6071e
 preload_app!
 
 on_worker_boot do
-  GraphQL::Hive.instance.on_start
+  GraphQL::Hive.instance.start
 end
 ```
 
