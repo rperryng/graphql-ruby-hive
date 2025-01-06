@@ -73,7 +73,7 @@ RSpec.describe GraphQL::Hive::Client do
     it "logs a fatal error when an exception is raised" do
       allow(http).to receive(:request).and_raise(StandardError.new("Network error"))
       expect(options.logger).to receive(:fatal).with("Failed to send data: Network error")
-      expect { client.send(:"/usage", body, :usage) }.not_to raise_error(StandardError, "Network error")
+      client.send(:"/usage", body, :usage)
     end
 
     context "when the response status code is between 400 and 499" do
