@@ -15,3 +15,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added Report class to build report
 - Added Processor to run the loop
 - Broke UsageReporter into smaller classes
+- Add `start` and `stop` methods for clarity that they don't accept a block

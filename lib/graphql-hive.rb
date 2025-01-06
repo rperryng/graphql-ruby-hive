@@ -113,13 +113,15 @@ module GraphQL
       "graphql.#{type.name}.#{field.name}"
     end
 
-    def on_exit
-      @usage_reporter.on_exit
+    def stop
+      @usage_reporter.stop
     end
+    alias_method :on_exit, :stop
 
     def start
       @usage_reporter.start
     end
+    alias_method :on_start, :start
 
     private
 
