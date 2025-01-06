@@ -3,6 +3,7 @@
 require "digest"
 require "graphql-hive/analyzer"
 require "graphql-hive/printer"
+require "graphql-hive/processor"
 
 module GraphQL
   class Hive < GraphQL::Tracing::PlatformTracing
@@ -28,7 +29,13 @@ module GraphQL
         end
 
         @thread = Thread.new do
-          process_queue
+          Processor.new(
+            buffer_size: @buffer_size,
+            client: @client,
+            sampler: @sampler,
+            queue: @queue,
+            logger: @logger
+          ).process_queue
         rescue => e
           @logger.error(e)
         end
@@ -40,35 +47,6 @@ module GraphQL
         @thread&.join
       end
       alias_method :on_exit, :stop
-
-      private
-
-      def process_queue
-        buffer = []
-        while (operation = @queue.pop(false))
-          begin
-            @logger.debug("processing operation from queue: #{operation}")
-            buffer << operation if @sampler.sample?(operation)
-
-            if buffer.size >= @buffer_size
-              @logger.debug("buffer is full, sending!")
-              flush_buffer(buffer)
-              buffer = []
-            end
-          rescue => e
-            buffer = []
-            @logger.error(e)
-          end
-        end
-
-        flush_buffer(buffer) unless buffer.empty?
-      end
-
-      def flush_buffer(buffer)
-        report = Report.new(operations: buffer).build
-        @logger.debug("sending report: #{report}")
-        @client.send(:"/usage", report, :usage)
-      end
     end
   end
 end
