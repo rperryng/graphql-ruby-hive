@@ -18,7 +18,6 @@ module GraphQL
         @@instance = self
         @options = options
         @client = client
-        @options_mutex = Mutex.new
         @sampler = Sampler.new(options.collect_usage_sampling, options.logger) # NOTE: logs for deprecated field
         @queue = Thread::SizedQueue.new(options.queue_size)
 
@@ -55,12 +54,10 @@ module GraphQL
               @options.logger.debug("processing operation from queue: #{operation}")
               buffer << operation if @sampler.sample?(operation)
 
-              @options_mutex.synchronize do
-                if buffer.size >= @options.buffer_size
-                  @options.logger.debug("buffer is full, sending!")
-                  process_operations(buffer)
-                  buffer = []
-                end
+              if buffer.size >= @options.buffer_size
+                @options.logger.debug("buffer is full, sending!")
+                process_operations(buffer)
+                buffer = []
               end
             rescue => e
               buffer = []

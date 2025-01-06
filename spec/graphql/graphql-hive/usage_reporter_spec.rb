@@ -31,8 +31,6 @@ RSpec.describe GraphQL::Hive::UsageReporter do
     it "sets the instance" do
       expect(usage_reporter_instance.instance_variable_get(:@options)).to eq(options)
       expect(usage_reporter_instance.instance_variable_get(:@client)).to eq(client)
-
-      expect(usage_reporter_instance.instance_variable_get(:@options_mutex)).to be_an_instance_of(Mutex)
       expect(usage_reporter_instance.instance_variable_get(:@queue)).to be_an_instance_of(Thread::SizedQueue)
       expect(usage_reporter_instance.instance_variable_get(:@sampler)).to be_an_instance_of(GraphQL::Hive::Sampler)
     end
