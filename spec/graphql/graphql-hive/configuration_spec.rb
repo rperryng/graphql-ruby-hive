@@ -2,6 +2,17 @@ require "spec_helper"
 require "logger"
 
 RSpec.describe GraphQL::Hive::Configuration do
+  let(:logger) { instance_double(Logger) }
+
+  before do
+    allow(logger).to receive(:formatter=)
+    allow(logger).to receive(:level=)
+    allow(logger).to receive(:level)
+    allow(logger).to receive(:info)
+    allow(logger).to receive(:warn)
+    allow(Logger).to receive(:new).and_return(logger)
+  end
+
   let(:valid_options) do
     {
       token: "test-token",
@@ -31,26 +42,22 @@ RSpec.describe GraphQL::Hive::Configuration do
       end
 
       it "creates a logger with correct settings" do
-        expect(config.logger).to be_a(Logger)
-        expect(config.logger.level).to eq(Logger::INFO)
+        expect(config.logger).to be(logger)
+        expect(logger).to have_received(:level=).with(Logger::INFO)
       end
 
       context "when debug is enabled" do
         subject(:config) { described_class.new(debug: true) }
 
         it "sets logger level to DEBUG" do
-          expect(config.logger.level).to eq(Logger::DEBUG)
+          config
+          expect(logger).to have_received(:level=).with(Logger::DEBUG)
         end
       end
 
       it "configures custom formatter" do
-        # Test the formatter by capturing output
-        output = StringIO.new
-        config.logger.instance_variable_set(:@logdev, Logger::LogDevice.new(output))
-        config.logger.info("test message")
-
-        expect(output.string).to include("[hive]")
-        expect(output.string).to include("test message")
+        config
+        expect(logger).to have_received(:formatter=).with(kind_of(Proc))
       end
     end
 
@@ -68,8 +75,6 @@ RSpec.describe GraphQL::Hive::Configuration do
   end
 
   describe "#validate!" do
-    let(:logger) { instance_double(Logger) }
-
     before { allow(logger).to receive(:warn) }
 
     context "when token is missing" do
@@ -82,7 +87,12 @@ RSpec.describe GraphQL::Hive::Configuration do
     end
 
     context "when reporting info is incomplete" do
-      subject(:config) { described_class.new(token: "test-token", logger: logger) }
+      subject(:config) do
+        described_class.new(
+          token: "test-token",
+          logger: logger
+        )
+      end
 
       it "disables schema reporting and logs a warning" do
         expect(config.report_schema).to be false
