@@ -3,7 +3,7 @@
 require "spec_helper"
 
 RSpec.describe GraphQL::Hive::Sampler do
-  let(:sampler_instance) { described_class.new(sampling_options, logger) }
+  let(:sampler_instance) { described_class.new(sampling_options: sampling_options, logger: logger) }
   let(:sampling_options) { nil }
   let(:logger) { instance_double("Logger") }
 

@@ -36,7 +36,19 @@ module GraphQL
       super
       @@instance = self
       @client = GraphQL::Hive::Client.new(@configuration)
-      @usage_reporter = GraphQL::Hive::UsageReporter.new(@configuration, @client)
+      sampler = GraphQL::Hive::Sampler.new(
+        sampling_options: @configuration.collect_usage_sampling,
+        logger: @configuration.logger
+      )
+      queue = Thread::SizedQueue.new(@configuration.queue_size)
+      @usage_reporter = GraphQL::Hive::UsageReporter.new(
+        buffer_size: @configuration.buffer_size,
+        client_info: @configuration.client_info,
+        client: @client,
+        sampler: sampler,
+        queue: queue,
+        logger: @configuration.logger
+      )
       report_schema_to_hive if @@schema && @configuration.report_schema
     end
 

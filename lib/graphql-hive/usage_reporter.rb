@@ -8,19 +8,20 @@ module GraphQL
   class Hive < GraphQL::Tracing::PlatformTracing
     # Report usage to Hive API without impacting application performances
     class UsageReporter
-      def initialize(options, client)
-        @options = options
+      def initialize(buffer_size:, client:, sampler:, queue:, logger:, client_info: nil)
+        @buffer_size = buffer_size
         @client = client
-        @sampler = Sampler.new(options.collect_usage_sampling, options.logger) # NOTE: logs for deprecated field
-        @queue = Thread::SizedQueue.new(options.queue_size)
-
+        @sampler = sampler
+        @queue = queue
+        @logger = logger
+        @client_info = client_info
         start_thread
       end
 
       def add_operation(operation)
         @queue.push(operation, true)
       rescue ThreadError
-        @options.logger.error("SizedQueue is full, discarding operation. Size: #{@queue.size}, Max: #{@queue.max}")
+        @logger.error("SizedQueue is full, discarding operation. Size: #{@queue.size}, Max: #{@queue.max}")
       end
 
       def on_exit
@@ -36,7 +37,7 @@ module GraphQL
 
       def start_thread
         if @thread&.alive?
-          @options.logger.warn("Tried to start operations flushing thread but it was already alive")
+          @logger.warn("Tried to start operations flushing thread but it was already alive")
           return
         end
 
@@ -44,28 +45,28 @@ module GraphQL
           buffer = []
           while (operation = @queue.pop(false))
             begin
-              @options.logger.debug("processing operation from queue: #{operation}")
+              @logger.debug("processing operation from queue: #{operation}")
               buffer << operation if @sampler.sample?(operation)
 
-              if buffer.size >= @options.buffer_size
-                @options.logger.debug("buffer is full, sending!")
+              if buffer.size >= @buffer_size
+                @logger.debug("buffer is full, sending!")
                 process_operations(buffer)
                 buffer = []
               end
             rescue => e
               buffer = []
-              @options.logger.error(e)
+              @logger.error(e)
             end
           end
 
           unless buffer.empty?
-            @options.logger.debug("shuting down with buffer, sending!")
+            @logger.debug("shuting down with buffer, sending!")
             process_operations(buffer)
           end
         rescue => e
           # ensure configured logger receives exception as well in setups where STDERR might not be
           # monitored.
-          @options.logger.error(e)
+          @logger.error(e)
         end
       end
 
@@ -80,7 +81,7 @@ module GraphQL
           add_operation_to_report(report, operation)
         end
 
-        @options.logger.debug("sending report: #{report}")
+        @logger.debug("sending report: #{report}")
 
         @client.send(:"/usage", report, :usage)
       end
@@ -125,7 +126,7 @@ module GraphQL
 
         if results[0]
           context = results[0].query.context
-          operation_record[:metadata] = {client: @options.client_info.call(context)} if @options.client_info
+          operation_record[:metadata] = {client: @client_info.call(context)} if @client_info
         end
 
         report[:map][operation_map_key] = {
