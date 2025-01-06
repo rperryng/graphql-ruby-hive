@@ -8,14 +8,7 @@ module GraphQL
   class Hive < GraphQL::Tracing::PlatformTracing
     # Report usage to Hive API without impacting application performances
     class UsageReporter
-      @@instance = nil
-
-      def self.instance
-        @@instance
-      end
-
       def initialize(options, client)
-        @@instance = self
         @options = options
         @client = client
         @sampler = Sampler.new(options.collect_usage_sampling, options.logger) # NOTE: logs for deprecated field
