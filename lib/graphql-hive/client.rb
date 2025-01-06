@@ -8,15 +8,20 @@ module GraphQL
     # API client
     class Client
       def initialize(options)
-        @options = options
+        @port = options.port.to_s
+        @scheme = (@port == "443") ? "https" : "http"
+        @host = options.endpoint
+        @token = options.token
+        @use_ssl = @port == "443"
+        @logger = options.logger
       end
 
       def send(path, body, _log_type)
         uri =
           URI::HTTP.build(
-            scheme: (@options.port.to_s == "443") ? "https" : "http",
-            host: @options.endpoint,
-            port: @options.port,
+            scheme: @scheme,
+            host: @host,
+            port: @port,
             path: path
           )
 
@@ -27,25 +32,25 @@ module GraphQL
         code = response.code.to_i
         if code >= 400 && code < 500
           error_message = "Unsuccessful response: #{response.code} - #{response.message}"
-          @options.logger.warn("#{error_message} #{extract_error_details(response)}")
+          @logger.warn("#{error_message} #{extract_error_details(response)}")
         end
 
-        @options.logger.debug(response.inspect)
-        @options.logger.debug(response.body.inspect)
+        @logger.debug(response.inspect)
+        @logger.debug(response.body.inspect)
       rescue => e
-        @options.logger.fatal("Failed to send data: #{e}")
+        @logger.fatal("Failed to send data: #{e}")
       end
 
       def setup_http(uri)
         http = ::Net::HTTP.new(uri.host, uri.port)
-        http.use_ssl = @options.port.to_s == "443"
+        http.use_ssl = @use_ssl
         http.read_timeout = 2
         http
       end
 
       def build_request(uri, body)
         request = Net::HTTP::Post.new(uri.request_uri)
-        request["Authorization"] = @options.token
+        request["Authorization"] = @token
         request["X-Usage-API-Version"] = "2"
         request["content-type"] = "application/json"
         request["User-Agent"] = "Hive@#{Graphql::Hive::VERSION}"

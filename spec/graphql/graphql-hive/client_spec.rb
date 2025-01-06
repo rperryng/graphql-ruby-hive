@@ -18,7 +18,12 @@ RSpec.describe GraphQL::Hive::Client do
 
   describe "#initialize" do
     it "sets the instance" do
-      expect(client.instance_variable_get(:@options)).to eq(options)
+      expect(client.instance_variable_get(:@port)).to eq("443")
+      expect(client.instance_variable_get(:@scheme)).to eq("https")
+      expect(client.instance_variable_get(:@host)).to eq("app.graphql-hive.com")
+      expect(client.instance_variable_get(:@token)).to eq("Bearer test-token")
+      expect(client.instance_variable_get(:@use_ssl)).to be true
+      expect(client.instance_variable_get(:@logger)).to eq(options.logger)
     end
   end
 
