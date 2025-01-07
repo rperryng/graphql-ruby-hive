@@ -35,7 +35,7 @@ module GraphQL
           @enabled = false
           @report_schema = false
         end
-        if @report_schema && !(@reporting.dig(:author) || @reporting.dig(:commit))
+        if @report_schema && !(@reporting.dig(:author) && @reporting.dig(:commit))
           @logger.warn("GraphQL Hive `author` and `commit` options are required. Disabling Schema Reporting.")
           @report_schema = false
         end

@@ -86,11 +86,27 @@ RSpec.describe GraphQL::Hive::Configuration do
       end
     end
 
-    context "when reporting info is incomplete" do
+    context "when author is missing" do
       subject(:config) do
         described_class.new(
           token: "test-token",
-          logger: logger
+          logger: logger,
+          reporting: {commit: "test-commit"}
+        )
+      end
+
+      it "disables schema reporting and logs a warning" do
+        expect(config.report_schema).to be false
+        expect(logger).to have_received(:warn).with(/author.*commit.*required/)
+      end
+    end
+
+    context "when commit is missing" do
+      subject(:config) do
+        described_class.new(
+          token: "test-token",
+          logger: logger,
+          reporting: {author: "test-author"}
         )
       end
 
