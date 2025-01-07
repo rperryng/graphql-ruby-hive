@@ -37,19 +37,6 @@ module GraphQL
       super
       @@instance = self
       @client = GraphQL::Hive::Client.new(@configuration)
-      sampler = GraphQL::Hive::Sampler.new(
-        sampling_options: @configuration.collect_usage_sampling,
-        logger: @configuration.logger
-      )
-      queue = Thread::SizedQueue.new(@configuration.queue_size)
-      @usage_reporter = GraphQL::Hive::UsageReporter.new(
-        buffer_size: @configuration.buffer_size,
-        client_info: @configuration.client_info,
-        client: @client,
-        sampler: sampler,
-        queue: queue,
-        logger: @configuration.logger
-      )
       report_schema_to_hive if @@schema && @configuration.report_schema
     end
 
@@ -74,7 +61,7 @@ module GraphQL
       timestamp = generate_timestamp
       results, duration = measure_execution { yield }
 
-      report_usage(timestamp, queries, results, duration)
+      usage_reporter.add_operation([timestamp, queries, results, duration])
       results
     rescue => e
       @configuration.logger.error(e)
@@ -114,20 +101,29 @@ module GraphQL
     end
 
     def stop
-      @usage_reporter.stop
+      usage_reporter.stop
     end
     alias_method :on_exit, :stop
 
     def start
-      @usage_reporter.start
+      usage_reporter.start
     end
     alias_method :on_start, :start
 
     private
 
-    def report_usage(timestamp, queries, results, duration)
-      @configuration.logger.debug("Reporting usage: #{timestamp}, #{queries}, #{results}, #{duration}")
-      @usage_reporter.add_operation([timestamp, queries, results, duration])
+    def usage_reporter
+      @usage_reporter ||= GraphQL::Hive::UsageReporter.new(
+        buffer_size: @configuration.buffer_size,
+        client_info: @configuration.client_info,
+        client: @client,
+        sampler: GraphQL::Hive::Sampler.new(
+          sampling_options: @configuration.collect_usage_sampling,
+          logger: @configuration.logger
+        ),
+        queue: Thread::SizedQueue.new(@configuration.queue_size),
+        logger: @configuration.logger
+      )
     end
 
     def report_schema_to_hive
