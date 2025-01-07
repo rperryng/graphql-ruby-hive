@@ -15,6 +15,8 @@ group :development do
   gem "rspec", "~> 3"
   gem "sinatra", "~> 2"
   gem "standardrb", "~> 1"
+  gem "super_diff", "~> 0.15.0"
+  gem "timecop", "~> 0.9"
   gem "vcr", "~> 6"
   gem "webmock", "~> 3"
 end

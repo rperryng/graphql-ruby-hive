@@ -1,233 +1,97 @@
-# frozen_string_literal: true
-
-require "spec_helper"
-
 RSpec.describe GraphQL::Hive::UsageReporter do
-  let(:usage_reporter_instance) { described_class.new(options, client) }
-  let(:options) { GraphQL::Hive::Configuration.new({logger: logger, buffer_size: buffer_size, queue_size: 1000}) }
+  let(:buffer_size) { 10 }
+  let(:client) { instance_double("GraphQL::Hive::Client") }
+  let(:sampler) { instance_double("GraphQL::Hive::Sampler") }
+  let(:queue) { instance_double("SizedQueue") }
   let(:logger) { instance_double("Logger") }
-  let(:client) { instance_double("Hive::Client") }
-  let(:buffer_size) { 1 }
+  let(:client_info) { ->(ctx) { {name: "test-client"} } }
+  let(:thread) { instance_double("Thread", join: nil, alive?: true) }
 
-  let(:timestamp) { 1_720_705_946_333 }
-  let(:queries) { [] }
-  let(:results) { [] }
-  let(:duration) { 100_000 }
-  let(:operation) { [timestamp, queries, results, duration] }
+  subject(:reporter) do
+    described_class.new(
+      buffer_size: buffer_size,
+      client: client,
+      sampler: sampler,
+      queue: queue,
+      logger: logger,
+      client_info: client_info
+    )
+  end
 
   before do
-    allow(logger).to receive(:warn)
-    allow(logger).to receive(:debug)
-    allow(logger).to receive(:error)
-  end
-
-  # NOTE: creating a new instance of usage_reporter starts a new thread, so we must call on_exit after each test to close the thread
-
-  after do
-    usage_reporter_instance.on_exit
-  end
-
-  describe "#initialize" do
-    it "sets the instance" do
-      expect(usage_reporter_instance.instance_variable_get(:@options)).to eq(options)
-      expect(usage_reporter_instance.instance_variable_get(:@client)).to eq(client)
-
-      expect(usage_reporter_instance.instance_variable_get(:@options_mutex)).to be_an_instance_of(Mutex)
-      expect(usage_reporter_instance.instance_variable_get(:@queue)).to be_an_instance_of(Thread::SizedQueue)
-      expect(usage_reporter_instance.instance_variable_get(:@sampler)).to be_an_instance_of(GraphQL::Hive::Sampler)
-    end
+    allow(Thread).to receive(:new).and_return(thread)
   end
 
   describe "#add_operation" do
-    it "adds an operation to the queue" do
-      operation = {operation: "test"}
-      usage_reporter_instance.add_operation(operation)
-      expect(usage_reporter_instance.instance_variable_get(:@queue).pop).to eq(operation)
+    let(:operation) { ["timestamp", [], [], 100] }
+
+    before do
+      allow(queue).to receive(:push)
+      allow(queue).to receive(:size).and_return(5)
+      allow(queue).to receive(:max).and_return(10)
     end
 
-    describe "when the queue is full" do
-      let(:options) do
-        GraphQL::Hive::Configuration.new({
-          logger: logger,
-          buffer_size: 1,
-          queue_size: 1
-        })
+    it "pushes operation to queue" do
+      reporter.add_operation(operation)
+      expect(queue).to have_received(:push).with(operation, true)
+    end
+
+    context "when queue is full" do
+      before do
+        allow(queue).to receive(:push).and_raise(ThreadError)
+        allow(logger).to receive(:error)
       end
 
-      it "logs an error" do
-        allow(logger).to receive(:error)
-        usage_reporter_instance.add_operation("operation 1")
-        usage_reporter_instance.add_operation("operation 2")
-        expect(logger).to have_received(:error).with("SizedQueue is full, discarding operation. Size: 1, Max: 1")
+      it "logs error" do
+        reporter.add_operation(operation)
+        expect(logger).to have_received(:error).with("SizedQueue is full, discarding operation. Size: 5, Max: 10")
       end
+    end
+  end
+
+  describe "#stop" do
+    before do
+      allow(queue).to receive(:close)
+      allow(Thread).to receive(:new).and_return(thread)
+    end
+
+    it "closes queue and joins thread" do
+      reporter.stop
+      expect(queue).to have_received(:close)
+      expect(thread).to have_received(:join)
     end
   end
 
   describe "#on_exit" do
-    it "closes the queue and joins the thread" do
-      usage_reporter_instance = described_class.new(options, client)
+    it "is an alias of #stop" do
+      expect(reporter.method(:on_exit)).to eq(reporter.method(:stop))
+    end
+  end
 
-      expect(usage_reporter_instance.instance_variable_get(:@queue)).to receive(:close)
-      expect(usage_reporter_instance.instance_variable_get(:@thread)).to receive(:join)
+  describe "#start" do
+    let(:thread) { instance_double("Thread", alive?: true) }
 
-      usage_reporter_instance.on_exit
+    before do
+      allow(Thread).to receive(:new).and_return(thread)
+      allow(logger).to receive(:warn)
+    end
+
+    it "starts a new thread" do
+      reporter
+      expect(Thread).to have_received(:new)
+    end
+
+    context "when thread is already alive" do
+      it "logs warning" do
+        reporter.start
+        expect(logger).to have_received(:warn).with("Usage reporter is already running").once
+      end
     end
   end
 
   describe "#on_start" do
-    it "starts the thread" do
-      expect(usage_reporter_instance).to receive(:start_thread)
-      usage_reporter_instance.on_start
-    end
-  end
-
-  describe "#start_thread" do
-    it "logs a warning if the thread is already alive" do
-      usage_reporter_instance.instance_variable_set(
-        :@thread,
-        Thread.new do
-          # do nothing
-        end
-      )
-      expect(logger).to receive(:warn)
-      usage_reporter_instance.on_start
-    end
-
-    context "when configured with sampling" do
-      let(:options) do
-        GraphQL::Hive::Configuration.new({
-          logger: logger,
-          buffer_size: 1,
-          queue_size: 1000
-        })
-      end
-
-      let(:sampler_class) { class_double(GraphQL::Hive::Sampler).as_stubbed_const }
-      let(:sampler_instance) { instance_double("GraphQL::Hive::Sampler") }
-
-      before do
-        allow(sampler_class).to receive(:new).and_return(sampler_instance)
-        allow(client).to receive(:send)
-      end
-
-      it "reports the operation if it should be included" do
-        allow(sampler_instance).to receive(:sample?).and_return(true)
-
-        expect(sampler_instance).to receive(:sample?).with(operation)
-        expect(client).to receive(:send)
-
-        usage_reporter_instance.add_operation(operation)
-      end
-
-      it "does not report the operation if it should not be included" do
-        allow(sampler_instance).to receive(:sample?).and_return(false)
-
-        expect(sampler_instance).to receive(:sample?).with(operation)
-        expect(client).not_to receive(:send)
-
-        usage_reporter_instance.add_operation(operation)
-      end
-    end
-
-    context "with erroneous operations" do
-      let(:sampler_class) { class_double(GraphQL::Hive::Sampler).as_stubbed_const }
-      let(:sampler_instance) { instance_double("GraphQL::Hive::Sampler") }
-      let(:schema) { GraphQL::Schema.from_definition("type Query { test: String }") }
-      let(:queries_valid) { [GraphQL::Query.new(schema, "query TestingHiveValid { test }", variables: {})] }
-      let(:queries_invalid) { [GraphQL::Query.new(schema, "query TestingHiveInvalid { test }", variables: {})] }
-      let(:results) { [GraphQL::Query::Result.new(query: queries_valid[0], values: {"data" => {"test" => "test"}})] }
-      let(:buffer_size) { 1 }
-
-      before do
-        allow(sampler_class).to receive(:new).and_return(sampler_instance)
-      end
-
-      it "can still process the operations after erroneous operation" do
-        raise_exception = true
-        operation_error = StandardError.new("First operation")
-        allow(sampler_instance).to receive(:sample?) do |_operation|
-          if raise_exception
-            raise_exception = false
-            raise operation_error
-          else
-            true
-          end
-        end
-
-        mutex = Mutex.new
-        logger_condition = ConditionVariable.new
-        client_condition = ConditionVariable.new
-        allow(logger).to receive(:error) do |_e|
-          mutex.synchronize { logger_condition.signal }
-        end
-
-        allow(client).to receive(:send) do |_endpoint|
-          mutex.synchronize { client_condition.signal }
-        end
-
-        mutex.synchronize do
-          usage_reporter_instance.add_operation([timestamp, queries_invalid, results, duration])
-          logger_condition.wait(mutex)
-
-          usage_reporter_instance.add_operation([timestamp, queries_valid, results, duration])
-          client_condition.wait(mutex)
-        end
-
-        expect(client).to have_received(:send).once.with(
-          :"/usage",
-          {
-            map: {"a69918853baf60d89b871e1fbe13915b" =>
-                     {
-                       fields: ["Query", "Query.test"],
-                       operation: "query TestingHiveValid {\n  test\n}",
-                       operationName: "TestingHiveValid"
-                     }},
-            operations: [{
-              execution: {duration: 100000, errorsTotal: 0, ok: true},
-              operationMapKey: "a69918853baf60d89b871e1fbe13915b",
-              timestamp: 1720705946333
-            }],
-            size: 1
-          },
-          :usage
-        )
-        expect(logger).to have_received(:error).with(operation_error).once
-      end
-    end
-  end
-
-  describe "#process_operation" do
-    let(:schema) { GraphQL::Schema.from_definition("type Query { test: String }") }
-    let(:query_string) { "query TestingHive { test }" }
-    let(:queries) { [GraphQL::Query.new(schema, query_string, variables: {})] }
-    let(:results) { [GraphQL::Query::Result.new(query: queries.first, values: {"data" => {"test" => "test"}})] }
-
-    before do
-      allow(client).to receive(:send)
-    end
-
-    it "processes and reports the operation to the client" do
-      usage_reporter_instance.send(:process_operations, [operation])
-      expect(client).to have_received(:send).with(
-        :"/usage",
-        {
-          map: {"8b8412ce86f3ea7accb931b1a5de335d" =>
-            {
-              fields: %w[Query Query.test],
-              operation: "query TestingHive {\n  test\n}",
-              operationName: "TestingHive"
-            }},
-          operations: [
-            {
-              execution: {duration: 100_000, errorsTotal: 0, ok: true},
-              operationMapKey: "8b8412ce86f3ea7accb931b1a5de335d",
-              timestamp: 1_720_705_946_333
-            }
-          ],
-          size: 1
-        },
-        :usage
-      )
+    it "is an alias of #start" do
+      expect(reporter.method(:on_start)).to eq(reporter.method(:start))
     end
   end
 end

@@ -4,6 +4,7 @@ require "logger"
 require "securerandom"
 
 require "graphql-hive/version"
+require "graphql-hive/report"
 require "graphql-hive/usage_reporter"
 require "graphql-hive/client"
 
@@ -36,7 +37,19 @@ module GraphQL
       super
       @@instance = self
       @client = GraphQL::Hive::Client.new(@configuration)
-      @usage_reporter = GraphQL::Hive::UsageReporter.new(@configuration, @client)
+      sampler = GraphQL::Hive::Sampler.new(
+        sampling_options: @configuration.collect_usage_sampling,
+        logger: @configuration.logger
+      )
+      queue = Thread::SizedQueue.new(@configuration.queue_size)
+      @usage_reporter = GraphQL::Hive::UsageReporter.new(
+        buffer_size: @configuration.buffer_size,
+        client_info: @configuration.client_info,
+        client: @client,
+        sampler: sampler,
+        queue: queue,
+        logger: @configuration.logger
+      )
       report_schema_to_hive if @@schema && @configuration.report_schema
     end
 
@@ -63,6 +76,9 @@ module GraphQL
 
       report_usage(timestamp, queries, results, duration)
       results
+    rescue => e
+      @configuration.logger.error(e)
+      yield
     end
 
     def should_collect_usage?
@@ -97,17 +113,20 @@ module GraphQL
       "graphql.#{type.name}.#{field.name}"
     end
 
-    def on_exit
-      @usage_reporter.on_exit
+    def stop
+      @usage_reporter.stop
     end
+    alias_method :on_exit, :stop
 
-    def on_start
-      @usage_reporter.on_start
+    def start
+      @usage_reporter.start
     end
+    alias_method :on_start, :start
 
     private
 
     def report_usage(timestamp, queries, results, duration)
+      @configuration.logger.debug("Reporting usage: #{timestamp}, #{queries}, #{results}, #{duration}")
       @usage_reporter.add_operation([timestamp, queries, results, duration])
     end
 

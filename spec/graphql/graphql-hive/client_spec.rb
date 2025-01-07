@@ -18,7 +18,12 @@ RSpec.describe GraphQL::Hive::Client do
 
   describe "#initialize" do
     it "sets the instance" do
-      expect(client.instance_variable_get(:@options)).to eq(options)
+      expect(client.instance_variable_get(:@port)).to eq("443")
+      expect(client.instance_variable_get(:@scheme)).to eq("https")
+      expect(client.instance_variable_get(:@host)).to eq("app.graphql-hive.com")
+      expect(client.instance_variable_get(:@token)).to eq("Bearer test-token")
+      expect(client.instance_variable_get(:@use_ssl)).to be true
+      expect(client.instance_variable_get(:@logger)).to eq(options.logger)
     end
   end
 
@@ -68,7 +73,7 @@ RSpec.describe GraphQL::Hive::Client do
     it "logs a fatal error when an exception is raised" do
       allow(http).to receive(:request).and_raise(StandardError.new("Network error"))
       expect(options.logger).to receive(:fatal).with("Failed to send data: Network error")
-      expect { client.send(:"/usage", body, :usage) }.not_to raise_error(StandardError, "Network error")
+      client.send(:"/usage", body, :usage)
     end
 
     context "when the response status code is between 400 and 499" do
