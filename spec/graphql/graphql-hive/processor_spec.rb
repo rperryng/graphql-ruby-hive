@@ -1,9 +1,9 @@
 require "spec_helper"
 
-RSpec.describe GraphQL::Hive::Processor do
+RSpec.describe GraphQLHive::Processor do
   let(:buffer_size) { 2 }
-  let(:client) { instance_double("GraphQL::Hive::Client") }
-  let(:sampler) { instance_double("GraphQL::Hive::Sampler") }
+  let(:client) { instance_double("GraphQLHive::Client") }
+  let(:sampler) { instance_double("GraphQLHive::Sampler") }
   let(:queue) { instance_double("Thread::SizedQueue") }
   let(:logger) { instance_double("Logger") }
   let(:query) do
@@ -12,17 +12,17 @@ RSpec.describe GraphQL::Hive::Processor do
       context: double("Context"))
   end
   let(:operation) do
-    [
+    GraphQLHive::Tracing::Operation.new(
       Time.now,
       [query],
       [double("Result", query: query, to_h: {"data" => {}, "errors" => []})],
       100
-    ]
+    )
   end
   let(:analyzer_result) { double("AnalyzerResult") }
-  let(:analyzer) { instance_double(GraphQL::Hive::Analyzer, result: Set.new(["field1", "field2"])) }
+  let(:analyzer) { instance_double(GraphQLHive::Analyzer, result: Set.new(["field1", "field2"])) }
   let(:visitor) { instance_double(GraphQL::Analysis::AST::Visitor) }
-  let(:printer) { instance_double(GraphQL::Hive::Printer) }
+  let(:printer) { instance_double(GraphQLHive::Printer) }
   let(:processor) do
     described_class.new(
       buffer_size: buffer_size,
@@ -69,10 +69,10 @@ RSpec.describe GraphQL::Hive::Processor do
     allow(logger).to receive(:error)
     allow(client).to receive(:send)
     allow(sampler).to receive(:sample?).and_return(true)
-    allow(GraphQL::Hive::Analyzer).to receive(:new).and_return(analyzer)
+    allow(GraphQLHive::Analyzer).to receive(:new).and_return(analyzer)
     allow(GraphQL::Analysis::AST::Visitor).to receive(:new).and_return(visitor)
     allow(visitor).to receive(:visit).and_return(analyzer_result)
-    allow(GraphQL::Hive::Printer).to receive(:new).and_return(printer)
+    allow(GraphQLHive::Printer).to receive(:new).and_return(printer)
     allow(printer).to receive(:print).and_return("query TestOperation { field1 field2 }")
   end
 
@@ -91,8 +91,6 @@ RSpec.describe GraphQL::Hive::Processor do
     end
 
     context "when an error occurs" do
-      let(:operation) { {query: "query1"} }
-
       before do
         allow(sampler).to receive(:sample?).and_raise(StandardError.new("Test error"))
       end

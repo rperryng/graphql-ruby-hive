@@ -6,7 +6,7 @@ require "graphql-hive/version"
 
 Gem::Specification.new do |spec|
   spec.name = "graphql-hive"
-  spec.version = Graphql::Hive::VERSION
+  spec.version = GraphQLHive::VERSION
   spec.authors = ["Charly POLY"]
   spec.email = ["cpoly55@gmail.com"]
 

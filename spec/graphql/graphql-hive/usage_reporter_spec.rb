@@ -1,7 +1,7 @@
-RSpec.describe GraphQL::Hive::UsageReporter do
+RSpec.describe GraphQLHive::UsageReporter do
   let(:buffer_size) { 10 }
-  let(:client) { instance_double("GraphQL::Hive::Client") }
-  let(:sampler) { instance_double("GraphQL::Hive::Sampler") }
+  let(:client) { instance_double("GraphQLHive::Client") }
+  let(:sampler) { instance_double("GraphQLHive::Sampler") }
   let(:queue) { instance_double("SizedQueue") }
   let(:logger) { instance_double("Logger") }
   let(:client_info) { ->(ctx) { {name: "test-client"} } }

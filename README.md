@@ -36,16 +36,16 @@ gem install graphql-hive
 
 <br/>
 
-## 2. Configure `GraphQL::Hive` in your Schema
+## 2. Configure `GraphQLHive` in your Schema
 
-Add `GraphQL::Hive` **at the end** of your schema definition:
+Add `GraphQLHive` **at the end** of your schema definition:
 
 ```ruby
 class Schema < GraphQL::Schema
   query QueryType
 
-  use(
-      GraphQL::Hive,
+  trace_with(
+      GraphQLHive::Tracer,
       {
         token: '<YOUR_TOKEN>',
         reporting: {
@@ -71,7 +71,7 @@ them at all!
 
 ### `start`
 
-Call this hook if you are running `GraphQL::Hive` in a process that `fork`s
+Call this hook if you are running `GraphQLHive` in a process that `fork`s
 itself.
 
 example: `puma` web server running in (["clustered
@@ -82,7 +82,7 @@ mode"](https://github.com/puma/puma/tree/6d8b728b42a61bcf3c1e4c698c9165a45e6071e
 preload_app!
 
 on_worker_boot do
-  GraphQL::Hive.instance.start
+  GraphQLHive.instance.start
 end
 ```
 
@@ -97,7 +97,7 @@ to call into, call `on_worker_exit`.
 # config/puma.rb
 
 on_worker_shutdown do
-  GraphQL::Hive.instance.on_exit
+  GraphQLHive.instance.on_exit
 end
 ```
 
@@ -139,12 +139,12 @@ https://docs.graphql-hive.com/features/integrations#github
 
 # Configuration
 
-You will find below the complete list of options of `GraphQL::Hive`:
+You will find below the complete list of options of `GraphQLHive`:
 
 ```ruby
 class MySchema < GraphQL::Schema
-  use(
-    GraphQL::Hive,
+  trace_with(
+    GraphQLHive::Trace,
     {
       # Token is the only required configuration value.
       token: 'YOUR-REGISTRY-TOKEN',

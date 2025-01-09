@@ -63,7 +63,7 @@ RSpec.describe TestApp do
   end
 
   after do
-    GraphQL::Hive.instance.on_exit
+    GraphQLHive::Tracing.instance.stop
   end
 
   it("posts data to hive", :aggregate_failures, :vcr) do

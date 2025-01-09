@@ -1,6 +1,6 @@
-RSpec.describe GraphQL::Hive::SchemaReporter do
+RSpec.describe GraphQLHive::SchemaReporter do
   let(:sdl) { "type Query { hello: String }" }
-  let(:client) { instance_double("GraphQL::Hive::Client") }
+  let(:client) { instance_double("GraphQLHive::Client") }
   let(:reporting_options) do
     {
       author: "test_author",
