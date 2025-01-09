@@ -30,9 +30,7 @@ module GraphQLHive
     def execute_multiplex(multiplex:)
       return super unless should_collect_usage?
 
-      @tracer.trace(resource: multiplex.queries.first.to_s, queries: multiplex.queries) do
-        super
-      end
+      @tracer.trace(queries: multiplex.queries) { super }
     end
 
     def should_collect_usage?
@@ -60,7 +58,7 @@ module GraphQLHive
       @usage_reporter = nil
     end
 
-    def trace(resource:, queries:)
+    def trace(queries:)
       start_time = Process.clock_gettime(Process::CLOCK_MONOTONIC)
       all_results = yield
       elapsed_ns = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - start_time) * 1e9).to_i
