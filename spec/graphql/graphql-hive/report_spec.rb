@@ -1,12 +1,12 @@
 require "spec_helper"
 
-RSpec.describe GraphQL::Hive::Report do
+RSpec.describe GraphQLHive::Report do
   subject(:report) { described_class.new(client_info: client_info, operations: [operation]) }
   let(:client_info) { ->(context) { {name: "test_client"} } }
   let(:analyzer_result) { double("AnalyzerResult") }
-  let(:analyzer) { instance_double(GraphQL::Hive::Analyzer, result: Set.new(["field1", "field2"])) }
+  let(:analyzer) { instance_double(GraphQLHive::Analyzer, result: Set.new(["field1", "field2"])) }
   let(:visitor) { instance_double(GraphQL::Analysis::AST::Visitor) }
-  let(:printer) { instance_double(GraphQL::Hive::Printer) }
+  let(:printer) { instance_double(GraphQLHive::Printer) }
   let(:query) do
     double("Query",
       operations: {"TestOperation" => {}},
@@ -46,10 +46,10 @@ RSpec.describe GraphQL::Hive::Report do
     end
     before do
       Timecop.freeze(now)
-      allow(GraphQL::Hive::Analyzer).to receive(:new).and_return(analyzer)
+      allow(GraphQLHive::Analyzer).to receive(:new).and_return(analyzer)
       allow(GraphQL::Analysis::AST::Visitor).to receive(:new).and_return(visitor)
       allow(visitor).to receive(:visit).and_return(analyzer_result)
-      allow(GraphQL::Hive::Printer).to receive(:new).and_return(printer)
+      allow(GraphQLHive::Printer).to receive(:new).and_return(printer)
       allow(printer).to receive(:print).and_return("query TestOperation { field1 field2 }")
     end
 

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-RSpec.describe Graphql::Hive do
+RSpec.describe GraphQLHive do
   it "has a version number" do
-    expect(Graphql::Hive::VERSION).not_to be nil
+    expect(GraphQLHive::VERSION).not_to be nil
   end
 end

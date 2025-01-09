@@ -1,7 +1,7 @@
 require "spec_helper"
 require "logger"
 
-RSpec.describe GraphQL::Hive::Configuration do
+RSpec.describe GraphQLHive::Configuration do
   let(:logger) { instance_double(Logger) }
 
   before do
@@ -34,11 +34,15 @@ RSpec.describe GraphQL::Hive::Configuration do
         expect(config.collect_usage_sampling).to eq(1.0)
         expect(config.debug).to be false
         expect(config.enabled).to be false # disabled due to missing token
-        expect(config.endpoint).to eq("app.graphql-hive.com")
-        expect(config.port).to eq("443")
         expect(config.queue_size).to eq(1000)
         expect(config.read_operations).to be true
         expect(config.report_schema).to be false # disabled due to missing reporting info
+
+        client = config.client
+        expect(client).to be_a(GraphQLHive::Client)
+        expect(client.instance_variable_get(:@token)).to be_nil
+        expect(client.instance_variable_get(:@host)).to eq("app.graphql-hive.com")
+        expect(client.instance_variable_get(:@port)).to eq("443")
       end
 
       it "creates a logger with correct settings" do
@@ -65,7 +69,7 @@ RSpec.describe GraphQL::Hive::Configuration do
       subject(:config) { described_class.new(valid_options) }
 
       it "merges custom options with defaults" do
-        expect(config.token).to eq("test-token")
+        expect(config.client.instance_variable_get(:@token)).to eq("test-token")
         expect(config.reporting).to include(
           author: "test-author",
           commit: "test-commit"

@@ -3,17 +3,17 @@
 require "spec_helper"
 require "graphql-hive"
 
-RSpec.describe GraphQL::Hive::Client do
-  let(:options) do
-    GraphQL::Hive::Configuration.new({
+RSpec.describe GraphQLHive::Client do
+  let(:logger) { Logger.new(nil) }
+
+  let(:client) {
+    described_class.new(
       endpoint: "app.graphql-hive.com",
       port: 443,
       token: "Bearer test-token",
-      logger: Logger.new(nil)
-    })
-  end
-
-  let(:client) { described_class.new(options) }
+      logger: logger
+    )
+  }
   let(:body) { {size: 3, map: {}, operations: []} }
 
   describe "#initialize" do
@@ -23,7 +23,7 @@ RSpec.describe GraphQL::Hive::Client do
       expect(client.instance_variable_get(:@host)).to eq("app.graphql-hive.com")
       expect(client.instance_variable_get(:@token)).to eq("Bearer test-token")
       expect(client.instance_variable_get(:@use_ssl)).to be true
-      expect(client.instance_variable_get(:@logger)).to eq(options.logger)
+      expect(client.instance_variable_get(:@logger)).to eq(logger)
     end
   end
 
@@ -57,9 +57,9 @@ RSpec.describe GraphQL::Hive::Client do
       expect(request).to receive(:[]=).with("Authorization", "Bearer test-token")
       expect(request).to receive(:[]=).with("X-Usage-API-Version", "2")
       expect(request).to receive(:[]=).with("content-type", "application/json")
-      expect(request).to receive(:[]=).with("User-Agent", "Hive@#{Graphql::Hive::VERSION}")
+      expect(request).to receive(:[]=).with("User-Agent", "Hive@#{GraphQLHive::VERSION}")
       expect(request).to receive(:[]=).with("graphql-client-name", "Hive Ruby Client")
-      expect(request).to receive(:[]=).with("graphql-client-version", Graphql::Hive::VERSION)
+      expect(request).to receive(:[]=).with("graphql-client-version", GraphQLHive::VERSION)
       expect(request).to receive(:body=).with(JSON.generate(body))
 
       client.send(:"/usage", body, :usage)
@@ -72,7 +72,7 @@ RSpec.describe GraphQL::Hive::Client do
 
     it "logs a fatal error when an exception is raised" do
       allow(http).to receive(:request).and_raise(StandardError.new("Network error"))
-      expect(options.logger).to receive(:fatal).with("Failed to send data: Network error")
+      expect(logger).to receive(:fatal).with("Failed to send data: Network error")
       client.send(:"/usage", body, :usage)
     end
 
@@ -91,7 +91,7 @@ RSpec.describe GraphQL::Hive::Client do
       end
 
       it "logs a warning with error details" do
-        expect(options.logger).to receive(:warn).with("Unsuccessful response: 400 - Bad Request { path: test1, message: Error message 1 }, { path: test2, message: Error message 2 }")
+        expect(logger).to receive(:warn).with("Unsuccessful response: 400 - Bad Request { path: test1, message: Error message 1 }, { path: test2, message: Error message 2 }")
         client.send(:"/usage", body, :usage)
       end
 
@@ -99,7 +99,7 @@ RSpec.describe GraphQL::Hive::Client do
         let(:response) { instance_double(Net::HTTPClientError, body: "Invalid JSON", code: "400", message: "Bad Request") }
 
         it "logs a warning without error details" do
-          expect(options.logger).to receive(:warn).with("Unsuccessful response: 400 - Bad Request Could not parse response from Hive")
+          expect(logger).to receive(:warn).with("Unsuccessful response: 400 - Bad Request Could not parse response from Hive")
           client.send(:"/usage", body, :usage)
         end
       end
@@ -108,7 +108,7 @@ RSpec.describe GraphQL::Hive::Client do
         let(:response) { instance_double(Net::HTTPClientError, body: "{}", code: "401", message: "Unauthorized") }
 
         it "logs a warning without error details" do
-          expect(options.logger).to receive(:warn).with("Unsuccessful response: 401 - Unauthorized ")
+          expect(logger).to receive(:warn).with("Unsuccessful response: 401 - Unauthorized ")
           client.send(:"/usage", body, :usage)
         end
       end
