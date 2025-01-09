@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 - No longer works with `Schema.use` as this is deprecated in graphql-ruby.
 - Namespace conflict with `GraphQL`. Everything is now named `GraphQLHive`.
+- Support for Ruby 3.1 as it will reach EOL in March 2025.
 
 ### Changed
 - Refactored graphql-hive.rb to us a configuration class
