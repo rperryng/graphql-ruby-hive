@@ -11,9 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Works with `Schema.trace_with` you will need to update your schema to use this method. There is an example in app.rb
 
 ### Removed
-- No longer works with `Schema.use` as this is deprecated in graphql-ruby.
-- Namespace conflict with `GraphQL`. Everything is now named `GraphQLHive`.
-- Support for Ruby 3.1 as it will reach EOL in March 2025.
+- BREAKING: No longer works with `Schema.use` as this is deprecated in graphql-ruby.
+- BREAKING: Namespace conflict with `GraphQL`. Everything is now named `GraphQLHive`.
+- BREAKING: Support for Ruby 3.1 as it will reach EOL in March 2025.
 
 ### Changed
 - Refactored graphql-hive.rb to us a configuration class
@@ -25,3 +25,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Broke UsageReporter into smaller classes
 - Add `start` and `stop` methods for clarity that they don't accept a block
 - Only start reporter if it is needed
+- Added tests that test integration with a real GraphQL Schema
+- Update spec folder nesting to match lib
