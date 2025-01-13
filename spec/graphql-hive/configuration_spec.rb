@@ -6,12 +6,7 @@ RSpec.describe GraphQLHive::Configuration do
   let(:logger) { instance_double(Logger) }
   let(:valid_options) do
     {
-      token: "test-token",
-      report_schema: true,
-      reporting: {
-        author: "test-author",
-        commit: "test-commit"
-      }
+      token: "test-token"
     }
   end
 
@@ -34,7 +29,6 @@ RSpec.describe GraphQLHive::Configuration do
         expect(config.enabled).to be true
         expect(config.queue_size).to eq(1000)
         expect(config.read_operations).to be true
-        expect(config.report_schema).to be true
 
         client = config.client
         expect(client).to be_a(GraphQLHive::Client)
@@ -49,10 +43,6 @@ RSpec.describe GraphQLHive::Configuration do
 
       it "merges custom options with defaults" do
         expect(config.client.instance_variable_get(:@token)).to eq("test-token")
-        expect(config.reporting).to include(
-          author: "test-author",
-          commit: "test-commit"
-        )
       end
     end
   end
@@ -85,38 +75,7 @@ RSpec.describe GraphQLHive::Configuration do
 
       it "disables the service and logs a warning" do
         expect(config.enabled).to be false
-        expect(config.report_schema).to be false
         expect(logger).to have_received(:warn).with(/token.*missing/)
-      end
-    end
-
-    context "when author is missing" do
-      subject(:config) do
-        described_class.new(
-          token: "test-token",
-          logger: logger,
-          reporting: {commit: "test-commit"}
-        )
-      end
-
-      it "disables schema reporting and logs a warning" do
-        expect(config.report_schema).to be false
-        expect(logger).to have_received(:warn).with(/author.*commit.*required/)
-      end
-    end
-
-    context "when commit is missing" do
-      subject(:config) do
-        described_class.new(
-          token: "test-token",
-          logger: logger,
-          reporting: {author: "test-author"}
-        )
-      end
-
-      it "disables schema reporting and logs a warning" do
-        expect(config.report_schema).to be false
-        expect(logger).to have_received(:warn).with(/author.*commit.*required/)
       end
     end
 

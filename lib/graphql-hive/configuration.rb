@@ -10,8 +10,6 @@ module GraphQLHive
       :logger,
       :queue_size,
       :read_operations,
-      :report_schema,
-      :reporting,
       :schema,
       :token
 
@@ -27,8 +25,6 @@ module GraphQLHive
       port: "443",
       queue_size: 1000,
       read_operations: true,
-      report_schema: true,
-      reporting: {author: nil, commit: nil, service_name: nil, service_url: nil},
       token: nil
     }.freeze
 
@@ -54,11 +50,6 @@ module GraphQLHive
       if !@token && @enabled
         @logger.warn("GraphQL Hive `token` is missing. Disabling Reporting.")
         @enabled = false
-        @report_schema = false
-      end
-      if @report_schema && !(@reporting.dig(:author) && @reporting.dig(:commit))
-        @logger.warn("GraphQL Hive `author` and `commit` options are required. Disabling Schema Reporting.")
-        @report_schema = false
       end
     end
 

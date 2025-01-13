@@ -8,29 +8,37 @@ module GraphQLHive
       }
     MUTATION
 
-    def initialize(sdl, client, reporting_options)
+    def initialize(sdl:, options:)
       @sdl = sdl
-      @client = client
-      @reporting_options = reporting_options
+      @options = options
+      @client = GraphQLHive.configuration.client
     end
 
     def send_report
+      validate_options!
       body = {
         query: REPORT_SCHEMA_MUTATION,
         operationName: "schemaPublish",
         variables: {
           input: {
             sdl: @sdl,
-            author: @reporting_options[:author],
-            commit: @reporting_options[:commit],
-            service: @reporting_options[:service_name],
-            url: @reporting_options[:service_url],
-            force: true
+            author: @options[:author],
+            commit: @options[:commit],
+            service: @options[:service],
+            url: @options[:url],
+            force: @options[:force]
           }
         }
       }
 
       @client.send(:"/registry", body, :"report-schema")
+    end
+
+    private
+
+    def validate_options!
+      raise ArgumentError, "author is required for schema reporting" if @options[:author].nil?
+      raise ArgumentError, "commit is required for schema reporting" if @options[:commit].nil?
     end
   end
 end

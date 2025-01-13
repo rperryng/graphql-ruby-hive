@@ -32,12 +32,10 @@ end
 GraphQLHive.configure do |config|
   config.enabled = true
   config.token = "fake-token"
-  config.report_schema = false
   config.collect_usage_sampling = {
     sample_rate: 1
   }
   config.buffer_size = 5
-  config.schema = self
 end
 
 class TestApp < Sinatra::Base
