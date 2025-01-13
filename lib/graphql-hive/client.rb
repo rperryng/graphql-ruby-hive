@@ -6,6 +6,7 @@ require "uri"
 module GraphQLHive
   # API client
   class Client
+    attr_accessor :logger
     def initialize(port:, endpoint:, token:, logger:)
       @port = port.to_s
       @scheme = (@port == "443") ? "https" : "http"

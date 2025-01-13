@@ -18,5 +18,26 @@ require "graphql-hive/trace"
 require "graphql"
 
 at_exit do
-  GraphQLHive::Tracing.instance&.stop
+  GraphQLHive.configuration.usage_reporter.stop
+end
+
+module GraphQLHive
+  class << self
+    attr_accessor :configuration
+
+    def configure
+      self.configuration = GraphQLHive::Configuration.new
+      yield(configuration) if block_given?
+      configuration.validate!
+      configuration
+    end
+
+    def start
+      GraphQLHive.configuration.usage_reporter.start
+    end
+
+    def stop
+      GraphQLHive.configuration.usage_reporter.stop
+    end
+  end
 end

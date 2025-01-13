@@ -1,6 +1,7 @@
 module GraphQLHive
   class Configuration
     attr_accessor :buffer_size,
+      :client,
       :client_info,
       :collect_usage,
       :collect_usage_sampling,
@@ -11,7 +12,8 @@ module GraphQLHive
       :read_operations,
       :report_schema,
       :reporting,
-      :client
+      :schema,
+      :token
 
     DEFAULT_OPTIONS = {
       buffer_size: 50,
@@ -34,7 +36,6 @@ module GraphQLHive
       DEFAULT_OPTIONS.merge(opts).each do |key, value|
         instance_variable_set(:"@#{key}", value)
       end
-      setup_logger if @logger.nil?
       # TODO Allow for custom client
       @client = GraphQLHive::Client.new(
         port: @port,
@@ -42,13 +43,14 @@ module GraphQLHive
         token: @token,
         logger: @logger
       )
-      validate!
     end
 
     alias_method :collect_usage?, :collect_usage
     alias_method :enabled?, :enabled
 
     def validate!
+      setup_logger if @logger.nil?
+      @client.logger = @logger if @client.logger.nil?
       if !@token && @enabled
         @logger.warn("GraphQL Hive `token` is missing. Disabling Reporting.")
         @enabled = false
@@ -58,6 +60,20 @@ module GraphQLHive
         @logger.warn("GraphQL Hive `author` and `commit` options are required. Disabling Schema Reporting.")
         @report_schema = false
       end
+    end
+
+    def usage_reporter
+      @usage_reporter ||= GraphQLHive::UsageReporter.new(
+        buffer_size: buffer_size,
+        client_info: client_info,
+        client: client,
+        sampler: GraphQLHive::Sampler.new(
+          sampling_options: collect_usage_sampling,
+          logger: logger
+        ),
+        queue: Thread::SizedQueue.new(queue_size),
+        logger: logger
+      )
     end
 
     private

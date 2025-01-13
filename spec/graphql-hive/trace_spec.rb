@@ -13,16 +13,21 @@ RSpec.describe GraphQLHive::Trace do
       end
 
       query(query)
-      trace_with(
-        GraphQLHive::Trace,
-        token: "test-token",
-        logger: Logger.new(nil)
-      )
+      trace_with(GraphQLHive::Trace)
     end
   end
-
   let(:query_string) { "{ test }" }
-  let(:hive_instance) { GraphQLHive::Tracing.instance }
+  let(:hive_instance) do
+    GraphQLHive::Tracing.new(usage_reporter: GraphQLHive.configuration.usage_reporter)
+  end
+
+  before do
+    GraphQLHive.configure do |config|
+      config.token = "test-token"
+      config.logger = Logger.new(nil)
+    end
+    allow(GraphQLHive::Tracing).to receive(:new).and_return(hive_instance)
+  end
 
   describe "#execute_multiplex" do
     context "when collect_usage is enabled" do
@@ -48,24 +53,11 @@ RSpec.describe GraphQLHive::Trace do
     end
 
     context "when collect_usage is disabled" do
-      let(:schema_class) do
-        Class.new(GraphQL::Schema) do
-          query = Class.new(GraphQL::Schema::Object) do
-            field :test, String, null: true
-            def test
-              "test response"
-            end
-
-            graphql_name "TestQuery"
-          end
-
-          query(query)
-          trace_with(
-            GraphQLHive::Trace,
-            token: "test-token",
-            logger: Logger.new(nil),
-            collect_usage: false
-          )
+      before do
+        GraphQLHive.configure do |config|
+          config.token = "test-token"
+          config.logger = Logger.new(nil)
+          config.collect_usage = false
         end
       end
 
