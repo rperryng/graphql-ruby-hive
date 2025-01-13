@@ -26,3 +26,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add `start` and `stop` methods for clarity that they don't accept a block
 - Only start reporter if it is needed
 - Added tests that test integration with a real GraphQL Schema
+- Update spec folder nesting to match lib
