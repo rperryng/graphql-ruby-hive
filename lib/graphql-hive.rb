@@ -39,5 +39,15 @@ module GraphQLHive
     def stop
       GraphQLHive.configuration.usage_reporter.stop
     end
+
+    def report_schema_to_hive(schema:, options: {})
+      sdl = GraphQL::Schema::Printer.new(schema).print_schema
+      SchemaReporter.new(sdl: sdl, options: options).send_report
+    rescue => e
+      configuration.logger.error("Failed to report schema to Hive: #{e.message}")
+      if configuration.debug
+        configuration.logger.debug(e.backtrace.join("\n"))
+      end
+    end
   end
 end

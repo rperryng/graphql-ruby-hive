@@ -15,7 +15,6 @@
 
 # Getting started
 
-
 ## 0. Get your Hive token
 
 If you are using Hive as a service, please refer to our documentation: https://docs.graphql-hive.com/features/tokens.
@@ -34,10 +33,6 @@ Add `GraphQLHive` **at the end** of your schema definition:
 # app/initializers/graphql_hive.rb
 GraphQLHive.configure do |config|
   config.token = '<YOUR_TOKEN>'
-  config.reporting = {
-    author: ENV['GITHUB_USER'],
-    commit: ENV['GITHUB_COMMIT']
-  }
 end
 
 # schema.rb
@@ -49,11 +44,27 @@ end
 
 ```
 
-The `reporting` configuration is required to push your GraphQL Schema to the Hive registry.
-Doing so will help better detect breaking changes and more upcoming features.
-If you only want to use the operations monitoring, replace the `reporting` option with the following `report_schema: false`.
+## 3. (Optional) Report your schema to Hive
 
-## 3. (Optional) Configure Lifecycle Hooks
+If you want to report your schema to Hive, you can do so by calling the `report_schema_to_hive` method. You can call this method in the initializer file or in CI.
+
+```ruby
+# app/initializers/graphql_hive.rb
+GraphQLHive.report_schema_to_hive(
+  schema: Schema,
+  options: {
+    # Required
+    author: ENV['GITHUB_USER'],
+    commit: ENV['GITHUB_COMMIT'],
+    # Optional
+    service: ENV['GRAPHQL_HIVE_SERVICE_NAME'],
+    url: ENV['GRAPHQL_HIVE_SERVICE_URL'],
+    force: ENV['GRAPHQL_HIVE_FORCE_REPORT']
+  }
+)
+```
+
+## 4. (Optional) Configure Lifecycle Hooks
 
 Calling these hooks are situational - it's likely that you may not need to call
 them at all!
@@ -96,7 +107,7 @@ When deploying or starting up your GraphQL API, `graphql-hive` will immediately:
 - publish the schema to the Hive registry
 - forward the operations metrics to Hive
 
-## 4. See how your GraphQL API is operating
+## 5. See how your GraphQL API is operating
 
 You should now see operations information (RPM, error rate, queries performed) on your [GraphQL Hive dashboard](https://app.graphql-hive.com/):
 
@@ -104,7 +115,7 @@ You should now see operations information (RPM, error rate, queries performed) o
   <img src="operations-dashboard.png" width="500" alt="GraphQL Hive" />
 </p>
 
-## 5. Going further: use the Hive Github app
+## 6. Going further: use the Hive Github app
 
 Stay on top of your GraphQL Schema changes by installing the Hive Github Application and enabling Slack notifications about breaking changes:
 
@@ -149,17 +160,6 @@ GraphQLHive.configure do |config|
     at_least_once: true,
     # Assign custom keys to distinguish between distinct operations.
     key_generator: proc { |context| context.operation_name }
-  }
-  # Publish schema to Hive.
-  config.report_schema = true
-  # Mandatory if `report_schema: true`.
-  config.reporting = {
-    # Mandatory members of `reporting`.
-    author: 'Author of the latest change',
-    commit: 'git sha or any identifier',
-    # Optional members of `reporting`.
-    service_name: '',
-    service_url: '',
   }
 
   # Pass an optional proc to client_info to help identify the client (ex: Apollo web app) that performed the query.
