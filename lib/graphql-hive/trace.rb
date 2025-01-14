@@ -1,19 +1,19 @@
 module GraphQLHive
   module Trace
     def initialize(multiplex: nil, query: nil, **options)
-      # TODO make configuration a singleton
-      @configuration = GraphQLHive::Configuration.new(options)
-      GraphQLHive::Tracing.instance.configuration = @configuration
-      @tracer = GraphQLHive::Tracing.instance
+      @configuration = GraphQLHive.configuration
+      @hive = GraphQLHive::Tracing.new(
+        usage_reporter: @configuration.usage_reporter
+      )
       # TODO put in configuration so we don't call this on every trace
-      report_schema_to_hive(options[:schema])
+      report_schema_to_hive(@configuration.schema)
       super
     end
 
     def execute_multiplex(multiplex:)
       return super unless _should_collect_usage?
 
-      @tracer.trace(queries: multiplex.queries) { super }
+      @hive.trace(queries: multiplex.queries) { super }
     end
 
     private

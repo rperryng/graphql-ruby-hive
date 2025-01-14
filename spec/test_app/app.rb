@@ -26,17 +26,18 @@ end
 class Schema < GraphQL::Schema
   query QueryType
 
-  trace_with(
-    GraphQLHive::Trace,
-    enabled: true,
-    token: "fake-token",
-    report_schema: false,
-    collect_usage_sampling: {
-      sample_rate: 1
-    },
-    buffer_size: 5,
-    schema: self
-  )
+  trace_with(GraphQLHive::Trace)
+end
+
+GraphQLHive.configure do |config|
+  config.enabled = true
+  config.token = "fake-token"
+  config.report_schema = false
+  config.collect_usage_sampling = {
+    sample_rate: 1
+  }
+  config.buffer_size = 5
+  config.schema = self
 end
 
 class TestApp < Sinatra::Base

@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Works with `Schema.trace_with` you will need to update your schema to use this method. There is an example in app.rb
+- BREAKING: You must now configure the gem in an initializer. See README.md for more details.
 
 ### Removed
 - BREAKING: No longer works with `Schema.use` as this is deprecated in graphql-ruby.
