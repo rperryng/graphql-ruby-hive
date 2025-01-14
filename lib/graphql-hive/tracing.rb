@@ -2,7 +2,7 @@ module GraphQLHive
   class Tracing
     Operation = Data.define(:timestamp, :queries, :results, :elapsed_ns)
 
-    def initialize(usage_reporter: nil)
+    def initialize(usage_reporter:)
       @usage_reporter = usage_reporter
     end
 
