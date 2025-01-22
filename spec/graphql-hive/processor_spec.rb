@@ -12,7 +12,7 @@ RSpec.describe GraphQLHive::Processor do
       context: double("Context"))
   end
   let(:operation) do
-    GraphQLHive::Tracing::Operation.new(
+    GraphQLHive::Operation.new(
       Time.now,
       [query],
       [double("Result", query: query, to_h: {"data" => {}, "errors" => []})],

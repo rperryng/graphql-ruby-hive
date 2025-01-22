@@ -8,22 +8,19 @@ module GraphQLHive
 
     def build
       @body ||= @operations.each_with_object(initialize_report) do |operation, report|
-        timestamp, queries, results, duration = operation
-        errors = errors_from_results(results)
-        operation_name = extract_operation_name(queries)
-        operation_details = build_operation_details(queries)
+        errors = errors_from_results(operation.results)
+        operation_name = extract_operation_name(operation.queries)
+        operation_details = build_operation_details(operation.queries)
         operation_map_key = generate_operation_key(operation_details)
 
         operation_record = build_operation_record(
-          operation_map_key, timestamp, duration, errors, results
+          operation_map_key, operation.timestamp, operation.duration, errors, operation.results
         )
 
-        operation, fields = operation_details
-
         report[:map][operation_map_key] = {
-          fields: fields.to_a,
+          fields: operation_details[1].to_a,
           operationName: operation_name,
-          operation: operation
+          operation: operation_details[0]
         }
         report[:operations] << operation_record
         report[:size] += 1

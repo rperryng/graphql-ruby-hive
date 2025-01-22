@@ -12,9 +12,7 @@ module GraphQLHive
     end
 
     def process_queue
-      while (op = @queue.pop(false))
-        # TODO use data class for operation
-        operation = op.deconstruct
+      while (operation = @queue.pop(false))
         begin
           @logger.debug("Processing operation from queue: #{operation}")
           @buffer << operation if @sampler.sample?(operation)

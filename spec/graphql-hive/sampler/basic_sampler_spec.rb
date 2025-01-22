@@ -20,7 +20,7 @@ RSpec.describe GraphQLHive::Sampling::BasicSampler do
     let(:queries) { [GraphQL::Query.new(schema, query: "{ test }", context: {header: "value"})] }
     let(:results) { [GraphQL::Query::Result.new(query: queries.first, values: {"data" => {"test" => "test"}})] }
     let(:duration) { 100 }
-    let(:operation) { [timestamp, queries, results, duration] }
+    let(:operation) { GraphQLHive::Operation.new(timestamp, queries, results, duration) }
 
     it "follows the sample rate for all operations" do
       expect(sampler_instance.sample?(operation)).to eq(false)
@@ -41,7 +41,12 @@ RSpec.describe GraphQLHive::Sampling::BasicSampler do
           expect(sampler_instance.sample?(operation)).to eq(true)
 
           queries = [GraphQL::Query.new(schema, query: "{ something_else }")]
-          different_operation = [timestamp, queries, results, duration]
+          different_operation = GraphQLHive::Operation.new(
+            timestamp,
+            queries,
+            results,
+            duration
+          )
 
           expect(sampler_instance.sample?(different_operation)).to eq(false)
         end

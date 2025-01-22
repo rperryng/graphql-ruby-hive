@@ -13,18 +13,16 @@ module GraphQLHive
       }
 
       def get_sample_context(operation)
-        _, queries, results, = operation
-
-        operation_name = queries.map(&:operations).map(&:keys).flatten.compact.join(", ")
+        operation_name = operation.queries.map(&:operations).map(&:keys).flatten.compact.join(", ")
 
         parsed_definitions = []
-        queries.each do |query|
+        operation.queries.each do |query|
           query_document = query.document
           parsed_definitions.concat(query_document.definitions) if query_document
         end
         document = GraphQL::Language::Nodes::Document.new(definitions: parsed_definitions)
 
-        context_value = results[0].query.context
+        context_value = operation.results[0].query.context
 
         {
           operation_name: operation_name,

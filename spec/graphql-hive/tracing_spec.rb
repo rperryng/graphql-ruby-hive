@@ -47,7 +47,7 @@ RSpec.describe GraphQLHive::Tracing do
         expect(operation.timestamp).to eq(timestamp)
         expect(operation.queries).to eq(queries)
         expect(operation.results).to eq(results.map(&:to_h))
-        expect(operation.elapsed_ns).to be_a(Integer)
+        expect(operation.duration).to be_a(Integer)
       end
     end
   end
