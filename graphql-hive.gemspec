@@ -26,4 +26,5 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency "graphql", ">= 2.3", "< 3"
   spec.add_dependency "logger"
+  spec.add_dependency "concurrent-ruby", "~> 1.3.5"
 end

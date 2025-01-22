@@ -4,10 +4,12 @@ require "logger"
 require "securerandom"
 
 require "graphql-hive/version"
+require "graphql-hive/analyzer"
+require "graphql-hive/printer"
 require "graphql-hive/report"
 require "graphql-hive/usage_reporter"
 require "graphql-hive/client"
-
+require "graphql-hive/processor"
 require "graphql-hive/operation"
 require "graphql-hive/sampler"
 require "graphql-hive/sampling/basic_sampler"

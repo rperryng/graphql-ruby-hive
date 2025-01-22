@@ -55,19 +55,31 @@ module GraphQLHive
 
     def usage_reporter
       @usage_reporter ||= GraphQLHive::UsageReporter.new(
-        buffer_size: buffer_size,
-        client_info: client_info,
-        client: client,
-        sampler: GraphQLHive::Sampler.new(
-          sampling_options: collect_usage_sampling,
-          logger: logger
-        ),
-        queue: Thread::SizedQueue.new(queue_size),
-        logger: logger
+        queue: queue,
+        logger: logger,
+        processor: processor
       )
     end
 
     private
+
+    def processor
+      @processor ||= GraphQLHive::Processor.new(
+        buffer_size: buffer_size,
+        client: client,
+        client_info: client_info,
+        sampler: GraphQLHive::Sampler.new(
+          sampling_options: collect_usage_sampling,
+          logger: logger
+        ),
+        queue: queue,
+        logger: logger
+      )
+    end
+
+    def queue
+      @queue ||= Thread::SizedQueue.new(queue_size)
+    end
 
     def setup_logger
       @logger = Logger.new($stderr)

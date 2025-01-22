@@ -10,11 +10,9 @@ RSpec.describe GraphQLHive::UsageReporter do
 
   subject(:reporter) do
     described_class.new(
-      buffer_size: buffer_size,
-      client: client,
-      sampler: sampler,
       queue: queue,
-      logger: logger
+      logger: logger,
+      processor: processor
     )
   end
 
@@ -38,13 +36,15 @@ RSpec.describe GraphQLHive::UsageReporter do
 
       it "logs error" do
         reporter.add_operation(operation)
-        expect(logger).to have_received(:error).with(/SizedQueue is full/)
+        expect(logger).to have_received(:error).with(
+          "Queue full (size: 10/10), discarding operation"
+        )
       end
     end
 
     context "when reporter is stopping" do
       before do
-        reporter.instance_variable_set(:@stopping, true)
+        queue.close
       end
 
       it "discards the operation" do
@@ -60,7 +60,8 @@ RSpec.describe GraphQLHive::UsageReporter do
 
       it "logs error" do
         reporter.add_operation(operation)
-        expect(logger).to have_received(:error).with("Queue is closed, discarding operation")
+        expect(queue).to be_empty
+        expect(logger).to have_received(:warn).with("Queue closed, discarding operation")
       end
     end
   end
@@ -80,13 +81,13 @@ RSpec.describe GraphQLHive::UsageReporter do
 
     context "when already running" do
       before do
-        allow(processing_thread).to receive(:alive?).and_return(true)
-        reporter.instance_variable_set(:@thread, processing_thread)
+        reporter.instance_variable_get(:@running).make_true
+        reporter.instance_variable_set(:@processor_thread, processing_thread)
       end
 
       it "logs warning and does not create new threads" do
         reporter.start
-        expect(logger).to have_received(:warn).with("Usage reporter is already running")
+        expect(logger).to have_received(:warn).with("Already running")
         expect(Thread).not_to have_received(:new)
       end
     end
@@ -97,8 +98,10 @@ RSpec.describe GraphQLHive::UsageReporter do
     let(:monitor_thread) { instance_double(Thread, alive?: true, kill: nil) }
 
     before do
-      reporter.instance_variable_set(:@thread, processing_thread)
+      reporter.instance_variable_get(:@running).make_true
+      reporter.instance_variable_set(:@processor_thread, processing_thread)
       reporter.instance_variable_set(:@monitor_thread, monitor_thread)
+      reporter.start
     end
 
     it "stops both threads and closes queue" do
@@ -116,7 +119,7 @@ RSpec.describe GraphQLHive::UsageReporter do
       it "forces thread to stop" do
         reporter.stop
         expect(processing_thread).to have_received(:kill)
-        expect(logger).to have_received(:error).with(/failed to stop gracefully/)
+        expect(logger).to have_received(:error).with("Force stopping processor thread")
       end
     end
 
@@ -124,6 +127,7 @@ RSpec.describe GraphQLHive::UsageReporter do
       before do
         allow(processing_thread).to receive(:alive?).and_return(false)
         allow(monitor_thread).to receive(:alive?).and_return(false)
+        reporter.instance_variable_get(:@running).make_false
       end
 
       it "does nothing" do
