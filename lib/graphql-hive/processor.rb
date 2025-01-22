@@ -28,8 +28,7 @@ module GraphQLHive
       return false if @queue.closed?
 
       operation = @queue.pop
-      return true if operation.nil?
-      return true if !@sampler.sample?(operation)
+      return true if operation.nil? || !@sampler.sample?(operation)
 
       @buffer << operation
       true

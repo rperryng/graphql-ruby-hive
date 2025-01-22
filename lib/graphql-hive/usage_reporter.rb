@@ -89,11 +89,9 @@ module GraphQLHive
 
         while @running
           sleep MONITOR_INTERVAL
-          PROCESS_MUTEX.synchronize do
-            if @running && !@processor_thread&.alive?
-              @logger.warn("Processor died, restarting...")
-              start_processor
-            end
+          if @running && !@processor_thread&.alive?
+            @logger.warn("Processor died, restarting...")
+            start_processor
           end
         end
       rescue => e
