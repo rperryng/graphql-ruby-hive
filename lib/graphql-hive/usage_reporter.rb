@@ -1,18 +1,19 @@
 # frozen_string_literal: true
 
-require "concurrent/atomic/atomic_boolean"
-
 module GraphQLHive
   class UsageReporter
     class Error < StandardError; end
     SHUTDOWN_TIMEOUT_SECONDS = 30
+    MONITOR_INTERVAL = 1 # seconds
+
+    # Class-level process mutex
+    PROCESS_MUTEX = Mutex.new
 
     def initialize(queue:, logger:, processor:)
       @queue = queue
       @logger = logger
       @processor = processor
-      @running = Concurrent::AtomicBoolean.new(false)
-      @lock = Mutex.new
+      @running = false
     end
 
     def add_operation(operation)
@@ -25,11 +26,12 @@ module GraphQLHive
     end
 
     def start
-      # Only ever start one instance of the usage reporter
-      @lock.synchronize do
+      PROCESS_MUTEX.synchronize do
         return @logger.warn("Already running") if running?
+        return @logger.warn("Another reporter is running in this process") if self.class.reporter_running?
 
-        @running.make_true
+        self.class.mark_reporter_running
+        @running = true
         start_processor
         start_monitor
       end
@@ -37,19 +39,35 @@ module GraphQLHive
     alias_method :on_start, :start
 
     def stop
-      @lock.synchronize do
-        return unless @running.true?
+      PROCESS_MUTEX.synchronize do
+        return unless @running
 
-        @running.make_false
+        @running = false
         shutdown_threads
+        self.class.mark_reporter_stopped
       end
     end
     alias_method :on_exit, :stop
 
     private
 
+    # Class-level process-wide state management
+    class << self
+      def reporter_running?
+        @global_running ||= false
+      end
+
+      def mark_reporter_running
+        @global_running = true
+      end
+
+      def mark_reporter_stopped
+        @global_running = false
+      end
+    end
+
     def running?
-      @running.true? && @processor_thread&.alive?
+      @running && @processor_thread&.alive?
     end
 
     def start_processor
@@ -69,21 +87,17 @@ module GraphQLHive
         Thread.current.name = "graphql_hive_monitor"
         Thread.current.abort_on_exception = true
 
-        monitor_processor_health
-      rescue => e
-        @logger.error("Monitor failed: #{e.message}")
-      end
-    end
-
-    def monitor_processor_health
-      while @running.true?
-        @lock.synchronize do
-          if @running.true? && !@processor_thread&.alive?
-            @logger.warn("Processor died, restarting...")
-            start_processor
+        while @running
+          sleep MONITOR_INTERVAL
+          PROCESS_MUTEX.synchronize do
+            if @running && !@processor_thread&.alive?
+              @logger.warn("Processor died, restarting...")
+              start_processor
+            end
           end
         end
-        sleep 1
+      rescue => e
+        @logger.error("Monitor failed: #{e.message}")
       end
     end
 
@@ -91,12 +105,16 @@ module GraphQLHive
       @logger.info("Shutting down...")
       @queue.close
 
+      unless @monitor_thread&.join(1)
+        @logger.error("Force stopping monitor thread")
+        @monitor_thread.kill
+      end
+
       unless @processor_thread.join(SHUTDOWN_TIMEOUT_SECONDS)
         @logger.error("Force stopping processor thread")
         @processor_thread.kill
       end
 
-      @monitor_thread&.kill
       @logger.info("Shutdown complete")
     end
   end

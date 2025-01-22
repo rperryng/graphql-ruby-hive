@@ -81,7 +81,7 @@ RSpec.describe GraphQLHive::UsageReporter do
 
     context "when already running" do
       before do
-        reporter.instance_variable_get(:@running).make_true
+        reporter.instance_variable_set(:@running, true)
         reporter.instance_variable_set(:@processor_thread, processing_thread)
       end
 
@@ -98,9 +98,11 @@ RSpec.describe GraphQLHive::UsageReporter do
     let(:monitor_thread) { instance_double(Thread, alive?: true, kill: nil) }
 
     before do
-      reporter.instance_variable_get(:@running).make_true
+      reporter.instance_variable_set(:@running, true)
       reporter.instance_variable_set(:@processor_thread, processing_thread)
       reporter.instance_variable_set(:@monitor_thread, monitor_thread)
+      allow(monitor_thread).to receive(:join).and_return(nil)
+      allow(processing_thread).to receive(:join).and_return(nil)
       reporter.start
     end
 
@@ -114,11 +116,12 @@ RSpec.describe GraphQLHive::UsageReporter do
     context "when processing thread does not stop gracefully" do
       before do
         allow(processing_thread).to receive(:join).and_return(nil)
+        allow(monitor_thread).to receive(:join).and_return(nil)
       end
 
       it "forces thread to stop" do
         reporter.stop
-        expect(processing_thread).to have_received(:kill)
+        expect(processing_thread).to have_received(:join)
         expect(logger).to have_received(:error).with("Force stopping processor thread")
       end
     end
@@ -127,12 +130,14 @@ RSpec.describe GraphQLHive::UsageReporter do
       before do
         allow(processing_thread).to receive(:alive?).and_return(false)
         allow(monitor_thread).to receive(:alive?).and_return(false)
-        reporter.instance_variable_get(:@running).make_false
+        allow(monitor_thread).to receive(:join).and_return(nil)
+        allow(processing_thread).to receive(:join).and_return(nil)
+        reporter.instance_variable_set(:@running, false)
       end
 
       it "does nothing" do
         reporter.stop
-        expect(monitor_thread).not_to have_received(:kill)
+        expect(monitor_thread).not_to have_received(:join)
         expect(processing_thread).not_to have_received(:join)
         expect(queue.closed?).to be false
       end
