@@ -18,11 +18,6 @@ require "graphql-hive/tracing"
 require "graphql-hive/trace"
 require "graphql"
 
-# TODO: remove this because it introduces a race condition in forked processes
-at_exit do
-  GraphQLHive.configuration&.usage_reporter&.stop
-end
-
 module GraphQLHive
   class << self
     attr_accessor :configuration

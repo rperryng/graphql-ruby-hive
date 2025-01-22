@@ -64,18 +64,11 @@ GraphQLHive.report_schema_to_hive(
 )
 ```
 
-## 4. (Optional) Configure Lifecycle Hooks
-
-Calling these hooks are situational - it's likely that you may not need to call
-them at all!
+## 4. Configure Lifecycle Hooks
 
 ### `start`
 
-Call this hook if you are running `GraphQLHive` in a process that `fork`s
-itself.
-
-example: `puma` web server running in (["clustered
-mode"](https://github.com/puma/puma/tree/6d8b728b42a61bcf3c1e4c698c9165a45e6071e8#clustered-mode))
+Call this hook to run `GraphQLHive` when the application starts.
 
 ```ruby
 # config/puma.rb
@@ -84,19 +77,25 @@ preload_app!
 on_worker_boot do
   GraphQLHive.start
 end
+
+on_worker_shutdown do
+  GraphQLHive.stop
+end
 ```
 
-### `on_exit`
-
-If your GraphQL API process is shut down non-gracefully but has a shutdown hook
-to call into, call `on_worker_exit`.
-
-`puma` example:
+Or if you are running Puma in single-process mode:
 
 ```ruby
 # config/puma.rb
+on_booted do
+  GraphQLHive.start
+end
 
-on_worker_shutdown do
+on_restart do
+  GraphQLHive.stop
+end
+
+on_stopped do
   GraphQLHive.stop
 end
 ```
