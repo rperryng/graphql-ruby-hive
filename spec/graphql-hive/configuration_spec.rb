@@ -24,7 +24,7 @@ RSpec.describe GraphQLHive::Configuration do
       it "sets default values" do
         expect(config.buffer_size).to eq(50)
         expect(config.collect_usage).to be true
-        expect(config.collect_usage_sampling).to eq(1.0)
+        expect(config.collect_usage_sampling).to eq({sample_rate: 1.0})
         expect(config.debug).to be false
         expect(config.enabled).to be true
         expect(config.queue_size).to eq(1000)

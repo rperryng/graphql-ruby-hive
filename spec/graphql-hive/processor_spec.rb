@@ -3,7 +3,7 @@ require "spec_helper"
 RSpec.describe GraphQLHive::Processor do
   let(:buffer_size) { 2 }
   let(:client) { instance_double("GraphQLHive::Client") }
-  let(:sampler) { instance_double("GraphQLHive::Sampler") }
+  let(:sampler) { instance_double("GraphQLHive::BasicSampler") }
   let(:queue) { instance_double("Thread::SizedQueue") }
   let(:logger) { instance_double("Logger") }
   let(:query) do

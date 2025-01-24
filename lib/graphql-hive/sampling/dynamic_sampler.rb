@@ -8,24 +8,22 @@ module GraphQLHive
     class DynamicSampler
       include GraphQLHive::Sampling::SamplingContext
 
-      def initialize(client_sampler, at_least_once, key_generator)
-        @sampler = client_sampler
+      def initialize(options: {})
+        @sampler = options[:sampler]
+        @at_least_once = options[:at_least_once]
+        @key_generator = options[:key_generator] || DEFAULT_SAMPLE_KEY
         @tracked_operations = {}
-        @key_generator = key_generator || DEFAULT_SAMPLE_KEY if at_least_once
       end
 
       def sample?(operation)
         sample_context = get_sample_context(operation)
+        return SecureRandom.random_number <= @sampler.call(sample_context) if !@at_least_once
 
-        if @key_generator
-          operation_key = @key_generator.call(sample_context)
-          unless @tracked_operations.key?(operation_key)
-            @tracked_operations[operation_key] = true
-            return true
-          end
-        end
+        operation_key = @key_generator.call(sample_context)
+        return false if @tracked_operations.key?(operation_key)
 
-        SecureRandom.random_number <= @sampler.call(sample_context)
+        @tracked_operations[operation_key] = true
+        true
       end
     end
   end
