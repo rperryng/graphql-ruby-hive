@@ -14,12 +14,12 @@ RSpec.describe GraphQLHive::Report do
   end
 
   let(:operation) do
-    [
+    GraphQLHive::Operation.new(
       Time.now,
       [query],
       [double("Result", query: query, to_h: {"data" => {}, "errors" => []})],
       100
-    ]
+    )
   end
 
   describe "#build" do
@@ -63,12 +63,12 @@ RSpec.describe GraphQLHive::Report do
 
     context "when there are errors in the result" do
       let(:operation) do
-        [
+        GraphQLHive::Operation.new(
           Time.now,
           [query],
           [double("Result", query: query, to_h: {"errors" => ["Some error"]})],
           100
-        ]
+        )
       end
 
       it "counts the errors correctly" do

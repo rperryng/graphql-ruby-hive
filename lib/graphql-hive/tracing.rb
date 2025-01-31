@@ -1,7 +1,5 @@
 module GraphQLHive
   class Tracing
-    Operation = Data.define(:timestamp, :queries, :results, :elapsed_ns)
-
     def initialize(usage_reporter:)
       @usage_reporter = usage_reporter
     end
@@ -12,7 +10,7 @@ module GraphQLHive
       elapsed_ns = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - start_time) * 1e9).to_i
 
       @usage_reporter.add_operation(
-        Operation.new(
+        GraphQLHive::Operation.new(
           Time.now.to_i * 1000,
           queries,
           all_results.map(&:to_h),
