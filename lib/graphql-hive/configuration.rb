@@ -50,7 +50,7 @@ module GraphQLHive
       setup_logger if @logger.nil?
       @client.logger = @logger if @client.logger.nil?
       if !@token && @enabled
-        @logger.warn("GraphQL Hive `token` is missing. Disabling Reporting.")
+        @logger.warn { "GraphQL Hive `token` is missing. Disabling Reporting." }
         @enabled = false
       end
     end

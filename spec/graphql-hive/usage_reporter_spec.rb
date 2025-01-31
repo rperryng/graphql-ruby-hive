@@ -39,12 +39,14 @@ RSpec.describe GraphQLHive::UsageReporter do
     context "when queue is full" do
       before do
         allow(queue).to receive(:push).and_raise(ThreadError)
-        allow(logger).to receive(:error)
+        allow(logger).to receive(:warn).and_yield
       end
 
       it "logs error" do
         reporter.add_operation(operation)
-        expect(logger).to have_received(:error).with("SizedQueue is full, discarding operation. Size: 5, Max: 10")
+        expect(logger).to have_received(:warn) do |&block|
+          expect(block.call).to eq("SizedQueue is full, discarding operation. Size: 5, Max: 10")
+        end
       end
     end
   end
@@ -84,7 +86,9 @@ RSpec.describe GraphQLHive::UsageReporter do
     context "when thread is already alive" do
       it "logs warning" do
         reporter.start
-        expect(logger).to have_received(:warn).with("Usage reporter is already running").once
+        expect(logger).to have_received(:warn) do |&block|
+          expect(block.call).to eq("Usage reporter is already running")
+        end
       end
     end
   end

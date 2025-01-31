@@ -16,11 +16,11 @@ module GraphQLHive
         # TODO use data class for operation
         operation = op.deconstruct
         begin
-          @logger.debug("Processing operation from queue: #{operation}")
+          @logger.debug { "Processing operation from queue: #{operation}" }
           @buffer << operation if @sampler.sample?(operation)
 
           if @buffer.size >= @buffer_size
-            @logger.debug("Buffer is full, sending report")
+            @logger.debug { "Buffer is full, sending report" }
             flush_buffer
           end
         rescue => e

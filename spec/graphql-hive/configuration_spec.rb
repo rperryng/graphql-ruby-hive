@@ -75,7 +75,9 @@ RSpec.describe GraphQLHive::Configuration do
 
       it "disables the service and logs a warning" do
         expect(config.enabled).to be false
-        expect(logger).to have_received(:warn).with(/token.*missing/)
+        expect(logger).to have_received(:warn) do |&block|
+          expect(block.call).to eq("GraphQL Hive `token` is missing. Disabling Reporting.")
+        end
       end
     end
 

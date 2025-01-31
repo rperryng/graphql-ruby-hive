@@ -32,11 +32,11 @@ module GraphQLHive
       code = response.code.to_i
       if code >= 400 && code < 500
         error_message = "Unsuccessful response: #{response.code} - #{response.message}"
-        @logger.warn("#{error_message} #{extract_error_details(response)}")
+        @logger.warn { "#{error_message} #{extract_error_details(response)}" }
       end
 
-      @logger.debug(response.inspect)
-      @logger.debug(response.body.inspect)
+      @logger.debug { response.inspect }
+      @logger.debug { response.body.inspect }
     rescue => e
       @logger.fatal("Failed to send data: #{e}")
     end

@@ -19,12 +19,14 @@ module GraphQLHive
     def add_operation(operation)
       @queue.push(operation, true)
     rescue ThreadError
-      @logger.error("SizedQueue is full, discarding operation. Size: #{@queue.size}, Max: #{@queue.max}")
+      @logger.warn do
+        "SizedQueue is full, discarding operation. Size: #{@queue.size}, Max: #{@queue.max}"
+      end
     end
 
     def start
       if @thread&.alive?
-        @logger.warn("Usage reporter is already running")
+        @logger.warn { "Usage reporter is already running" }
       end
 
       # TODO consider using Fibers instead of threads because they are lighter weight
