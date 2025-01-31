@@ -24,7 +24,6 @@ RSpec.describe GraphQLHive::Trace do
   before do
     GraphQLHive.configure do |config|
       config.token = "test-token"
-      config.logger = Logger.new(nil)
     end
     allow(GraphQLHive::Tracing).to receive(:new).and_return(hive_instance)
   end
@@ -56,7 +55,6 @@ RSpec.describe GraphQLHive::Trace do
       before do
         GraphQLHive.configure do |config|
           config.token = "test-token"
-          config.logger = Logger.new(nil)
           config.collect_usage = false
         end
       end

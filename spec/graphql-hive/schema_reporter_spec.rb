@@ -9,7 +9,7 @@ RSpec.describe GraphQLHive::SchemaReporter do
       force: true
     }
   end
-  let(:config) { instance_double(GraphQLHive::Configuration) }
+  let(:config) { instance_double(GraphQLHive::Configuration, :logger= => nil, :logger => nil) }
   let(:client) { instance_double(GraphQLHive::Client) }
 
   before do

@@ -3,7 +3,15 @@
 require "spec_helper"
 
 RSpec.describe GraphQLHive::Sampling::BasicSampler do
-  let(:sampler_instance) { described_class.new(sample_rate, at_least_once, key_generator) }
+  let(:sampler_instance) do
+    described_class.new(
+      options: {
+        sample_rate: sample_rate,
+        at_least_once: at_least_once,
+        key_generator: key_generator
+      }
+    )
+  end
   let(:sample_rate) { 0 }
   let(:at_least_once) { false }
   let(:key_generator) { nil }
@@ -11,6 +19,21 @@ RSpec.describe GraphQLHive::Sampling::BasicSampler do
   describe "#initialize" do
     it "sets the sample rate" do
       expect(sampler_instance.instance_variable_get(:@sample_rate)).to eq(0)
+    end
+
+    context "when the sample_rate is a string" do
+      let(:sample_rate) { "0.1" }
+      it "converts the sample rate to a float" do
+        expect(sampler_instance.instance_variable_get(:@sample_rate)).to eq(0.1)
+      end
+    end
+
+    context "when the sample_rate is nil" do
+      let(:sample_rate) { nil }
+
+      it "sets the sample rate to 1" do
+        expect(sampler_instance.instance_variable_get(:@sample_rate)).to eq(1)
+      end
     end
   end
 

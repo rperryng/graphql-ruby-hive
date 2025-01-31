@@ -18,7 +18,7 @@ require "graphql-hive/trace"
 require "graphql"
 
 at_exit do
-  GraphQLHive.configuration.usage_reporter.stop
+  GraphQLHive.configuration&.usage_reporter&.stop
 end
 
 module GraphQLHive

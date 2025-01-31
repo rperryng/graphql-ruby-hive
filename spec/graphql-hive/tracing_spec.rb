@@ -24,10 +24,6 @@ RSpec.describe GraphQLHive::Tracing do
     allow(usage_reporter).to receive(:stop)
   end
 
-  after do
-    Singleton.__init__(described_class)
-  end
-
   describe "#trace" do
     let(:queries) { ["query { user { id } }"] }
     let(:results) { [{"data" => {"user" => {"id" => 1}}}] }

@@ -17,7 +17,9 @@ module GraphQLHive
       buffer_size: 50,
       client_info: nil,
       collect_usage: true,
-      collect_usage_sampling: 1.0,
+      collect_usage_sampling: {
+        sample_rate: 1.0
+      },
       debug: false,
       enabled: true,
       endpoint: "app.graphql-hive.com",
@@ -48,7 +50,7 @@ module GraphQLHive
       setup_logger if @logger.nil?
       @client.logger = @logger if @client.logger.nil?
       if !@token && @enabled
-        @logger.warn("GraphQL Hive `token` is missing. Disabling Reporting.")
+        @logger.warn { "GraphQL Hive `token` is missing. Disabling Reporting." }
         @enabled = false
       end
     end
@@ -58,10 +60,7 @@ module GraphQLHive
         buffer_size: buffer_size,
         client_info: client_info,
         client: client,
-        sampler: GraphQLHive::Sampler.new(
-          sampling_options: collect_usage_sampling,
-          logger: logger
-        ),
+        sampler: GraphQLHive::Sampler.build(options: collect_usage_sampling),
         queue: Thread::SizedQueue.new(queue_size),
         logger: logger
       )

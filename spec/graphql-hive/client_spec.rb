@@ -91,7 +91,9 @@ RSpec.describe GraphQLHive::Client do
       end
 
       it "logs a warning with error details" do
-        expect(logger).to receive(:warn).with("Unsuccessful response: 400 - Bad Request { path: test1, message: Error message 1 }, { path: test2, message: Error message 2 }")
+        expect(logger).to receive(:warn) do |&block|
+          expect(block.call).to eq("Unsuccessful response: 400 - Bad Request { path: test1, message: Error message 1 }, { path: test2, message: Error message 2 }")
+        end
         client.send(:"/usage", body, :usage)
       end
 
@@ -99,7 +101,10 @@ RSpec.describe GraphQLHive::Client do
         let(:response) { instance_double(Net::HTTPClientError, body: "Invalid JSON", code: "400", message: "Bad Request") }
 
         it "logs a warning without error details" do
-          expect(logger).to receive(:warn).with("Unsuccessful response: 400 - Bad Request Could not parse response from Hive")
+          expect(logger).to receive(:warn) do |&block|
+            expect(block.call).to eq("Unsuccessful response: 400 - Bad Request Could not parse response from Hive")
+          end
+
           client.send(:"/usage", body, :usage)
         end
       end
@@ -108,7 +113,9 @@ RSpec.describe GraphQLHive::Client do
         let(:response) { instance_double(Net::HTTPClientError, body: "{}", code: "401", message: "Unauthorized") }
 
         it "logs a warning without error details" do
-          expect(logger).to receive(:warn).with("Unsuccessful response: 401 - Unauthorized ")
+          expect(logger).to receive(:warn) do |&block|
+            expect(block.call).to eq("Unsuccessful response: 401 - Unauthorized ")
+          end
           client.send(:"/usage", body, :usage)
         end
       end

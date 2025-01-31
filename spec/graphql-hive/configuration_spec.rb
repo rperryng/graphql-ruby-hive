@@ -24,7 +24,7 @@ RSpec.describe GraphQLHive::Configuration do
       it "sets default values" do
         expect(config.buffer_size).to eq(50)
         expect(config.collect_usage).to be true
-        expect(config.collect_usage_sampling).to eq(1.0)
+        expect(config.collect_usage_sampling).to eq({sample_rate: 1.0})
         expect(config.debug).to be false
         expect(config.enabled).to be true
         expect(config.queue_size).to eq(1000)
@@ -75,7 +75,9 @@ RSpec.describe GraphQLHive::Configuration do
 
       it "disables the service and logs a warning" do
         expect(config.enabled).to be false
-        expect(logger).to have_received(:warn).with(/token.*missing/)
+        expect(logger).to have_received(:warn) do |&block|
+          expect(block.call).to eq("GraphQL Hive `token` is missing. Disabling Reporting.")
+        end
       end
     end
 

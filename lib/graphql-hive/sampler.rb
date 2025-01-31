@@ -1,39 +1,16 @@
 # frozen_string_literal: true
 
 module GraphQLHive
-  # Sampler instance for usage reporter
   class Sampler
-    def initialize(sampling_options:, logger:)
-      @logger = logger
-      # backwards compatibility with old `collect_usage_sampling` field
-      if sampling_options.is_a?(Numeric)
-        @logger.warn(
-          "`collect_usage_sampling` is deprecated for fixed sampling rates, " \
-          "use `collect_usage_sampling: { sample_rate: XX }` instead"
-        )
-        passed_sampling_rate = sampling_options
-        sampling_options = {sample_rate: passed_sampling_rate}
-      end
-
-      sampling_options ||= {}
-
-      @sampler = if sampling_options[:sampler]
-        Sampling::DynamicSampler.new(
-          sampling_options[:sampler],
-          sampling_options[:at_least_once],
-          sampling_options[:key_generator]
-        )
+    def self.build(options:)
+      case options
+      when Numeric, String, nil
+        Sampling::BasicSampler.new(options: {sample_rate: options})
+      when ->(opt) { opt.is_a?(Hash) && opt[:sample_rate].is_a?(Float) }
+        Sampling::BasicSampler.new(options: options)
       else
-        Sampling::BasicSampler.new(
-          sampling_options[:sample_rate],
-          sampling_options[:at_least_once],
-          sampling_options[:key_generator]
-        )
+        Sampling::DynamicSampler.new(options: options)
       end
-    end
-
-    def sample?(operation)
-      @sampler.sample?(operation)
     end
   end
 end
