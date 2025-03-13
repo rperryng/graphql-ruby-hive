@@ -1,8 +1,8 @@
 PATH
   remote: .
   specs:
-    graphql-hive (0.5.4)
-      graphql (>= 2.3, < 3)
+    graphql-hive (0.5.5)
+      graphql (>= 2.4.12, < 3)
       logger
 
 GEM
@@ -23,9 +23,10 @@ GEM
       reline (>= 0.3.8)
     diff-lcs (1.5.1)
     fiber-storage (1.0.0)
-    graphql (2.4.8)
+    graphql (2.4.14)
       base64
       fiber-storage
+      logger
     hashdiff (1.1.2)
     io-console (0.8.0)
     irb (1.14.3)
