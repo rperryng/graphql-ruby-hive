@@ -8,7 +8,8 @@ RSpec.describe "GraphQL::Hive::Analyzer" do
     analyzer = GraphQL::Hive::Analyzer.new(query)
     visitor = GraphQL::Analysis::AST::Visitor.new(
       query: query,
-      analyzers: [analyzer]
+      analyzers: [analyzer],
+      timeout: nil
     )
 
     visitor.visit

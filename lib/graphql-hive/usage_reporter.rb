@@ -108,7 +108,8 @@ module GraphQL
           analyzer = GraphQL::Hive::Analyzer.new(query)
           visitor = GraphQL::Analysis::AST::Visitor.new(
             query: query,
-            analyzers: [analyzer]
+            analyzers: [analyzer],
+            timeout: nil
           )
 
           result = visitor.visit
