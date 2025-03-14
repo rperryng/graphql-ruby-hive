@@ -3,27 +3,22 @@
 require "spec_helper"
 require "graphql-hive"
 
-RSpec.describe GraphQLHive::Client do
-  let(:logger) { Logger.new(nil) }
-
-  let(:client) {
-    described_class.new(
+RSpec.describe GraphQL::Hive::Client do
+  let(:options) do
+    {
       endpoint: "app.graphql-hive.com",
       port: 443,
       token: "Bearer test-token",
-      logger: logger
-    )
-  }
+      logger: Logger.new(nil)
+    }
+  end
+
+  let(:client) { described_class.new(options) }
   let(:body) { {size: 3, map: {}, operations: []} }
 
   describe "#initialize" do
     it "sets the instance" do
-      expect(client.instance_variable_get(:@port)).to eq("443")
-      expect(client.instance_variable_get(:@scheme)).to eq("https")
-      expect(client.instance_variable_get(:@host)).to eq("app.graphql-hive.com")
-      expect(client.instance_variable_get(:@token)).to eq("Bearer test-token")
-      expect(client.instance_variable_get(:@use_ssl)).to be true
-      expect(client.instance_variable_get(:@logger)).to eq(logger)
+      expect(client.instance_variable_get(:@options)).to eq(options)
     end
   end
 
@@ -57,9 +52,9 @@ RSpec.describe GraphQLHive::Client do
       expect(request).to receive(:[]=).with("Authorization", "Bearer test-token")
       expect(request).to receive(:[]=).with("X-Usage-API-Version", "2")
       expect(request).to receive(:[]=).with("content-type", "application/json")
-      expect(request).to receive(:[]=).with("User-Agent", "Hive@#{GraphQLHive::VERSION}")
+      expect(request).to receive(:[]=).with("User-Agent", "Hive@#{Graphql::Hive::VERSION}")
       expect(request).to receive(:[]=).with("graphql-client-name", "Hive Ruby Client")
-      expect(request).to receive(:[]=).with("graphql-client-version", GraphQLHive::VERSION)
+      expect(request).to receive(:[]=).with("graphql-client-version", Graphql::Hive::VERSION)
       expect(request).to receive(:body=).with(JSON.generate(body))
 
       client.send(:"/usage", body, :usage)
@@ -72,8 +67,8 @@ RSpec.describe GraphQLHive::Client do
 
     it "logs a fatal error when an exception is raised" do
       allow(http).to receive(:request).and_raise(StandardError.new("Network error"))
-      expect(logger).to receive(:fatal).with("Failed to send data: Network error")
-      client.send(:"/usage", body, :usage)
+      expect(options[:logger]).to receive(:fatal).with("Failed to send data: Network error")
+      expect { client.send(:"/usage", body, :usage) }.not_to raise_error(StandardError, "Network error")
     end
 
     context "when the response status code is between 400 and 499" do
@@ -91,7 +86,7 @@ RSpec.describe GraphQLHive::Client do
       end
 
       it "logs a warning with error details" do
-        expect(logger).to receive(:warn).with("Unsuccessful response: 400 - Bad Request { path: test1, message: Error message 1 }, { path: test2, message: Error message 2 }")
+        expect(options[:logger]).to receive(:warn).with("Unsuccessful response: 400 - Bad Request { path: test1, message: Error message 1 }, { path: test2, message: Error message 2 }")
         client.send(:"/usage", body, :usage)
       end
 
@@ -99,7 +94,7 @@ RSpec.describe GraphQLHive::Client do
         let(:response) { instance_double(Net::HTTPClientError, body: "Invalid JSON", code: "400", message: "Bad Request") }
 
         it "logs a warning without error details" do
-          expect(logger).to receive(:warn).with("Unsuccessful response: 400 - Bad Request Could not parse response from Hive")
+          expect(options[:logger]).to receive(:warn).with("Unsuccessful response: 400 - Bad Request Could not parse response from Hive")
           client.send(:"/usage", body, :usage)
         end
       end
@@ -108,7 +103,7 @@ RSpec.describe GraphQLHive::Client do
         let(:response) { instance_double(Net::HTTPClientError, body: "{}", code: "401", message: "Unauthorized") }
 
         it "logs a warning without error details" do
-          expect(logger).to receive(:warn).with("Unsuccessful response: 401 - Unauthorized ")
+          expect(options[:logger]).to receive(:warn).with("Unsuccessful response: 401 - Unauthorized ")
           client.send(:"/usage", body, :usage)
         end
       end

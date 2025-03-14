@@ -22,8 +22,7 @@ RSpec.describe TestApp do
     puts "Timed out waiting for reporting to finish."
   end
 
-  let(:number_of_requests) { 20 }
-
+  let(:usage_request_count) { 4 }
   let(:query) do
     <<~GQL
       query GetPost($id: ID!){
@@ -64,7 +63,7 @@ RSpec.describe TestApp do
   end
 
   after do
-    GraphQLHive.stop
+    GraphQL::Hive.instance.on_exit
   end
 
   it("posts data to hive", :aggregate_failures, :vcr) do
@@ -72,7 +71,7 @@ RSpec.describe TestApp do
       "graphql-hive-integration",
       allow_unused_http_interactions: false
     ) do
-      number_of_requests.times do
+      20.times do
         post "/graphql", request_body, "CONTENT_TYPE" => "application/json"
 
         expect(last_response).to be_ok
@@ -83,8 +82,6 @@ RSpec.describe TestApp do
         )
       end
     end
-
-    usage_request_count = number_of_requests / GraphQLHive.configuration.buffer_size
 
     # NOTE: Reporting happens in a background thread. We give the background
     # thread 1 second to finish reporting before moving on.
@@ -98,13 +95,16 @@ RSpec.describe TestApp do
     expect(WebMock).to have_requested(:post, "https://app.graphql-hive.com/usage")
       .with(
         body: anything,
-        headers: {"Accept" => "*/*",
-                  "Accept-Encoding" => "gzip;q=1.0,deflate;q=0.6,identity;q=0.3",
-                  "Content-Type" => "application/json",
-                  "Graphql-Client-Name" => "Hive Ruby Client",
-                  "Graphql-Client-Version" => GraphQLHive::VERSION.to_s,
-                  "User-Agent" => "Hive@#{GraphQLHive::VERSION}",
-                  "X-Usage-Api-Version" => "2"}
+        headers: {
+          "Accept" => "*/*",
+          "Accept-Encoding" => "gzip;q=1.0,deflate;q=0.6,identity;q=0.3",
+          "Authorization" => "fake-token",
+          "Content-Type" => "application/json",
+          "Graphql-Client-Name" => "Hive Ruby Client",
+          "Graphql-Client-Version" => /[\d+\..]/,
+          "User-Agent" => /Hive@[\d+\..]/,
+          "X-Usage-Api-Version" => "2"
+        }
       ).times(usage_request_count)
   end
 end

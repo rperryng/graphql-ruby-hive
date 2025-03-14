@@ -2,7 +2,7 @@
 
 require "spec_helper"
 
-RSpec.describe GraphQLHive::Sampling::DynamicSampler do
+RSpec.describe GraphQL::Hive::Sampling::DynamicSampler do
   let(:sampler_instance) { described_class.new(sampler, at_least_once, key_generator) }
   let(:sampler) { proc { |_sample_context| 0 } }
   let(:at_least_once) { false }

@@ -2,7 +2,7 @@
 
 require "spec_helper"
 
-RSpec.describe "GraphQLHive::Printer" do
+RSpec.describe "GraphQL::Hive::Printer" do
   let(:schema) do
     GraphQL::Schema.from_definition(%|
     """
@@ -70,7 +70,7 @@ RSpec.describe "GraphQLHive::Printer" do
       }
     GRAPHQL
 
-    expect(GraphQLHive::Printer.new.print(query.document)).to eq(expected_result)
+    expect(GraphQL::Hive::Printer.new.print(query.document)).to eq(expected_result)
   end
 
   context "with query containing inline and spread fragment selections" do
@@ -123,7 +123,7 @@ RSpec.describe "GraphQLHive::Printer" do
         }
       GRAPHQL
 
-      expect(GraphQLHive::Printer.new.print(query.document)).to eq(expected_result)
+      expect(GraphQL::Hive::Printer.new.print(query.document)).to eq(expected_result)
     end
   end
 end

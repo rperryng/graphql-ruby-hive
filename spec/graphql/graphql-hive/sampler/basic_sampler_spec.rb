@@ -2,7 +2,7 @@
 
 require "spec_helper"
 
-RSpec.describe GraphQLHive::Sampling::BasicSampler do
+RSpec.describe GraphQL::Hive::Sampling::BasicSampler do
   let(:sampler_instance) { described_class.new(sample_rate, at_least_once, key_generator) }
   let(:sample_rate) { 0 }
   let(:at_least_once) { false }

@@ -26,16 +26,16 @@ end
 class Schema < GraphQL::Schema
   query QueryType
 
-  trace_with(GraphQLHive::Trace)
-end
-
-GraphQLHive.configure do |config|
-  config.enabled = true
-  config.token = "fake-token"
-  config.collect_usage_sampling = {
-    sample_rate: 1
-  }
-  config.buffer_size = 5
+  use(
+    GraphQL::Hive,
+    enabled: true,
+    token: "fake-token",
+    report_schema: false,
+    collect_usage_sampling: {
+      sample_rate: 1
+    },
+    buffer_size: 5
+  )
 end
 
 class TestApp < Sinatra::Base
@@ -43,7 +43,7 @@ class TestApp < Sinatra::Base
     request.body.rewind
     params = JSON.parse(request.body.read)
     result = Schema.execute(
-      query: params["query"],
+      params["query"],
       variables: params["variables"],
       operation_name: params["operationName"],
       context: {
@@ -53,8 +53,5 @@ class TestApp < Sinatra::Base
     )
     content_type :json
     JSON.dump(result)
-  rescue => e
-    status 500
-    JSON.dump("errors" => [e.message])
   end
 end

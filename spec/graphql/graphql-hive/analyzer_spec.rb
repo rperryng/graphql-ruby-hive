@@ -2,10 +2,10 @@
 
 require "spec_helper"
 
-RSpec.describe "GraphQLHive::Analyzer" do
+RSpec.describe "GraphQL::Hive::Analyzer" do
   subject(:used_fields) do
     query = GraphQL::Query.new(schema, query_string)
-    analyzer = GraphQLHive::Analyzer.new(query)
+    analyzer = GraphQL::Hive::Analyzer.new(query)
     visitor = GraphQL::Analysis::AST::Visitor.new(
       query: query,
       analyzers: [analyzer]

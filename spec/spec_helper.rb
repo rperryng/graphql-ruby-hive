@@ -6,8 +6,6 @@ require "graphql"
 require "graphql-hive"
 require "vcr"
 require "webmock/rspec"
-require "super_diff/rspec"
-require "timecop"
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
@@ -18,10 +16,6 @@ RSpec.configure do |config|
 
   config.expect_with :rspec do |c|
     c.syntax = :expect
-  end
-
-  config.before(:each) do
-    WebMock.reset!
   end
 end
 
